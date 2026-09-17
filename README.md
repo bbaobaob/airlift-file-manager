@@ -1,3 +1,10 @@
+# airlift-file-manager
+Standalone iOS AirLift File Manager — SwiftUI app with AirLift activation verification and advanced file browser; builds unsigned IPA via GitHub Actions
+
+> Preserved from origin/main (Initial commit bd05119) on merge — kept verbatim, no deletion.
+
+---
+
 # AirLift File Manager — Companion Viewer + Sandbox Demo (Honest Scaffold)
 
 > **No on-device exploit.** This app does NOT jailbreak, escalate sandbox, or access `/var/mobile/*` on-device.
