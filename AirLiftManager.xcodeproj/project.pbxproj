@@ -1,0 +1,258 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+		C0EBED2EEEFF017FBD7BBB86 /* AirLiftManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F873C338CA8F070D988FFBAA /* AirLiftManagerApp.swift */; };
+		FFC55DA54B6446A174382ACE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 71EB4A83F07B27664D94D6AB /* ContentView.swift */; };
+		62FC6A1CA7F588772D8F7DF5 /* ActivationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6D479DC159300E32E32BF35 /* ActivationState.swift */; };
+		FE7A8D5BC13BBCAE4237AD87 /* ActivationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D430666F86C3CA416FB243 /* ActivationManager.swift */; };
+		EA30B4701C23F4650954F4F5 /* TetherResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = E338956BD606E54A3EEE7C4A /* TetherResult.swift */; };
+		E32E0E707F19005AD093F7AA /* FileSystemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 741232A717A33CAA82D71C18 /* FileSystemService.swift */; };
+		991FDDB5EA9E2A1F09ECA5BE /* SandboxFileSystemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E61E7C8EFC01B3B4920E42 /* SandboxFileSystemService.swift */; };
+		5AB75395438911D1FE07F0DE /* TetheredReadOnlyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7A3B9A6D8AF66069D966FD1 /* TetheredReadOnlyService.swift */; };
+		C522A0A2A108295CE2FF535E /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1EB1B858DC7CAF6D0DAEDE1 /* Logger.swift */; };
+		B25D7155AE0E1AD8E75B058C /* ActivationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D76D41FE5F9E7834FA2EC32 /* ActivationView.swift */; };
+		4624A34DC43953EDCC747EF2 /* ActivationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 808FD8B792B49AE53FDFF4C4 /* ActivationViewModel.swift */; };
+		D5B4887FB6180AFFC2DFA195 /* FilesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3D686B736742D0832BCC03 /* FilesView.swift */; };
+		E44CA6893AA5198BA3D4C17D /* FilesViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCBBB066ED0D6667327968AA /* FilesViewModel.swift */; };
+		F873C338CA8F070D988FFBAA /* AirLiftManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/App/AirLiftManagerApp.swift"; sourceTree = SOURCE_ROOT; };
+		71EB4A83F07B27664D94D6AB /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/App/ContentView.swift"; sourceTree = SOURCE_ROOT; };
+		C6D479DC159300E32E32BF35 /* ActivationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Core/Activation/ActivationState.swift"; sourceTree = SOURCE_ROOT; };
+		32D430666F86C3CA416FB243 /* ActivationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Core/Activation/ActivationManager.swift"; sourceTree = SOURCE_ROOT; };
+		E338956BD606E54A3EEE7C4A /* TetherResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Core/Activation/TetherResult.swift"; sourceTree = SOURCE_ROOT; };
+		741232A717A33CAA82D71C18 /* FileSystemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Core/FileSystem/FileSystemService.swift"; sourceTree = SOURCE_ROOT; };
+		53E61E7C8EFC01B3B4920E42 /* SandboxFileSystemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Core/FileSystem/SandboxFileSystemService.swift"; sourceTree = SOURCE_ROOT; };
+		E7A3B9A6D8AF66069D966FD1 /* TetheredReadOnlyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Core/FileSystem/TetheredReadOnlyService.swift"; sourceTree = SOURCE_ROOT; };
+		A1EB1B858DC7CAF6D0DAEDE1 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Core/Logging/Logger.swift"; sourceTree = SOURCE_ROOT; };
+		7D76D41FE5F9E7834FA2EC32 /* ActivationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Features/Activation/ActivationView.swift"; sourceTree = SOURCE_ROOT; };
+		808FD8B792B49AE53FDFF4C4 /* ActivationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Features/Activation/ActivationViewModel.swift"; sourceTree = SOURCE_ROOT; };
+		AC3D686B736742D0832BCC03 /* FilesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Features/Files/FilesView.swift"; sourceTree = SOURCE_ROOT; };
+		DCBBB066ED0D6667327968AA /* FilesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AirLiftManager/Features/Files/FilesViewModel.swift"; sourceTree = SOURCE_ROOT; };
+		A10000000000000000000003 /* AirLiftManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AirLiftManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000010 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000004 /* Project object */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000005 /* AirLiftManager */,
+				A10000000000000000000008 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A10000000000000000000005 /* AirLiftManager */ = {
+			isa = PBXGroup;
+			children = (
+				F873C338CA8F070D988FFBAA /* AirLiftManagerApp.swift */,
+				71EB4A83F07B27664D94D6AB /* ContentView.swift */,
+				C6D479DC159300E32E32BF35 /* ActivationState.swift */,
+				32D430666F86C3CA416FB243 /* ActivationManager.swift */,
+				E338956BD606E54A3EEE7C4A /* TetherResult.swift */,
+				741232A717A33CAA82D71C18 /* FileSystemService.swift */,
+				53E61E7C8EFC01B3B4920E42 /* SandboxFileSystemService.swift */,
+				E7A3B9A6D8AF66069D966FD1 /* TetheredReadOnlyService.swift */,
+				A1EB1B858DC7CAF6D0DAEDE1 /* Logger.swift */,
+				7D76D41FE5F9E7834FA2EC32 /* ActivationView.swift */,
+				808FD8B792B49AE53FDFF4C4 /* ActivationViewModel.swift */,
+				AC3D686B736742D0832BCC03 /* FilesView.swift */,
+				DCBBB066ED0D6667327968AA /* FilesViewModel.swift */,
+			);
+			path = AirLiftManager;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000008 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000003 /* AirLiftManager.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000011 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000009 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C0EBED2EEEFF017FBD7BBB86 /* AirLiftManagerApp.swift in Sources */,
+				FFC55DA54B6446A174382ACE /* ContentView.swift in Sources */,
+				62FC6A1CA7F588772D8F7DF5 /* ActivationState.swift in Sources */,
+				FE7A8D5BC13BBCAE4237AD87 /* ActivationManager.swift in Sources */,
+				EA30B4701C23F4650954F4F5 /* TetherResult.swift in Sources */,
+				E32E0E707F19005AD093F7AA /* FileSystemService.swift in Sources */,
+				991FDDB5EA9E2A1F09ECA5BE /* SandboxFileSystemService.swift in Sources */,
+				5AB75395438911D1FE07F0DE /* TetheredReadOnlyService.swift in Sources */,
+				C522A0A2A108295CE2FF535E /* Logger.swift in Sources */,
+				B25D7155AE0E1AD8E75B058C /* ActivationView.swift in Sources */,
+				4624A34DC43953EDCC747EF2 /* ActivationViewModel.swift in Sources */,
+				D5B4887FB6180AFFC2DFA195 /* FilesView.swift in Sources */,
+				E44CA6893AA5198BA3D4C17D /* FilesViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000002 /* AirLiftManager */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000013 /* Build configuration list for PBXNativeTarget "AirLiftManager" */;
+			buildPhases = (
+				A10000000000000000000009 /* Sources */,
+				A10000000000000000000010 /* Frameworks */,
+				A10000000000000000000011 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AirLiftManager;
+			productName = AirLiftManager;
+			productReference = A10000000000000000000003 /* AirLiftManager.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A10000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A10000000000000000000002 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A10000000000000000000012 /* Build configuration list for PBXProject "AirLiftManager" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A10000000000000000000004;
+			productRefGroup = A10000000000000000000008 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A10000000000000000000002 /* AirLiftManager */,
+			);
+		};
+		A10000000000000000000014 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A10000000000000000000015 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		A10000000000000000000016 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.airliftmanager;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		A10000000000000000000017 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGNING_ALLOWED = NO;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.airliftmanager;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A10000000000000000000012 /* Build configuration list for PBXProject "AirLiftManager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000014 /* Debug */,
+				A10000000000000000000015 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A10000000000000000000013 /* Build configuration list for PBXNativeTarget "AirLiftManager" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000016 /* Debug */,
+				A10000000000000000000017 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+	};
+	rootObject = A10000000000000000000001 /* Project object */;
+}

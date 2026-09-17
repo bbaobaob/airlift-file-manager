@@ -1,0 +1,28 @@
+name: build-unsigned-ipa
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16*.app/Contents/Developer || sudo xcode-select -p
+      - name: Show versions
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Build (unsigned)
+        run: |
+          chmod +x Scripts/export-ipa.sh Scripts/verify_ipa.sh
+          ./Scripts/export-ipa.sh
+      - name: Verify IPA
+        run: ./Scripts/verify_ipa.sh build/AirLiftManager-unsigned.ipa
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AirLiftManager-unsigned
+          path: build/AirLiftManager-unsigned.ipa
