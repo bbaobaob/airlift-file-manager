@@ -8,7 +8,7 @@ struct LocalDevVPNSection: View {
     let onRefresh: () -> Void
 
     var body: some View {
-        Section("LocalDevVPN Status") {
+        Section {
             HStack {
                 Image(systemName: icon)
                     .foregroundStyle(color)
@@ -38,6 +38,8 @@ struct LocalDevVPNSection: View {
                 Label(project, systemImage: "link")
                     .font(.caption2)
             }
+        } header: {
+            Text("LocalDevVPN Status")
         } footer: {
             Text("Endpoint probed: 10.7.0.1:62078 (lockdown). A TCP connect is a real reachability check — no state is faked.")
         }
