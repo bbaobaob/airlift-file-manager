@@ -3,7 +3,6 @@ import UniformTypeIdentifiers
 
 struct FilesView: View {
     @StateObject private var model: FilesViewModel
-    @EnvironmentObject private var permission: PermissionService
 
     // Sheets & flows
     @State private var showNewFolderAlert = false
@@ -20,8 +19,7 @@ struct FilesView: View {
     @State private var zipMetadataFile: URL?
 
     init(service: FileSystemService,
-         operations: FileOperationManager,
-         permission: PermissionService) {
+         operations: FileOperationManager) {
         _model = StateObject(wrappedValue: FilesViewModel(service: service,
                                                           operations: operations))
     }

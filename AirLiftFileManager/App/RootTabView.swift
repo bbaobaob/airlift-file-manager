@@ -12,8 +12,7 @@ struct RootTabView: View {
                     Label("AirLift", systemImage: "airplane.departure")
                 }
             FilesView(service: appState.fileSystem,
-                      operations: appState.operations,
-                      permission: appState.permission)
+                      operations: appState.operations)
                 .tabItem {
                     Label("Files", systemImage: "folder")
                 }
