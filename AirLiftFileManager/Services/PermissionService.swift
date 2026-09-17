@@ -7,7 +7,7 @@ struct PermissionService {
     static let probedPaths = AppConstants.AirLift.verifiedWriteScope
 
     func probeAll() -> [DirectoryAccessReport] {
-        probedPaths.map { probe(path: $0) }
+        Self.probedPaths.map { probe(path: $0) }
     }
 
     func probe(path: String) -> DirectoryAccessReport {

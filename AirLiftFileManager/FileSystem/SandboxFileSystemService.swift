@@ -30,14 +30,12 @@ struct SandboxFileSystemService: FileSystemService {
                 at: url,
                 includingPropertiesForKeys: [.isDirectoryKey, .fileSizeKey,
                                              .contentModificationDateKey,
-                                             .creationDateKey, .isHiddenKey,
-                                             .filePermissionsKey],
+                                             .creationDateKey, .isHiddenKey],
                 options: [])
             for child in contents {
                 let values = try? child.resourceValues(forKeys: [.isDirectoryKey, .fileSizeKey,
                                                                  .contentModificationDateKey,
-                                                                 .creationDateKey, .isHiddenKey,
-                                                                 .filePermissionsKey])
+                                                                 .creationDateKey, .isHiddenKey])
                 let hidden = values?.isHidden ?? child.lastPathComponent.hasPrefix(".")
                 if hidden && !includeHidden { continue }
                 items.append(FileItem(
@@ -46,7 +44,7 @@ struct SandboxFileSystemService: FileSystemService {
                     size: Int64(values?.fileSize ?? 0),
                     modificationDate: values?.contentModificationDate,
                     creationDate: values?.creationDate,
-                    posixPermissions: values.flatMap { $0.filePermissions }.map { Int($0) },
+                    posixPermissions: nil,
                     isHidden: hidden))
             }
         } catch let error as FileSystemError {
@@ -222,7 +220,7 @@ struct SandboxFileSystemService: FileSystemService {
             return .notFound(path)
         case NSFileWriteNoPermissionError, NSFileReadNoPermissionError:
             return .permissionDenied(path)
-        case NSFileWriteFileExistsError, NSFileWriteAlreadyExistsError:
+        case NSFileWriteFileExistsError:
             return .alreadyExists(path)
         default:
             return .underlying(nsError.localizedDescription)
