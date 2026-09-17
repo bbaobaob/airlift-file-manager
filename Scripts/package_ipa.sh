@@ -4,10 +4,20 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/build"
-APP="${1:-$(find "$OUT/DerivedData/Build/Products" -name "AirLiftFileManager.app" -type d | head -n 1)}"
+APP="${1:-$OUT/DerivedData/Build/Products/Release-iphoneos/AirLiftFileManager.app}"
 IPA="$OUT/AirLiftFileManager-unsigned.ipa"
 
 test -d "$APP" || { echo "ERROR: .app not found: $APP"; exit 1; }
+
+# Platform guard: never package a simulator build.
+BIN="$APP/AirLiftFileManager"
+if command -v vtool >/dev/null; then
+  if vtool -show-build "$BIN" | grep -qiE "simulator"; then
+    echo "ERROR: $APP contains a SIMULATOR binary — refusing to package."
+    exit 1
+  fi
+  vtool -show-build "$BIN" | grep -iE "platform|minos|sdk" | sed 's/^/[package] /'
+fi
 
 # Guard: refuse to ship a signed bundle (spec: unsigned IPA only).
 if [ -d "$APP/_CodeSignature" ]; then

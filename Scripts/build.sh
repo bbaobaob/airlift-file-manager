@@ -23,7 +23,11 @@ xcodebuild -project "$ROOT/AirLiftFileManager.xcodeproj" \
   CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" DEVELOPMENT_TEAM="" \
   build
 
-APP="$(find "$OUT/DerivedData/Build/Products" -name "$APP_NAME.app" -type d | head -n 1)"
+# Deterministic path: the device build must come from Release-iphoneos.
+# (Do NOT fuzzy-find: after simulator test runs, Products also contains a
+# Debug-iphonesimulator app — packaging that one makes the IPA crash at launch
+# with "incompatible platform (have 'iOS-simulator', need 'iOS')".)
+APP="$OUT/DerivedData/Build/Products/Release-iphoneos/$APP_NAME.app"
 test -d "$APP" || { echo "ERROR: .app not found after build"; exit 1; }
 echo "[build] Built app: $APP"
 

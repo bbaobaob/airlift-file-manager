@@ -1,0 +1,114 @@
+{"app_name":"AirLiftFileManager","timestamp":"2026-09-18 06:11:27.00 +0700","app_version":"","slice_uuid":"ab2e1c96-c5a2-3233-8628-4f7f3b8f079b","build_version":"","platform":2,"bundleID":"com.bbaobaob.airliftfilemanager","share_with_app_devs":1,"is_first_party":0,"bug_type":"309","os_version":"iPhone OS 27.0 (24A5390f)","roots_installed":0,"name":"AirLiftFileManager","incident_id":"8496074A-D6CE-4297-95A8-BA1EA549AB85"}
+{
+  "uptime" : 270000,
+  "procRole" : "Foreground",
+  "version" : 2,
+  "userID" : 501,
+  "deployVersion" : 210,
+  "modelCode" : "iPhone12,5",
+  "coalitionID" : 5713,
+  "osVersion" : {
+    "isEmbedded" : true,
+    "train" : "iPhone OS 27.0",
+    "releaseType" : "Beta",
+    "build" : "24A5390f"
+  },
+  "captureTime" : "2026-09-18 06:11:27.1628 +0700",
+  "codeSigningMonitor" : 2,
+  "incident" : "8496074A-D6CE-4297-95A8-BA1EA549AB85",
+  "pid" : 30977,
+  "translated" : false,
+  "cpuType" : "ARM-64",
+  "procLaunch" : "2026-09-18 06:11:27.0988 +0700",
+  "procStartAbsTime" : 6531994274608,
+  "procExitAbsTime" : 6531994475290,
+  "procName" : "AirLiftFileManager",
+  "procPath" : "\/private\/var\/containers\/Bundle\/Application\/B0CACC8C-295E-47B1-BD00-4F5CE979BE6F\/AirLiftFileManager.app\/AirLiftFileManager",
+  "bundleInfo" : {"CFBundleIdentifier":"com.bbaobaob.airliftfilemanager"},
+  "storeInfo" : {"deviceIdentifierForVendor":"679F4E61-34FE-44A8-8F8D-513FA882A585","thirdParty":true},
+  "parentProc" : "launchd",
+  "parentPid" : 1,
+  "coalitionName" : "com.bbaobaob.airliftfilemanager",
+  "crashReporterKey" : "15f59242e0419ffa9f7be163ac25166572eb3f42",
+  "developerMode" : 1,
+  "bootProgressRegister" : "0x20800004",
+  "wasUnlockedSinceBoot" : 1,
+  "isLocked" : 0,
+  "codeSigningID" : "com.bbaobaob.airliftfilemanager",
+  "codeSigningTeamID" : "DZNQ8CR9C8",
+  "codeSigningFlags" : 570434305,
+  "codeSigningValidationCategory" : 5,
+  "codeSigningTrustLevel" : 4,
+  "codeSigningAuxiliaryInfo" : 9007199254740992,
+  "instructionByteStream" : {"beforePC":"eAIAALACAABQAgAAaAMAAMwBAADQAgAAHAAAAPwAAAAwQYDSARAA1A==","atPC":"AwEAVH8jA9X9e7+p\/QMAkRc\/\/5e\/AwCR\/XvBqP8PX9bAA1\/WEC2A0g=="},
+  "bootSessionUUID" : "58C7AF97-573C-4D33-8805-AC6509E4B0DA",
+  "basebandVersion" : "7.50.02",
+  "exception" : {"codes":"0x0000000000000000, 0x0000000000000000","rawCodes":[0,0],"type":"EXC_CRASH","signal":"SIGABRT"},
+  "termination" : {"code":1,"flags":518,"namespace":"DYLD","indicator":"Library missing","details":["(terminated at launch; ignore backtrace)"],"reasons":["Library not loaded: @rpath\/AirLiftFileManager.debug.dylib","Referenced from: <AB2E1C96-C5A2-3233-8628-4F7F3B8F079B> \/Volumes\/VOLUME\/*\/AirLiftFileManager.app\/AirLiftFileManager","Reason: tried: '\/Volumes\/VOLUME\/*\/AirLiftFileManager.app\/AirLiftFileManager.debug.dylib' (mach-o file (\/Volumes\/VOLUME\/*\/AirLiftFileManager.app\/AirLiftFileManager.debug.dylib), but incompatible platform (have 'iOS-simulator', need 'iOS')), '\/private\/var\/containers\/Bundle\/Application\/B0CACC8C-295E-47B1-BD00-4F5CE979BE6F\/AirLiftFileManager.app\/Frameworks\/AirLiftFileManager.debug.dylib' (no such file), '\/Volumes\/VOLUME\/*\/AirLiftFileManager.app\/AirLiftFileManager.debug.dylib' (mach-o file (\/private\/var\/containers\/Bundle\/Application\/B0CACC8C-295E-47B1-BD00-4F5CE979BE6F\/AirLiftFileManager.app\/Air"]},
+  "faultingThread" : 0,
+  "threads" : [{"triggered":true,"id":2643312,"threadState":{"x":[{"value":6},{"value":1},{"value":6103933552},{"value":180},{"value":6103932528},{"value":0},{"value":99},{"value":0},{"value":32},{"value":253},{"value":7},{"value":15},{"value":3346848967780360525},{"value":32},{"value":8},{"value":4364320768},{"value":521},{"value":6103932048},{"value":0},{"value":0},{"value":6103932528},{"value":180},{"value":6103933552},{"value":1},{"value":6},{"value":0},{"value":0},{"value":1},{"value":6103936376}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6833275288},"cpsr":{"value":0},"fp":{"value":6103932480},"sp":{"value":6103932416},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":6832981708,"matchesCrashFrame":1},"far":{"value":0}},"frames":[{"imageOffset":353996,"symbol":"__abort_with_payload","symbolLocation":8,"imageIndex":1},{"imageOffset":647576,"symbol":"abort_with_payload_wrapper_internal","symbolLocation":104,"imageIndex":1},{"imageOffset":647628,"symbol":"abort_with_payload","symbolLocation":16,"imageIndex":1},{"imageOffset":332700,"symbol":"dyld4::halt(char const*, dyld4::StructuredError const*)","symbolLocation":168,"imageIndex":1},{"imageOffset":67920,"symbol":"dyld4::prepare(dyld4::APIs&, mach_o::UnsafeHeader const*)","symbolLocation":2784,"imageIndex":1},{"imageOffset":130276,"symbol":"dyld4::start(dyld4::KernelArgs*, void*, void*, unsigned long long)::$_1::operator()() const","symbolLocation":320,"imageIndex":1},{"imageOffset":21972,"symbol":"start","symbolLocation":6524,"imageIndex":1}]}],
+  "usedImages" : [
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4362944512,
+    "size" : 16384,
+    "uuid" : "ab2e1c96-c5a2-3233-8628-4f7f3b8f079b",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/B0CACC8C-295E-47B1-BD00-4F5CE979BE6F\/AirLiftFileManager.app\/AirLiftFileManager",
+    "name" : "AirLiftFileManager"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6832627712,
+    "size" : 749936,
+    "uuid" : "5fd0ed6b-d314-3392-aa82-91c9fc014422",
+    "path" : "\/usr\/lib\/dyld",
+    "name" : "dyld"
+  },
+  {
+    "size" : 0,
+    "source" : "A",
+    "base" : 0,
+    "uuid" : "00000000-0000-0000-0000-000000000000"
+  }
+],
+  "sharedCache" : {
+  "base" : 6827900928,
+  "size" : 6369116160,
+  "uuid" : "ed7b00fd-1332-37dc-ae78-cefdf2223784"
+},
+  "vmSummary" : "ReadOnly portion of Libraries: Total=642.4M resident=0K(0%) swapped_out_or_unallocated=642.4M(100%)\nWritable regions: Total=2161K written=97K(4%) resident=97K(4%) swapped_out=0K(0%) unallocated=2064K(96%)\n\n                                VIRTUAL   REGION \nREGION TYPE                        SIZE    COUNT (non-coalesced) \n===========                     =======  ======= \nDyld Private Memory               1040K        2 \nGuard                            385.0G        1 \nStack                             1008K        1 \nStack Guard                         16K        1 \nUntagged (reserved)                 12K        1         reserved VM address space (unallocated)\n__AUTH_CONST                        10K        1 \n__DATA                              20K        2 \n__DATA_CONST                        37K        2 \n__DATA_DIRTY                        12K        1 \n__LINKEDIT                       641.7M        3 \n__TEXT                             752K        2 \n__TPRO_CONST                       128K        1 \npage table in kernel                97K        1 \n===========                     =======  ======= \nTOTAL                            385.6G       19 \nTOTAL, minus reserved VM space   385.6G       19 \n",
+  "legacyInfo" : {
+  "threadTriggered" : {
+
+  }
+},
+  "logWritingSignature" : "060f7e3616c72d9db6640e899fbb14de5d03aacf",
+  "bug_type" : "309",
+  "roots_installed" : 0,
+  "trmStatus" : 1,
+  "sandboxProfileName" : "container",
+  "spawnFlags" : 17932,
+  "trialInfo" : {
+  "rollouts" : [
+    {
+      "rolloutId" : "652eff3d1bce5442b8d753c9",
+      "factorPackIds" : [
+        "652eff982c02f032beae83f4"
+      ],
+      "deploymentId" : 250000005
+    },
+    {
+      "rolloutId" : "6081ed9716bb6d61d81d5014",
+      "factorPackIds" : [
+        "6aa6ce5de8599f510bd7b38a"
+      ],
+      "deploymentId" : 250004167
+    }
+  ],
+  "experiments" : [
+
+  ]
+}
+}

@@ -5,7 +5,6 @@ set -euo pipefail
 IPA="${1:-build/AirLiftFileManager-unsigned.ipa}"
 echo "[verify] IPA: $IPA"
 test -f "$IPA" || { echo "ERROR: IPA not found: $IPA"; exit 1; }
-
 echo "--- unzip listing ---"
 unzip -l "$IPA" | head -n 25
 
@@ -19,6 +18,16 @@ echo "--- binary + bundle checks ---"
 BIN="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist" 2>/dev/null || plutil -extract CFBundleExecutable raw "$APP/Info.plist")"
 test -f "$APP/$BIN" || { echo "ERROR: main executable missing"; exit 1; }
 file "$APP/$BIN"
+
+if command -v vtool >/dev/null; then
+  echo "--- Mach-O platform (must be iOS, not iOS-simulator) ---"
+  BUILD_INFO="$(vtool -show-build "$APP/$BIN")"
+  echo "$BUILD_INFO" | grep -iE "platform|minos|sdk"
+  if echo "$BUILD_INFO" | grep -qiE "simulator"; then
+    echo "ERROR: simulator binary inside IPA — this is the launch-crash cause."
+    exit 1
+  fi
+fi
 
 if [ -d "$APP/_CodeSignature" ]; then
   echo "SIGNING: _CodeSignature present"
