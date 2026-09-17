@@ -1,4 +1,5 @@
 name: build-unsigned-ipa
+
 on:
   push:
     branches: [main, master]
@@ -9,20 +10,29 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+
       - name: Select Xcode 16
         run: sudo xcode-select -s /Applications/Xcode_16*.app/Contents/Developer || sudo xcode-select -p
+
       - name: Show versions
         run: |
           xcodebuild -version
           swift --version
-      - name: Build (unsigned)
+          xcrun simctl list devices available | grep -m5 iPhone || true
+
+      - name: Run unit tests (iOS Simulator)
         run: |
-          chmod +x Scripts/export-ipa.sh Scripts/verify_ipa.sh
-          ./Scripts/export-ipa.sh
+          chmod +x Scripts/*.sh
+          ./Scripts/run-tests.sh
+
+      - name: Build unsigned IPA
+        run: ./Scripts/build.sh
+
       - name: Verify IPA
-        run: ./Scripts/verify_ipa.sh build/AirLiftManager-unsigned.ipa
-      - name: Upload artifact
+        run: ./Scripts/verify_ipa.sh build/AirLiftFileManager-unsigned.ipa
+
+      - name: Upload unsigned IPA artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AirLiftManager-unsigned
-          path: build/AirLiftManager-unsigned.ipa
+          name: AirLiftFileManager-unsigned
+          path: build/AirLiftFileManager-unsigned.ipa

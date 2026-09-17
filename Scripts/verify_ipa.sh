@@ -1,21 +1,43 @@
 #!/bin/bash
-# Verify unsigned IPA contents. No fake log: shows real unzip + codesign output.
+# Verify IPA structure and signing state. Prints REAL codesign/plutil output.
 # Usage: ./Scripts/verify_ipa.sh [path/to/.ipa]
 set -euo pipefail
-IPA="${1:-build/AirLiftManager-unsigned.ipa}"
+IPA="${1:-build/AirLiftFileManager-unsigned.ipa}"
 echo "[verify] IPA: $IPA"
 test -f "$IPA" || { echo "ERROR: IPA not found: $IPA"; exit 1; }
-echo "--- unzip -l ---"
-unzip -l "$IPA"
-echo "--- Payload check ---"
+
+echo "--- unzip listing ---"
+unzip -l "$IPA" | head -n 25
+
 TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 unzip -q "$IPA" -d "$TMP"
-APP="$(find "$TMP" -name "*.app" -maxdepth 3 | head -n 1)"
-echo "App: $APP"
-ls -la "$APP"
-echo "--- codesign -d (expected: unsigned / no signature) ---"
+APP="$(find "$TMP" -name "*.app" -maxdepth 3 -type d | head -n 1)"
+test -d "$APP" || { echo "ERROR: no .app inside IPA"; exit 1; }
+
+echo "--- binary + bundle checks ---"
+BIN="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist" 2>/dev/null || plutil -extract CFBundleExecutable raw "$APP/Info.plist")"
+test -f "$APP/$BIN" || { echo "ERROR: main executable missing"; exit 1; }
+file "$APP/$BIN"
+
+if [ -d "$APP/_CodeSignature" ]; then
+  echo "SIGNING: _CodeSignature present"
+else
+  echo "SIGNING: no _CodeSignature (unsigned bundle)"
+fi
+if [ -f "$APP/embedded.mobileprovision" ]; then
+  echo "SIGNING: embedded.mobileprovision present"
+else
+  echo "SIGNING: no embedded.mobileprovision"
+fi
+
+echo "--- codesign -d (expected: code object is not signed) ---"
 codesign -d "$APP" 2>&1 || true
-echo "--- Info.plist Bundle ID ---"
-/usr/libexec/PlistBuddy -c "Print CFBundleIdentifier" "$APP/Info.plist" 2>&1 || plutil -p "$APP/Info.plist" 2>&1 | head -n 20 || true
-rm -rf "$TMP"
+
+echo "--- bundle identity ---"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist" 2>/dev/null \
+  || plutil -extract CFBundleIdentifier raw "$APP/Info.plist"
+/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP/Info.plist" 2>/dev/null \
+  || plutil -extract CFBundleDisplayName raw "$APP/Info.plist" || true
+
 echo "[verify] done"
