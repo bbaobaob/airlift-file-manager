@@ -26,7 +26,7 @@ struct AirLiftService: AirLiftProbing {
     func probe() async -> AirLiftProbeResult {
         AppLogger.airLift.info("Probe started")
         let tunnelUp = await tunnelProbe()
-        AppLogger.airLift.info("Tunnel probe result: \(tunnelUp ? "reachable" : "unreachable", privacy: .public)")
+        AppLogger.airLift.info("Tunnel probe result: \(tunnelUp ? "reachable" : "unreachable")")
 
         if tunnelUp {
             return .unsupported(reason:
