@@ -359,7 +359,8 @@ enum ZipArchive {
     }
 }
 
-private extension Data {
+/// Little-endian helpers, also used by tests that craft synthetic archives.
+extension Data {
     mutating func appendLE(_ value: UInt16) {
         append(UInt8(value & 0xFF)); append(UInt8(value >> 8))
     }
