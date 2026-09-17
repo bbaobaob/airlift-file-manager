@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct AirLiftView: View {
     @EnvironmentObject private var activation: ActivationManager
@@ -15,6 +16,8 @@ struct AirLiftView: View {
                                background: model.tunnelBackground,
                                isProbing: model.isProbingTunnel,
                                onRefresh: { Task { await model.probeTunnel() } })
+            lockdownSection
+            pairingSection
             capabilitiesSection
                 scopeSection
                 versionSection
@@ -32,6 +35,13 @@ struct AirLiftView: View {
             }
             .sheet(isPresented: $showingLogs) {
                 NavigationStack { AirLiftLogView() }
+            }
+            .fileImporter(isPresented: $model.showPairingImporter,
+                          allowedContentTypes: [.propertyList, .data],
+                          allowsMultipleSelection: false) { result in
+                if case .success(let urls) = result, let url = urls.first {
+                    Task { await model.importPairing(from: url) }
+                }
             }
             .task {
                 model.refreshAccessReports()
@@ -109,6 +119,80 @@ struct AirLiftView: View {
             .disabled(activation.isBusy)
         } footer: {
             Text("Activation state is always re-verified against the real environment on launch. A stored flag is never treated as proof that AirLift is active.")
+        }
+    }
+
+    private var lockdownSection: some View {
+        Section {
+            HStack {
+                Image(systemName: model.lockdownResult?.reachable == true ? "lock.open.circle.fill" : "lock.circle")
+                    .foregroundStyle(model.lockdownResult?.reachable == true ? Color.green : Color.secondary)
+                Text(lockdownTitle)
+                    .font(.subheadline.weight(.semibold))
+                Spacer()
+                if model.isProbingLockdown {
+                    ProgressView()
+                } else {
+                    Button {
+                        Task { await model.probeLockdown() }
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .accessibilityLabel("Probe lockdown")
+                }
+            }
+            Text(lockdownDetail)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        } header: {
+            Text("Lockdown (on-device via tunnel)")
+        } footer: {
+            Text("Real lockdown plist exchange (QueryType/GetValue) over 10.7.0.1:62078 — the transport StikPair-class tools use and the on-device hop of the AirLift chain.")
+        }
+    }
+
+    private var lockdownTitle: String {
+        if model.isProbingLockdown { return "Probing…" }
+        guard let result = model.lockdownResult else { return "Not probed" }
+        return result.reachable ? "Lockdown reached" : "Lockdown unreachable"
+    }
+
+    private var lockdownDetail: String {
+        guard let result = model.lockdownResult else {
+            return "Connect LocalDevVPN, then probe. A successful exchange shows live device facts below."
+        }
+        guard result.reachable else {
+            return result.error ?? "Connection failed."
+        }
+        var lines = ["QueryType: \(result.queryType ?? "?")"]
+        if let v = result.productVersion { lines.append("iOS \(v)") }
+        if let p = result.productType { lines.append("\(p)") }
+        return lines.joined(separator: " · ")
+    }
+
+    private var pairingSection: some View {
+        Section {
+            Text(model.pairingStatus)
+                .font(.footnote)
+            Button {
+                model.showPairingImporter = true
+            } label: {
+                Label(PairingRecordService.hasStoredPairing()
+                      ? "Replace Pairing File" : "Import Pairing File",
+                      systemImage: "key.horizontal")
+            }
+            if PairingRecordService.hasStoredPairing() {
+                Button(role: .destructive) {
+                    PairingRecordService.removePairing()
+                    model.pairingStatus = "Pairing record removed."
+                } label: {
+                    Label("Remove Pairing Record", systemImage: "key.slash")
+                }
+            }
+        } header: {
+            Text("Pairing (StikPair-style, on-device)")
+        } footer: {
+            Text("Pair on-device with StikPair (Developer Mode → Pair with StikPair on iOS 27), export the pairing file, then import it here. The record enables trusted lockdown services (e.g. com.apple.afc) in a later build.")
         }
     }
 

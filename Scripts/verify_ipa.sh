@@ -37,6 +37,12 @@ codesign -d "$APP" 2>&1 || true
 echo "--- bundle identity ---"
 /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist" 2>/dev/null \
   || plutil -extract CFBundleIdentifier raw "$APP/Info.plist"
+echo "MinimumOSVersion: $(/usr/libexec/PlistBuddy -c 'Print :MinimumOSVersion' "$APP/Info.plist" 2>/dev/null || echo 'not set')"
+BIN_MACHO="$APP/$BIN"
+if command -v vtool >/dev/null; then
+  echo "--- Mach-O build version (LC_BUILD_VERSION) ---"
+  vtool -show-build "$BIN_MACHO" | grep -E "minos|sdk" || true
+fi
 /usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$APP/Info.plist" 2>/dev/null \
   || plutil -extract CFBundleDisplayName raw "$APP/Info.plist" || true
 

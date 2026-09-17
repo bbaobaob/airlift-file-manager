@@ -7,12 +7,17 @@ on:
 
 jobs:
   build:
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
-      - name: Select Xcode 16
-        run: sudo xcode-select -s /Applications/Xcode_16*.app/Contents/Developer || sudo xcode-select -p
+      - name: Select newest Xcode 26 (SDK 26.x — newest available; Xcode 27 not on runners yet)
+        run: |
+          XCODE_DIR="$(ls -d /Applications/Xcode_26.*.app 2>/dev/null | sort -V | tail -1)"
+          echo "Selected: $XCODE_DIR"
+          sudo xcode-select -s "$XCODE_DIR/Contents/Developer"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i iphoneos
 
       - name: Show versions
         run: |

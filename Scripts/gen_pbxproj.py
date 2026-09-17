@@ -287,7 +287,7 @@ def gen() -> str:
 \t\t\tINFOPLIST_KEY_UILaunchScreen_Generation = YES;
 \t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 \t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 17.0;
+\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 26.0;
 \t\t\tLD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 \t\t\tPRODUCT_BUNDLE_IDENTIFIER = {bundle};
 \t\t\tPRODUCT_NAME = "$(TARGET_NAME)";

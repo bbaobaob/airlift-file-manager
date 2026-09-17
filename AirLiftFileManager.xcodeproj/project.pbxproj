@@ -335,7 +335,7 @@
 			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager;
 			PRODUCT_NAME = "$(TARGET_NAME)";
@@ -363,7 +363,7 @@
 			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager;
 			PRODUCT_NAME = "$(TARGET_NAME)";
@@ -383,7 +383,7 @@
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
 			GENERATE_INFOPLIST_FILE = YES;
-			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 			BUNDLE_LOADER = "$(TEST_HOST)";
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager";
@@ -405,7 +405,7 @@
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
 			GENERATE_INFOPLIST_FILE = YES;
-			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 			BUNDLE_LOADER = "$(TEST_HOST)";
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager";

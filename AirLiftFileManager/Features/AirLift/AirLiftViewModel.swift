@@ -7,6 +7,11 @@ final class AirLiftViewModel: ObservableObject {
     @Published var accessReports: [DirectoryAccessReport] = []
     @Published var tunnelState: VPNState = .unreachable(reason: "Not probed yet.")
     @Published var isProbingTunnel = false
+    @Published var lockdownResult: LockdownProbeResult?
+    @Published var isProbingLockdown = false
+    @Published var pairingStatus: String = PairingRecordService.hasStoredPairing()
+        ? "Pairing record imported." : "No pairing record imported."
+    @Published var showPairingImporter = false
 
     private let permission: PermissionService
     private let localDevVPN: LocalDevVPNService
@@ -28,6 +33,29 @@ final class AirLiftViewModel: ObservableObject {
         defer { isProbingTunnel = false }
         let reachable = await localDevVPN.probeTunnel()
         tunnelState = localDevVPN.evaluate(reachable: reachable)
+        if reachable {
+            await probeLockdown()
+        }
+    }
+
+    /// Real lockdown QueryType/GetValue exchange over the tunnel.
+    func probeLockdown() async {
+        guard !isProbingLockdown else { return }
+        isProbingLockdown = true
+        defer { isProbingLockdown = false }
+        lockdownResult = await LockdownClient.probeDevice()
+    }
+
+    func importPairing(from sourceURL: URL) async {
+        let accessed = sourceURL.startAccessingSecurityScopedResource()
+        defer { if accessed { sourceURL.stopAccessingSecurityScopedResource() } }
+        do {
+            let data = try Data(contentsOf: sourceURL)
+            let result = PairingRecordService.importPairing(data: data)
+            pairingStatus = result.message
+        } catch {
+            pairingStatus = ErrorHandler.present(error, context: "importPairing")
+        }
     }
 
     var tunnelSummary: String {
