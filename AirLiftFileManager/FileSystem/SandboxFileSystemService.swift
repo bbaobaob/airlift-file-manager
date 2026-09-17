@@ -59,7 +59,7 @@ struct SandboxFileSystemService: FileSystemService {
         } catch {
             throw FileSystemError.underlying(error.localizedDescription)
         }
-        AppLogger.fs.debug("listDirectory \(url.lastPathComponent, privacy: .public) -> \(items.count) items")
+        AppLogger.fs.debug("listDirectory \(url.lastPathComponent) -> \(items.count) items")
         return items
     }
 
@@ -89,7 +89,7 @@ struct SandboxFileSystemService: FileSystemService {
         try validateInScope(url)
         do {
             try FileManager.default.createDirectory(at: url, withIntermediateDirectories: false)
-            AppLogger.fs.info("createDirectory \(url.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("createDirectory \(url.lastPathComponent)")
         } catch let nsError as NSError {
             throw map(nsError, path: url.path)
         }
@@ -107,7 +107,7 @@ struct SandboxFileSystemService: FileSystemService {
         }
         do {
             try FileManager.default.copyItem(at: source, to: destination)
-            AppLogger.fs.info("copy \(source.lastPathComponent, privacy: .public) -> \(destination.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("copy \(source.lastPathComponent) -> \(destination.lastPathComponent)")
         } catch let nsError as NSError {
             throw map(nsError, path: destination.path)
         }
@@ -125,7 +125,7 @@ struct SandboxFileSystemService: FileSystemService {
         }
         do {
             try FileManager.default.moveItem(at: source, to: destination)
-            AppLogger.fs.info("move \(source.lastPathComponent, privacy: .public) -> \(destination.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("move \(source.lastPathComponent) -> \(destination.lastPathComponent)")
         } catch let nsError as NSError {
             throw map(nsError, path: destination.path)
         }
@@ -138,7 +138,7 @@ struct SandboxFileSystemService: FileSystemService {
         }
         do {
             try FileManager.default.removeItem(at: url)
-            AppLogger.fs.info("delete \(url.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("delete \(url.lastPathComponent)")
         } catch let nsError as NSError {
             throw map(nsError, path: url.path)
         }
@@ -157,7 +157,7 @@ struct SandboxFileSystemService: FileSystemService {
         }
         do {
             try FileManager.default.moveItem(at: url, to: destination)
-            AppLogger.fs.info("rename \(url.lastPathComponent, privacy: .public) -> \(trimmed, privacy: .public)")
+            AppLogger.fs.info("rename \(url.lastPathComponent) -> \(trimmed)")
             return destination
         } catch let nsError as NSError {
             throw map(nsError, path: url.path)
@@ -172,7 +172,7 @@ struct SandboxFileSystemService: FileSystemService {
         }
         do {
             try ZipArchive.write(entries: urls, to: archiveURL)
-            AppLogger.fs.info("compress \(urls.count) items -> \(archiveURL.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("compress \(urls.count) items -> \(archiveURL.lastPathComponent)")
         } catch {
             throw FileSystemError.archiveError(error.localizedDescription)
         }
@@ -183,7 +183,7 @@ struct SandboxFileSystemService: FileSystemService {
         try validateInScope(destinationDirectory)
         do {
             try ZipArchive.extract(archiveURL: archiveURL, to: destinationDirectory)
-            AppLogger.fs.info("extract \(archiveURL.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("extract \(archiveURL.lastPathComponent)")
         } catch {
             throw FileSystemError.archiveError(error.localizedDescription)
         }
@@ -204,12 +204,12 @@ struct SandboxFileSystemService: FileSystemService {
         }
         do {
             _ = try FileManager.default.replaceItemAt(target, withItemAt: source)
-            AppLogger.fs.info("replace \(target.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("replace \(target.lastPathComponent)")
         } catch {
             // Fallback: explicit remove + copy, still guarded.
             try FileManager.default.removeItem(at: target)
             try FileManager.default.copyItem(at: source, to: target)
-            AppLogger.fs.info("replace(fallback) \(target.lastPathComponent, privacy: .public)")
+            AppLogger.fs.info("replace(fallback) \(target.lastPathComponent)")
         }
     }
 

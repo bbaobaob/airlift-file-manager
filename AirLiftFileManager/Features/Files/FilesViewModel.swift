@@ -65,7 +65,7 @@ final class FilesViewModel: ObservableObject {
         do {
             items = try await service.listDirectory(at: currentURL, includeHidden: showHidden)
             errorMessage = nil
-            AppLogger.files.debug("Loaded \(items.count) items in \(currentURL.lastPathComponent, privacy: .public)")
+            AppLogger.files.debug("Loaded \(items.count) items in \(currentURL.lastPathComponent)")
         } catch {
             items = []
             errorMessage = ErrorHandler.present(error, context: "listDirectory")

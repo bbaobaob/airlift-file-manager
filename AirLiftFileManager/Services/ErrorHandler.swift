@@ -16,7 +16,7 @@ enum ErrorHandler {
     static func handle(_ error: Error,
                        context: String,
                        logger: AppLogger.LoggerBridge = AppLogger.fs) {
-        logger.error("\(context): \(userMessage(for: error), privacy: .public)")
+        logger.error("\(context): \(userMessage(for: error))")
     }
 
     static func present(_ error: Error, context: String) -> String {

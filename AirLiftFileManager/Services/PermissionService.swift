@@ -16,7 +16,7 @@ struct PermissionService {
         let exists = fileManager.fileExists(atPath: path, isDirectory: &isDirectory)
 
         guard exists else {
-            AppLogger.perm.info("probe \(path, privacy: .public): not found")
+            AppLogger.perm.info("probe \(path): not found")
             return DirectoryAccessReport(path: path, level: .notFound,
                                          detail: "Path does not exist from this process.")
         }
@@ -29,7 +29,7 @@ struct PermissionService {
         let writable = fileManager.isWritableFile(atPath: path)
 
         if !readable && !writable {
-            AppLogger.perm.info("probe \(path, privacy: .public): restricted")
+            AppLogger.perm.info("probe \(path): restricted")
             return DirectoryAccessReport(
                 path: path, level: .restricted,
                 detail: "Outside the app sandbox. iOS blocks access; AirLift reaches this path only from a paired Mac.")
@@ -53,7 +53,7 @@ struct PermissionService {
             let created = fileManager.createFile(atPath: probeURL.path, contents: Data())
             if created {
                 try? fileManager.removeItem(at: probeURL)
-                AppLogger.perm.info("probe \(path, privacy: .public): accessible")
+                AppLogger.perm.info("probe \(path): accessible")
                 return DirectoryAccessReport(path: path, level: .accessible,
                                              detail: "Read and write verified with a probe file.")
             }

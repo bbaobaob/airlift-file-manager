@@ -32,7 +32,7 @@ final class ActivationManager: ObservableObject {
         self.lastVerifiedAt = persistence.date(forKey: .activationLastVerified)
         self.lastMessage = persistence.string(forKey: .activationLastResult)
             ?? "No activation attempt recorded yet."
-        AppLogger.airLift.info("ActivationManager init, restored state: \(state.rawValue, privacy: .public)")
+        AppLogger.airLift.info("ActivationManager init, restored state: \(state.rawValue)")
     }
 
     // MARK: - Transitions
@@ -44,7 +44,7 @@ final class ActivationManager: ObservableObject {
             persistence.setString(message, forKey: .activationLastResult)
         }
         persistence.setString(newState.rawValue, forKey: .activationStateRaw)
-        AppLogger.airLift.info("State -> \(newState.rawValue, privacy: .public)")
+        AppLogger.airLift.info("State -> \(newState.rawValue)")
     }
 
     private func markVerified() {
