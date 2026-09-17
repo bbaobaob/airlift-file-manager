@@ -175,7 +175,8 @@ final class FilesViewModel: ObservableObject {
     /// Imports a file already staged in the app container (temp copy done by caller
     /// while the security scope was active).
     func importFile(from tempURL: URL) async {
-        let destination = currentURL.appendingPathComponent(tempURL.lastPathComponent.dropFirst(37))
+        let destination = currentURL.appendingPathComponent(
+            String(tempURL.lastPathComponent.dropFirst(37)))
         if FileManager.default.fileExists(atPath: destination.path) {
             errorMessage = FileSystemError.replaceNotConfirmed(destination.path).localizedDescription
             return

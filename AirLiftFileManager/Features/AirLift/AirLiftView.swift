@@ -104,7 +104,7 @@ struct AirLiftView: View {
     }
 
     private var capabilitiesSection: some View {
-        Section("AirLift Capabilities") {
+        Section {
             capabilityRow("In-app activation",
                           model.capabilities.inAppActivationSupported ? "Supported" : "Not possible",
                           ok: model.capabilities.inAppActivationSupported)
@@ -116,13 +116,15 @@ struct AirLiftView: View {
                 Label(component, systemImage: "desktopcomputer")
                     .font(.subheadline)
             }
+        } header: {
+            Text("AirLift Capabilities")
         } footer: {
             Text("Facts verified from the upstream repository: \(AppConstants.AirLift.repositoryURL)")
         }
     }
 
     private var scopeSection: some View {
-        Section("Verified Write Scope (access from this device)") {
+        Section {
             ForEach(model.accessReports) { report in
                 VStack(alignment: .leading, spacing: 3) {
                     HStack {
@@ -144,6 +146,8 @@ struct AirLiftView: View {
                 }
                 .padding(.vertical, 2)
             }
+        } header: {
+            Text("Verified Write Scope (access from this device)")
         } footer: {
             Text("Each row reflects a real probe performed by this app on this device. AirLift can reach these paths only from the paired Mac.")
         }

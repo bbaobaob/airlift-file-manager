@@ -29,7 +29,24 @@ struct FilesView: View {
             content
                 .navigationTitle(model.directoryTitle)
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar { toolbarContent }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        if let parent = model.goUpOne() {
+                            Button {
+                                Task { await model.openDirectory(parent) }
+                            } label: {
+                                Image(systemName: "chevron.left")
+                            }
+                            .accessibilityLabel("Back to \(parent.lastPathComponent)")
+                        }
+                    }
+                    ToolbarItem(placement: .principal) {
+                        breadcrumbMenu
+                    }
+                    ToolbarItem(placement: .topBarTrailing) {
+                        ellipsisMenu
+                    }
+                }
                 .overlay(alignment: .bottom) {
                     if model.selection.isActive {
                         selectionStatusBar
@@ -232,28 +249,7 @@ struct FilesView: View {
         .padding(.vertical, 10)
         .background(.thinMaterial)
     }
-
-    // MARK: - Toolbar
-
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            if let parent = model.goUpOne() {
-                Button {
-                    Task { await model.openDirectory(parent) }
-                } label: {
-                    Image(systemName: "chevron.left")
-                }
-                .accessibilityLabel("Back to \(parent.lastPathComponent)")
-            }
-        }
-        ToolbarItem(placement: .principal) {
-            breadcrumbMenu
-        }
-        ToolbarItem(placement: .topBarTrailing) {
-            ellipsisMenu
-        }
-    }
+    // MARK: - Navigation helpers
 
     private var breadcrumbMenu: some View {
         Menu {
