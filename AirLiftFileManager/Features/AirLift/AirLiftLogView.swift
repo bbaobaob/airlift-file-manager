@@ -3,6 +3,9 @@ import SwiftUI
 struct LocalDevVPNSection: View {
     let state: VPNState
     let summary: String
+    let background: String
+    let isProbing: Bool
+    let onRefresh: () -> Void
 
     var body: some View {
         Section("LocalDevVPN Status") {
@@ -11,26 +14,46 @@ struct LocalDevVPNSection: View {
                     .foregroundStyle(color)
                 Text(state.displayTitle)
                     .font(.subheadline.weight(.semibold))
+                Spacer()
+                if isProbing {
+                    ProgressView()
+                } else {
+                    Button {
+                        onRefresh()
+                    } label: {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .accessibilityLabel("Re-probe tunnel")
+                }
             }
             Text(summary)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+
+            Text(background)
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+
+            ForEach(AppConstants.LocalDevVPN.relatedProjects, id: \.self) { project in
+                Label(project, systemImage: "link")
+                    .font(.caption2)
+            }
+        } footer: {
+            Text("Endpoint probed: 10.7.0.1:62078 (lockdown). A TCP connect is a real reachability check — no state is faked.")
         }
     }
 
     private var icon: String {
         switch state {
         case .connected: return "wifi.circle.fill"
-        case .notPartOfAirLift: return "wifi.slash"
-        case .unavailable: return "exclamationmark.triangle"
+        case .unreachable: return "wifi.slash"
         }
     }
 
     private var color: Color {
         switch state {
         case .connected: return .green
-        case .notPartOfAirLift: return .secondary
-        case .unavailable: return .orange
+        case .unreachable: return .secondary
         }
     }
 }

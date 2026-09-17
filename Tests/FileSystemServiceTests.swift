@@ -83,11 +83,13 @@ final class FileSystemServiceTests: XCTestCase {
     func testCreateDirectoryAndRename() async throws {
         let target = tempRoot.appendingPathComponent("NewFolder")
         try await service.createDirectory(at: target)
-        XCTAssertTrue(await service.fileExists(at: target))
+        let created = await service.fileExists(at: target)
+        XCTAssertTrue(created)
 
         let renamed = try await service.renameItem(at: target, to: "RenamedFolder")
         XCTAssertEqual(renamed.lastPathComponent, "RenamedFolder")
-        XCTAssertFalse(await service.fileExists(at: target))
+        let stillThere = await service.fileExists(at: target)
+        XCTAssertFalse(stillThere)
     }
 
     func testRenameToExistingNameThrows() async throws {

@@ -4,6 +4,17 @@ enum AppConstants {
     /// Bundle-level identity used across UI and logs.
     static let appName = "AirLift File Manager"
 
+    /// LocalDevVPN / StosVPN-style loopback tunnel endpoint facts.
+    enum LocalDevVPN {
+        static let tunnelHost = "10.7.0.1"
+        static let lockdownPort: UInt16 = 62078
+        static let relatedProjects = [
+            "SideStore/StosVPN (same NEPacketTunnelProvider mechanism)",
+            "StikDebug (connects to 10.7.0.1 for device services)",
+            "Locus (LocalDevVPN + pairing file + RemoteXPC)",
+        ]
+    }
+
     /// AirLift upstream facts (from github.com/0xjohnnydev/airlift README, verified 2026-09).
     enum AirLift {
         static let repositoryURL = "https://github.com/0xjohnnydev/airlift"

@@ -8,11 +8,14 @@ struct AirLiftView: View {
     var body: some View {
         NavigationStack {
             List {
-                statusSection
-                actionSection
-                LocalDevVPNSection(state: model.localDevVPN.state,
-                                   summary: model.localDevVPN.summary)
-                capabilitiesSection
+            statusSection
+            actionSection
+            LocalDevVPNSection(state: model.tunnelState,
+                               summary: model.tunnelSummary,
+                               background: model.tunnelBackground,
+                               isProbing: model.isProbingTunnel,
+                               onRefresh: { Task { await model.probeTunnel() } })
+            capabilitiesSection
                 scopeSection
                 versionSection
             }
@@ -30,8 +33,14 @@ struct AirLiftView: View {
             .sheet(isPresented: $showingLogs) {
                 NavigationStack { AirLiftLogView() }
             }
-            .task { model.refreshAccessReports() }
-            .refreshable { model.refreshAccessReports() }
+            .task {
+                model.refreshAccessReports()
+                await model.probeTunnel()
+            }
+            .refreshable {
+                model.refreshAccessReports()
+                await model.probeTunnel()
+            }
         }
     }
 

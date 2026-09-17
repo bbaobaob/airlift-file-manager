@@ -7,23 +7,40 @@ import Foundation
 ///   MobileDevice.framework and AirTrafficHost.framework.
 /// - The device-side chain (streaming_zip_conduit -> afc -> atc -> AirTraffic
 ///   Books client -> ATAirlock) is only reachable from the host side.
-/// - No iOS app surface, no in-app API, no VPN component exist upstream.
+/// - No iOS app surface, no in-app API, and no VPN component exist upstream.
 ///
-/// Therefore `probe()` performs the checks that ARE possible in-process and
-/// reports `unsupported` with the precise technical reason otherwise.
+/// This probe performs the checks that ARE possible from a sandboxed app:
+/// 1. Whether a LocalDevVPN/StosVPN-style loopback tunnel is up (10.7.0.1).
+/// 2. It reports precisely what that does and does not enable. A reachable
+///    lockdown endpoint proves the tunnel works — it does NOT prove the
+///    AirLift AirTraffic exploit path, which is not implemented on-device.
 struct AirLiftService: AirLiftProbing {
+    let tunnelProbe: () async -> Bool
+
+    init(tunnelProbe: @escaping () async -> Bool = {
+        await LocalDevVPNService().probeTunnel()
+    }) {
+        self.tunnelProbe = tunnelProbe
+    }
+
     func probe() async -> AirLiftProbeResult {
         AppLogger.airLift.info("Probe started")
-        // Component checks possible from inside a sandboxed iOS app:
-        // 1. AirTrafficHost.framework is a macOS-only framework — its symbols
-        //    cannot be loaded on iOS, so the exploit cannot execute here.
-        // 2. The device daemons in the chain are not exposed to third-party apps.
-        // 3. No upstream API exists to request a write from a paired Mac.
-        let reason = "AirLift executes on the paired Mac (AirTrafficHost.framework + " +
-            "MobileDevice.framework). iOS sandboxed apps cannot invoke that chain, and " +
-            "AirLift ships no device-side app, API, or VPN component. Use airlift on a " +
-            "Mac paired with this iPhone to write into the verified scope."
-        AppLogger.airLift.info("Probe result: unsupported (host-side execution required)")
-        return .unsupported(reason: reason)
+        let tunnelUp = await tunnelProbe()
+        AppLogger.airLift.info("Tunnel probe result: \(tunnelUp ? "reachable" : "unreachable", privacy: .public)")
+
+        if tunnelUp {
+            return .unsupported(reason:
+                "LocalDevVPN tunnel detected: 10.7.0.1:62078 (lockdown) is reachable from this " +
+                "sandbox. That proves the on-device tunnel works — the same transport StikDebug/" +
+                "SideStore-style apps use. However, driving the AirLift AirTraffic exploit through " +
+                "the tunnel from on-device is not implemented or verified in this build. To write " +
+                "into the verified scope today, run airlift from a Mac paired with this iPhone.")
+        }
+        return .unsupported(reason:
+            "AirLift executes on the paired Mac (AirTrafficHost.framework + MobileDevice.framework). " +
+            "iOS sandboxed apps cannot invoke that chain, and AirLift ships no device-side app, " +
+            "API, or VPN component. No LocalDevVPN tunnel was detected either (10.7.0.1:62078 " +
+            "unreachable). Use airlift on a Mac paired with this iPhone, or connect LocalDevVPN " +
+            "to enable on-device lockdown access.")
     }
 }
