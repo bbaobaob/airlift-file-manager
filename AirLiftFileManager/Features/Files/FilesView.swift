@@ -29,7 +29,7 @@ struct FilesView: View {
             content
                 .navigationTitle(model.directoryTitle)
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar { @ToolbarContentBuilder in
+                .toolbar { () -> some ToolbarContent in
                     ToolbarItem(placement: .topBarLeading) {
                         if let parent = model.goUpOne() {
                             Button {
