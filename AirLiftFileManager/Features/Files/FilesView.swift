@@ -29,24 +29,7 @@ struct FilesView: View {
             content
                 .navigationTitle(model.directoryTitle)
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar { () -> some ToolbarContent in
-                    ToolbarItem(placement: .topBarLeading) {
-                        if let parent = model.goUpOne() {
-                            Button {
-                                Task { await model.openDirectory(parent) }
-                            } label: {
-                                Image(systemName: "chevron.left")
-                            }
-                            .accessibilityLabel("Back to \(parent.lastPathComponent)")
-                        }
-                    }
-                    ToolbarItem(placement: .principal) {
-                        breadcrumbMenu
-                    }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        ellipsisMenu
-                    }
-                }
+                .toolbar(content: toolbarItems)
                 .overlay(alignment: .bottom) {
                     if model.selection.isActive {
                         selectionStatusBar
@@ -250,6 +233,25 @@ struct FilesView: View {
         .background(.thinMaterial)
     }
     // MARK: - Navigation helpers
+
+    private func toolbarItems() -> some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) { backButton }
+        ToolbarItem(placement: .principal) { breadcrumbMenu }
+        ToolbarItem(placement: .topBarTrailing) { ellipsisMenu }
+    }
+
+    private var backButton: some View {
+        Group {
+            if let parent = model.goUpOne() {
+                Button {
+                    Task { await model.openDirectory(parent) }
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .accessibilityLabel("Back to \(parent.lastPathComponent)")
+            }
+        }
+    }
 
     private var breadcrumbMenu: some View {
         Menu {
