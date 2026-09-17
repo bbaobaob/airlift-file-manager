@@ -106,7 +106,8 @@ final class ActivationPersistenceTests: XCTestCase {
         await manager.activate()
         manager.reset()
         XCTAssertEqual(manager.state, .notActivated)
-        XCTAssertNil(persistence.string(forKey: .activationStateRaw))
+        XCTAssertEqual(persistence.string(forKey: .activationStateRaw),
+                       AirLiftState.notActivated.rawValue)
         XCTAssertNil(persistence.date(forKey: .activationLastVerified))
     }
 

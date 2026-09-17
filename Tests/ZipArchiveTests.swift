@@ -47,25 +47,46 @@ final class ZipArchiveTests: XCTestCase {
     }
 
     func testExtractRejectsZipSlipPaths() throws {
-        // Hand-craft a zip whose entry path contains ../ traversal.
+        // Hand-craft a minimal but structurally valid zip whose entry path
+        // contains ../ traversal. The extractor must refuse to write it.
         let archive = tempRoot.appendingPathComponent("evil.zip")
-        var data = Data()
         let name = "../escaped.txt"
         let nameData = name.data(using: .utf8)!
-        // local header
-        data.appendLE(UInt32(0x04034b50)); data.appendLE(UInt16(20)); data.appendLE(UInt16(0))
-        data.appendLE(UInt16(0)); data.appendLE(UInt16(0)); data.appendLE(UInt16(0x5D5A))
+        var data = Data()
+
+        // local file header
+        data.appendLE(UInt32(0x04034b50))
+        data.appendLE(UInt16(20)); data.appendLE(UInt16(0)); data.appendLE(UInt16(0))
+        data.appendLE(UInt16(0)); data.appendLE(UInt16(0x5D5A))
         data.appendLE(UInt32(0)); data.appendLE(UInt32(0)); data.appendLE(UInt32(0))
         data.appendLE(UInt16(nameData.count)); data.appendLE(UInt16(0))
         data.append(nameData)
-        // EOCD only (no central directory entries) — reader must fail cleanly.
-        data.appendLE(UInt32(0x06054b50)); data.appendLE(UInt16(0)); data.appendLE(UInt16(0))
+        let centralOffset = UInt32(data.count)
+
+        // central directory record
+        data.appendLE(UInt32(0x02014b50))
+        data.appendLE(UInt16(20)); data.appendLE(UInt16(20)); data.appendLE(UInt16(0))
+        data.appendLE(UInt16(0)); data.appendLE(UInt16(0)); data.appendLE(UInt16(0x5D5A))
+        data.appendLE(UInt32(0)); data.appendLE(UInt32(0)); data.appendLE(UInt32(0))
+        data.appendLE(UInt16(nameData.count)); data.appendLE(UInt16(0)); data.appendLE(UInt16(0))
         data.appendLE(UInt16(0)); data.appendLE(UInt16(0)); data.appendLE(UInt32(0))
-        data.appendLE(UInt32(22)); data.appendLE(UInt16(0))
+        data.appendLE(UInt32(0))
+        data.append(nameData)
+        let centralSize = UInt32(data.count - Int(centralOffset))
+
+        // end of central directory
+        data.appendLE(UInt32(0x06054b50))
+        data.appendLE(UInt16(0)); data.appendLE(UInt16(0))
+        data.appendLE(UInt16(1)); data.appendLE(UInt16(1))
+        data.appendLE(centralSize); data.appendLE(centralOffset)
+        data.appendLE(UInt16(0))
         try data.write(to: archive)
 
         XCTAssertThrowsError(try ZipArchive.extract(archiveURL: archive,
                                                     to: tempRoot.appendingPathComponent("out")))
+        // Nothing may escape the destination directory.
+        XCTAssertFalse(FileManager.default.fileExists(
+            atPath: tempRoot.appendingPathComponent("escaped.txt").path))
     }
 
     func testListEntriesRejectsNonZip() throws {

@@ -30,9 +30,9 @@ final class SortingTests: XCTestCase {
             makeItem("b", size: 2, date: base, ext: "md"),
         ]
         XCTAssertEqual(sorted(items, field: .name, ascending: true).map(\.name),
-                       ["a", "b", "c"])
+                       ["a.zip", "b.md", "c.txt"])
         XCTAssertEqual(sorted(items, field: .name, ascending: false).map(\.name),
-                       ["c", "b", "a"])
+                       ["c.txt", "b.md", "a.zip"])
     }
 
     func testSortBySize() {
@@ -43,9 +43,9 @@ final class SortingTests: XCTestCase {
             makeItem("mid", size: 40, date: base, ext: "bin"),
         ]
         XCTAssertEqual(sorted(items, field: .size, ascending: true).map(\.name),
-                       ["small", "mid", "big"])
+                       ["small.bin", "mid.bin", "big.bin"])
         XCTAssertEqual(sorted(items, field: .size, ascending: false).map(\.name),
-                       ["big", "mid", "small"])
+                       ["big.bin", "mid.bin", "small.bin"])
     }
 
     func testSortByDate() {
@@ -56,7 +56,7 @@ final class SortingTests: XCTestCase {
             makeItem("mid", size: 1, date: now.addingTimeInterval(-50), ext: "log"),
         ]
         XCTAssertEqual(sorted(items, field: .dateModified, ascending: true).map(\.name),
-                       ["old", "mid", "new"])
+                       ["old.log", "mid.log", "new.log"])
     }
 
     func testSortByFileType() {
@@ -67,7 +67,7 @@ final class SortingTests: XCTestCase {
             makeItem("t", size: 1, date: base, ext: "txt"),
         ]
         XCTAssertEqual(sorted(items, field: .fileType, ascending: true).map(\.name),
-                       ["p", "t", "z"]) // PNG, TXT, ZIP
+                       ["p.png", "t.txt", "z.zip"])
     }
 
     func testDirectoriesAlwaysFirst() {
