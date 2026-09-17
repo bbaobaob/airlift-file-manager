@@ -7,16 +7,18 @@ struct FilesView: View {
     // Sheets & flows
     @State private var showNewFolderAlert = false
     @State private var newFolderName = ""
+    @State private var showRenameAlert = false
     @State private var renameTarget: URL?
     @State private var renameText = ""
     @State private var infoItem: FileItem?
-    @State private var shareURL: URL?
-    @State private var previewURL: URL?
+    @State private var shareItem: ShareItem?
+    @State private var previewItem: ShareItem?
     @State private var directoryPicker: DirectoryPickerContext?
     @State private var importPicker = false
+    @State private var showReplaceImporter = false
     @State private var replaceTarget: URL?
+    @State private var showDeleteAlert = false
     @State private var deleteConfirmation: [URL]?
-    @State private var zipMetadataFile: URL?
 
     init(service: FileSystemService,
          operations: FileOperationManager) {
@@ -44,9 +46,7 @@ struct FilesView: View {
         } message: {
             Text("Enter a name for the new folder.")
         }
-        .alert("Rename", isPresented: Binding(
-            get: { renameTarget != nil },
-            set: { if !$0 { renameTarget = nil } })) {
+        .alert("Rename", isPresented: $showRenameAlert) {
             TextField("New name", text: $renameText)
             Button("Rename") {
                 if let target = renameTarget {
@@ -56,9 +56,7 @@ struct FilesView: View {
             }
             Button("Cancel", role: .cancel) { renameTarget = nil }
         }
-        .alert("Delete",
-               isPresented: Binding(get: { deleteConfirmation != nil },
-                                    set: { if !$0 { deleteConfirmation = nil } })) {
+        .alert("Delete", isPresented: $showDeleteAlert) {
             Button("Delete", role: .destructive) {
                 if let urls = deleteConfirmation { Task { await model.delete(urls: urls) } }
                 deleteConfirmation = nil
@@ -99,21 +97,15 @@ struct FilesView: View {
                 model.errorMessage = ErrorHandler.present(error, context: "importFile")
             }
         }
-        .sheet(item: Binding(
-            get: { shareURL.map { ShareItem(url: $0) } },
-            set: { if !$0 { shareURL = nil } })) { shareItem in
-            ActivityShareSheet(items: [shareItem.url])
+        .sheet(item: $shareItem) { share in
+            ActivityShareSheet(items: [share.url])
         }
-        .sheet(item: Binding(
-            get: { previewURL.map { ShareItem(url: $0) } },
-            set: { if !$0 { previewURL = nil } })) { previewItem in
-            QuickLookPreview(url: previewItem.url)
+        .sheet(item: $previewItem) { preview in
+            QuickLookPreview(url: preview.url)
         }
-        .fileImporter(isPresented: Binding(
-            get: { replaceTarget != nil },
-            set: { if !$0 { replaceTarget = nil } }),
-            allowedContentTypes: [.data],
-            allowsMultipleSelection: false) { result in
+        .fileImporter(isPresented: $showReplaceImporter,
+                      allowedContentTypes: [.data],
+                      allowsMultipleSelection: false) { result in
             if case .success(let urls) = result, let source = urls.first,
                let target = replaceTarget {
                 Task { await model.replace(target: target, with: source) }
@@ -234,6 +226,7 @@ struct FilesView: View {
     }
     // MARK: - Navigation helpers
 
+    @ToolbarContentBuilder
     private func toolbarItems() -> some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) { backButton }
         ToolbarItem(placement: .principal) { breadcrumbMenu }
@@ -364,7 +357,7 @@ struct FilesView: View {
         } else if item.url.pathExtension.lowercased() == "zip" {
             Task { await model.extract(archive: item.url) }
         } else {
-            previewURL = item.url
+            previewItem = ShareItem(url: item.url)
         }
     }
 
@@ -385,9 +378,10 @@ struct FilesView: View {
         case .extract:
             Task { await model.extract(archive: item.url) }
         case .share:
-            shareURL = item.url
+            shareItem = ShareItem(url: item.url)
         case .replace:
             replaceTarget = item.url
+            showReplaceImporter = true
         case .duplicate:
             Task { await model.duplicate(item: item.url) }
         case .delete:
