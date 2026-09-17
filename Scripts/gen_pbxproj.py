@@ -245,12 +245,18 @@ def gen() -> str:
 \t\t\tSDKROOT = iphoneos;
 \t\t\tSWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 \t\t\tSWIFT_OPTIMIZATION_LEVEL = "-Onone";"""
-    common_project_release = common_project_debug.replace("dwarf;", "dwarf-with-dsym;").replace(
-        "DEBUG_INFORMATION_FORMAT = dwarf", "DEBUG_INFORMATION_FORMAT = \"dwarf-with-dsym\"").replace(
-        "\t\t\tMTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;\n", "").replace(
-        "\t\t\tONLY_ACTIVE_ARCH = YES;\n", "\t\t\tONLY_ACTIVE_ARCH = NO;\n").replace(
-        "\t\t\tSWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;\n", "").replace(
-        "\t\t\tSWIFT_OPTIMIZATION_LEVEL = \"-Onone\";", "\t\t\tSWIFT_OPTIMIZATION_LEVEL = \"-O\";")
+
+    common_project_release = """\t\t\tALWAYS_SEARCH_USER_PATHS = NO;
+\t\t\tCLANG_ANALYZER_NONNULL = YES;
+\t\t\tCLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+\t\t\tCOPY_PHASE_STRIP = NO;
+\t\t\tDEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+\t\t\tENABLE_STRICT_OBJC_MSGSEND = YES;
+\t\t\tGCC_C_LANGUAGE_STANDARD = gnu17;
+\t\t\tMTL_FAST_MATH = YES;
+\t\t\tONLY_ACTIVE_ARCH = NO;
+\t\t\tSDKROOT = iphoneos;
+\t\t\tSWIFT_OPTIMIZATION_LEVEL = "-O";"""
 
     def target_settings(bundle, tests=False):
         base = f"""\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
