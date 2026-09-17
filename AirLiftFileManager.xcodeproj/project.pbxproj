@@ -208,6 +208,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000034 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000001 /* AirLiftFileManager */;
+			targetProxy = AA0000000000000000000035 /* PBXContainerItemProxy */;
+		};
+		AA0000000000000000000035 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AA000000000000000000000021 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AA0000000000000000000001;
+			remoteInfo = AirLiftFileManager;
+		};
 		AA0000000000000000000001 /* AirLiftFileManager */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AA0000000000000000000040 /* Build configuration list for PBXNativeTarget "AirLiftFileManager" */;
@@ -235,6 +247,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				AA0000000000000000000034 /* PBXTargetDependency */,
 			);
 			name = AirLiftFileManagerTests;
 			productName = AirLiftFileManagerTests;
@@ -370,7 +383,9 @@
 			DEVELOPMENT_TEAM = "";
 			GENERATE_INFOPLIST_FILE = YES;
 			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			BUNDLE_LOADER = "$(TEST_HOST)";
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager";
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager.tests;
 			PRODUCT_NAME = "$(TARGET_NAME)";
 			SDKROOT = iphoneos;
@@ -390,7 +405,9 @@
 			DEVELOPMENT_TEAM = "";
 			GENERATE_INFOPLIST_FILE = YES;
 			IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+			BUNDLE_LOADER = "$(TEST_HOST)";
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager";
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager.tests;
 			PRODUCT_NAME = "$(TARGET_NAME)";
 			SDKROOT = iphoneos;

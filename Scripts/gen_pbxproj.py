@@ -168,6 +168,18 @@ def gen() -> str:
     a(f"\t\t}};")
 
     # Native targets
+    a(f"\t\tAA0000000000000000000034 /* PBXTargetDependency */ = {{")
+    a(f"\t\t\tisa = PBXTargetDependency;")
+    a(f"\t\t\ttarget = {app_target_id} /* {app_name} */;")
+    a(f"\t\t\ttargetProxy = AA0000000000000000000035 /* PBXContainerItemProxy */;")
+    a(f"\t\t}};")
+    a(f"\t\tAA0000000000000000000035 /* PBXContainerItemProxy */ = {{")
+    a(f"\t\t\tisa = PBXContainerItemProxy;")
+    a(f"\t\t\tcontainerPortal = AA000000000000000000000021 /* Project object */;")
+    a(f"\t\t\tproxyType = 1;")
+    a(f"\t\t\tremoteGlobalIDString = {app_target_id};")
+    a(f"\t\t\tremoteInfo = {app_name};")
+    a(f"\t\t}};")
     a(f"\t\t{app_target_id} /* {app_name} */ = {{")
     a(f"\t\t\tisa = PBXNativeTarget;")
     a(f"\t\t\tbuildConfigurationList = AA0000000000000000000040 /* Build configuration list for PBXNativeTarget \"{app_name}\" */;")
@@ -195,6 +207,7 @@ def gen() -> str:
     a(f"\t\t\tbuildRules = (")
     a(f"\t\t\t);")
     a(f"\t\t\tdependencies = (")
+    a(f"\t\t\t\tAA0000000000000000000034 /* PBXTargetDependency */,")
     a(f"\t\t\t);")
     a(f"\t\t\tname = {tests_name};")
     a(f"\t\t\tproductName = {tests_name};")
@@ -292,7 +305,9 @@ def gen() -> str:
                 "\t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = \"UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight\";\n", "").replace(
                 "\t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = \"UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight\";\n", "").replace(
                 "\t\t\tLD_RUNPATH_SEARCH_PATHS = \"$(inherited) @executable_path/Frameworks\";",
-                "\t\t\tLD_RUNPATH_SEARCH_PATHS = \"$(inherited) @executable_path/Frameworks @loader_path/Frameworks\";")
+                "\t\t\tBUNDLE_LOADER = \"$(TEST_HOST)\";\n"
+                "\t\t\tLD_RUNPATH_SEARCH_PATHS = \"$(inherited) @executable_path/Frameworks @loader_path/Frameworks\";\n"
+                "\t\t\tTEST_HOST = \"$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager\";")
         return base
 
     def config(cid, name, settings, is_project=False):
