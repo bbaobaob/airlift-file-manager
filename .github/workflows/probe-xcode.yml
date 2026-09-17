@@ -1,0 +1,22 @@
+name: probe-xcode
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    strategy:
+      matrix:
+        os: [macos-15, macos-26]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: List Xcodes and SDKs
+        run: |
+          echo "== runner: ${{ matrix.os }} =="
+          ls /Applications | grep Xcode || true
+          ls ~/Applications | grep Xcode 2>/dev/null || true
+          xcodebuild -version || true
+          xcrun --show-sdk-version 2>/dev/null || true
+          for x in /Applications/Xcode*.app; do
+            echo "--- $x ---"
+            sudo xcode-select -s "$x/Contents/Developer" 2>/dev/null && xcodebuild -version && xcodebuild -showsdks 2>/dev/null | grep -i iphoneos | head -2
+          done
