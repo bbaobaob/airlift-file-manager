@@ -168,7 +168,7 @@ final class LockdownClient: @unchecked Sendable {
     }
 
     private func send(_ conn: NWConnection, data: Data, timeout: TimeInterval) async throws {
-        try await withCheckedThrowingContinuation { cont in
+        try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
             var done = false
             conn.send(content: data, completion: .contentProcessed { error in
                 if done { return }

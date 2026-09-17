@@ -51,7 +51,7 @@ final class AirLiftViewModel: ObservableObject {
         defer { if accessed { sourceURL.stopAccessingSecurityScopedResource() } }
         do {
             let data = try Data(contentsOf: sourceURL)
-            let result = PairingRecordService.importPairing(data: data)
+            let result = try PairingRecordService.importPairing(data: data)
             pairingStatus = result.message
         } catch {
             pairingStatus = ErrorHandler.present(error, context: "importPairing")
