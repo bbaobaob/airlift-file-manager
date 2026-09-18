@@ -135,7 +135,7 @@ enum AirlockArchive {
         eocd.appendAL16(UInt16(central.count))
         eocd.appendAL16(UInt16(central.count))
         eocd.appendAL32(UInt32(centralData.count))
-        eocd.appendLE(centralStart)
+        eocd.appendAL32(centralStart)
         eocd.appendAL16(UInt16(0))
         var out = body
         out.append(contentsOf: centralData)
@@ -145,9 +145,9 @@ enum AirlockArchive {
 
     static func extraField(mode: UInt16) -> Data {
         var out = Data()
-        out.appendLE(extraID)
+        out.appendAL16(extraID)
         out.appendAL16(UInt16(2))
-        out.appendLE(mode)
+        out.appendAL16(mode)
         return out
     }
 
