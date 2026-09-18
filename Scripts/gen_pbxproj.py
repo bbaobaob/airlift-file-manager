@@ -5,6 +5,7 @@ Run from repo root:  python3 Scripts/gen_pbxproj.py
 Deterministic output; no Xcode required to regenerate.
 """
 import pathlib
+import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -12,6 +13,17 @@ SRC_DIR = "AirLiftFileManager"
 TEST_DIR = "Tests"
 
 APP_EXCLUDE = {"Assets.xcassets"}
+
+
+def build_number() -> str:
+    """Monotonic build number from the commit count, so the on-device
+    Version Info screen identifies exactly which build is installed."""
+    try:
+        out = subprocess.run(["git", "rev-list", "--count", "HEAD"],
+                             capture_output=True, text=True, cwd=ROOT, check=True).stdout
+        return out.strip() or "1"
+    except Exception:
+        return "1"
 
 
 def scan_sources(base: str, exclude_dirs=frozenset()) -> list[str]:
@@ -291,6 +303,7 @@ def gen() -> str:
 \t\t\tSWIFT_VERSION = 5.0;
 \t\t\tTARGETED_DEVICE_FAMILY = "1,2";"""
             return base
+        build_no = build_number()
         return f"""\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 \t\t\tASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 \t\t\tCODE_SIGN_STYLE = Manual;
@@ -298,7 +311,7 @@ def gen() -> str:
 \t\t\tCODE_SIGNING_REQUIRED = NO;
 \t\t\tCODE_SIGNING_ALLOWED = NO;
 \t\t\tDEVELOPMENT_TEAM = "";
-\t\t\tCURRENT_PROJECT_VERSION = 1;
+\t\t\tCURRENT_PROJECT_VERSION = {build_no};
 \t\t\tGENERATE_INFOPLIST_FILE = NO;
 \t\t\tINFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 \t\t\tIPHONEOS_DEPLOYMENT_TARGET = 26.0;

@@ -366,6 +366,12 @@ final class AirLiftLaunchGuard: ObservableObject {
         defer { if accessed { sourceURL.stopAccessingSecurityScopedResource() } }
         do {
             let data = try Data(contentsOf: sourceURL)
+            guard !data.isEmpty else {
+                pairingStatusMessage = "Import rejected: the selected file is empty (0 bytes)."
+                AppLogger.pairing.error("Pairing import failed: empty file \(sourceURL.lastPathComponent)",
+                                        event: "pairing.import")
+                return
+            }
             let result = pairingStore.importRecord(data)
             pairingStatusMessage = result.isValid
                 ? result.message

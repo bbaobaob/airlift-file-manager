@@ -42,11 +42,25 @@ struct AirLiftSetupRequiredView: View {
             .fileImporter(isPresented: $showPairingImporter,
                           allowedContentTypes: PairingFileSupport.supportedContentTypes,
                           allowsMultipleSelection: false) { result in
-                if case .success(let urls) = result, let url = urls.first {
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else {
+                        guardVM.pairingStatusMessage = "No file was selected."
+                        return
+                    }
                     Task {
                         await guardVM.importPairing(from: url)
                         await guardVM.recheckConnection()
                     }
+                case .failure(let error):
+                    // Never swallow picker errors: the "tap does nothing"
+                    // complaint is undiagnosable otherwise.
+                    guardVM.pairingStatusMessage =
+                        "Picker error: \(error.localizedDescription). " +
+                        "Tap a .plist or .mobiledevicepairing file under Browse › On My iPhone."
+                    AppLogger.pairing.error(
+                        "Document picker failed: \(error.localizedDescription)",
+                        event: "pairing.import")
                 }
             }
             .task { await guardVM.recheckConnection() }
