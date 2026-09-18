@@ -262,14 +262,14 @@ enum XPCCodec {
             let bytes = try reader.read(16)
             return .uuid(uuid(from: bytes))
         case 0x0000e000:
+            _ = try reader.u32() // content length (count lives inside content)
             let count = Int(try reader.u32())
-            _ = try reader.u32() // content length
             var items: [Object] = []
             for _ in 0..<count { items.append(try decodeObject(&reader)) }
             return .array(items)
         case 0x0000f000:
+            _ = try reader.u32() // content length (count lives inside content)
             let count = Int(try reader.u32())
-            _ = try reader.u32() // content length
             var entries: [(String, Object)] = []
             for _ in 0..<count {
                 var keyBytes = Data()

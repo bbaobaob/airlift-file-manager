@@ -72,7 +72,7 @@ final class OnDeviceWireTests: XCTestCase {
         XCTAssertEqual(signbuf.dropFirst(32).prefix(2), Data("AB".utf8))
 
         XCTAssertEqual(RPPairingWire.pairVerifyNonce.count, 12)
-        XCTAssertEqual(RPPairingWire.pairVerifyNonce.suffix(7), Data("PV-Msg03".utf8))
+        XCTAssertEqual(RPPairingWire.pairVerifyNonce.suffix(8), Data("PV-Msg03".utf8))
     }
 
     func testAttemptPairVerifyShape() {
@@ -116,12 +116,13 @@ final class OnDeviceWireTests: XCTestCase {
     // MARK: - XPC codec
 
     func testXPCGoldenDictionaryBytes() throws {
-        // Hand-computed from the format spec: magic + version + dict{count=1,
-        // content-len=16, "a"+NUL+pad, uint64(1)}.
+        // Verified against a faithful transcription of the reference encoder:
+        // magic + version + type + contentlen(20) + [count(1) + "a"+NUL+pad
+        // + uint64(1)]. contentlen precedes count on the wire.
         let expected: [UInt8] = [
-            0x42, 0x13, 0x37, 0x42, 0x05, 0x00, 0x00, 0x00,
-            0xf0, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
-            0x10, 0x00, 0x00, 0x00, 0x61, 0x00, 0x00, 0x00,
+            0x42, 0x37, 0x13, 0x42, 0x05, 0x00, 0x00, 0x00,
+            0x00, 0xf0, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00,
+            0x01, 0x00, 0x00, 0x00, 0x61, 0x00, 0x00, 0x00,
             0x40, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00,
         ]
