@@ -43,9 +43,8 @@ final class PairingCryptoTests: XCTestCase {
         SRPBigUInt(bytesBE: SRP3072.hexBytes(hex))
     }
 
-    private var reducer: SRPBigUInt.BarrettReducer {
-        SRPBigUInt.BarrettReducer(modulus: SRP3072.modulus)
-    }
+    private static let sharedReducer = SRPBigUInt.BarrettReducer(modulus: SRP3072.modulus)
+    private var reducer: SRPBigUInt.BarrettReducer { Self.sharedReducer }
 
     func testOracleAddMul() {
         let red = reducer
