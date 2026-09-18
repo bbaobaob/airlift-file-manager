@@ -150,6 +150,9 @@ struct PairingAcceptor {
         guard !encBytes.isEmpty else {
             throw PairingHost.PairError.protocolError("M5 missing EncryptedData")
         }
+        AppLogger.pairing.info("M5 EncryptedData: \(encBytes.count) bytes in " +
+            "\(m5.filter { $0.component == .encryptedData }.count) chunk(s)",
+            event: "pairing.steps")
         let m5plain = try decryptChaCha(key: setupKey, nonce: psNonce("PS-Msg05"),
                                         ciphertext: encBytes)
         let m5tlv = try TLV8.deserialize(m5plain)
@@ -222,12 +225,19 @@ struct PairingAcceptor {
     }
 
     static func parsePeerDevice(_ entries: [TLV8.Entry]) throws -> PairingHost.PeerDevice {
-        guard let infoEntry = entries.first(where: { $0.component == .info }) else {
+        // Info payloads over 255 bytes arrive fragmented across repeated
+        // Info entries — concatenate them all (same as EncryptedData).
+        let infoBytes = entries.filter { $0.component == .info }
+            .reduce(Data(), { $0 + $1.data })
+        guard !infoBytes.isEmpty else {
             throw PairingHost.PairError.protocolError("M5 identity missing Info payload")
         }
+        AppLogger.pairing.info("M5 Info payload: \(infoBytes.count) bytes in " +
+            "\(entries.filter { $0.component == .info }.count) chunk(s)",
+            event: "pairing.steps")
         let decoded: OPACK.Value
         do {
-            decoded = try OPACK.decode(infoEntry.data)
+            decoded = try OPACK.decode(infoBytes)
         } catch {
             throw PairingHost.PairError.protocolError("M5 Info is not valid OPACK: \(error)")
         }

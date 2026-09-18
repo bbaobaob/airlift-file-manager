@@ -231,3 +231,19 @@ extension PairingCryptoTests {
         XCTAssertEqual(SRPBigUInt(bytesBE: Array(reassembled)).bytesBE.count, 384)
     }
 }
+
+extension PairingCryptoTests {
+    func testFragmentedInfoReassembles() throws {
+        // Device identity OPACK over 255 bytes arrives as repeated Info
+        // entries; the parser must concatenate them all.
+        let big = Data((1...300).map { UInt8($0 & 0xff) })
+        let entries = [
+            TLV8.Entry(.info, Data(big.prefix(255))),
+            TLV8.Entry(.info, Data(big.suffix(from: 255))),
+            TLV8.Entry(.state, Data([0x05])),
+        ]
+        let reassembled = entries.filter { $0.component == .info }
+            .reduce(Data(), { $0 + $1.data })
+        XCTAssertEqual(reassembled, big)
+    }
+}
