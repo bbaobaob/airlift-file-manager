@@ -43,6 +43,11 @@ final class InAppPairingViewModel: ObservableObject {
         guard !isRunning else { return }
         phase = .starting
         events = []
+        keepAlive.onEvent = { [weak self] line in
+            Task { @MainActor [weak self] in
+                self?.events.append(line)
+            }
+        }
         keepAlive.start()
         runTask = Task { [weak self] in
             await self?.runPairing()

@@ -103,12 +103,12 @@ struct PairingAcceptor {
         try ensureNoError(m3)
         try expectState(m3, 3)
         await emit("M3 received — verifying PIN proof")
-        guard let aEntry = m3.first(where: { $0.component == .publicKey }),
-              let proofEntry = m3.first(where: { $0.component == .proof }),
-              !aEntry.data.isEmpty, !proofEntry.data.isEmpty else {
+        let aBytes = collect(m3, .publicKey)
+        guard let proofEntry = m3.first(where: { $0.component == .proof }),
+              !aBytes.isEmpty, !proofEntry.data.isEmpty else {
             throw PairingHost.PairError.protocolError("M3 missing public key or proof")
         }
-        let aPub = SRPBigUInt(bytesBE: Array(aEntry.data))
+        let aPub = SRPBigUInt(bytesBE: Array(aBytes))
         // Safeguard against malicious A (idevice: reject A % N == 0).
         if reducer.reduce(aPub) == .zero {
             throw PairingHost.PairError.srpFailed("illegal client ephemeral (A % N == 0)")
@@ -146,11 +146,12 @@ struct PairingAcceptor {
         try ensureNoError(m5)
         try expectState(m5, 5)
         await emit("M5 received — decrypting device identity")
-        guard let encEntry = m5.first(where: { $0.component == .encryptedData }) else {
+        let encBytes = collect(m5, .encryptedData)
+        guard !encBytes.isEmpty else {
             throw PairingHost.PairError.protocolError("M5 missing EncryptedData")
         }
         let m5plain = try decryptChaCha(key: setupKey, nonce: psNonce("PS-Msg05"),
-                                        ciphertext: encEntry.data)
+                                        ciphertext: encBytes)
         let m5tlv = try TLV8.deserialize(m5plain)
         let peer = try Self.parsePeerDevice(m5tlv)
 
@@ -273,7 +274,22 @@ struct PairingAcceptor {
     }
 
     private func receivePlain() async throws -> Any {
-        let json = try await stream.readRPPairingFrame(timeout: 120)
+        let json: Any
+        do {
+            json = try await stream.readRPPairingFrame(timeout: 120)
+        } catch let error as TCPStream.StreamError {
+            switch error {
+            case .closed:
+                throw PairingHost.PairError.protocolError(
+                    "device closed the connection mid-pairing")
+            case .timeout:
+                throw PairingHost.PairError.timeout(
+                    "timed out waiting for the device message")
+            case .connectionFailed(let detail):
+                throw PairingHost.PairError.protocolError(
+                    "connection failed: \(detail)")
+            }
+        }
         guard let body = RPPairingWire.plainBody(json) else {
             throw PairingHost.PairError.protocolError("expected plain RPPairing message")
         }
@@ -292,6 +308,14 @@ struct PairingAcceptor {
         } catch {
             throw PairingHost.PairError.protocolError("device TLV is malformed")
         }
+    }
+
+    /// Concatenates every entry of one component type (fragmented values
+    /// arrive as multiple ≤255-byte entries; using only the first silently
+    /// corrupts 384-byte keys and M5 ciphertext).
+    private func collect(_ entries: [TLV8.Entry], _ component: TLV8.Component) -> Data {
+        entries.filter { $0.component == component }
+            .reduce(Data(), { $0 + $1.data })
     }
 
     private func expectState(_ entries: [TLV8.Entry], _ expected: UInt8) throws {

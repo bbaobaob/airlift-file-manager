@@ -12,10 +12,17 @@ import UIKit
 final class PairingKeepAlive {
     private var player: AVAudioPlayer?
     private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
+    private var interruptionObserver: NSObjectProtocol?
+    /// Step log hook (wired to the pairing screen transcript).
+    var onEvent: ((String) -> Void)?
+
+    /// Whether the silent loop is actually playing (the background assertion).
+    var isPlaying: Bool { player?.isPlaying ?? false }
 
     func start() {
         backgroundTask = UIApplication.shared.beginBackgroundTask(
             withName: "airlift-pairing") { [weak self] in
+                self?.note("Background time expired")
                 self?.stop()
             }
         do {
@@ -26,9 +33,18 @@ final class PairingKeepAlive {
                                        fileTypeHint: AVFileType.wav.rawValue)
             player?.numberOfLoops = -1
             player?.volume = 0.0
-            player?.play()
+            if player?.play() == true {
+                note("Keep-alive audio ON — safe to switch to Settings")
+            } else {
+                note("Keep-alive audio FAILED to start — pairing may die in background")
+            }
             AppLogger.pairing.info("Pairing keep-alive started (audio + background task)",
                                    event: "pairing.keepalive")
+            interruptionObserver = NotificationCenter.default.addObserver(
+                forName: AVAudioSession.interruptionNotification,
+                object: nil, queue: .main) { [weak self] note in
+                    self?.handleInterruption(note)
+                }
         } catch {
             AppLogger.pairing.error(
                 "Keep-alive audio failed: \(error.localizedDescription) — " +
@@ -38,6 +54,10 @@ final class PairingKeepAlive {
     }
 
     func stop() {
+        if let observer = interruptionObserver {
+            NotificationCenter.default.removeObserver(observer)
+            interruptionObserver = nil
+        }
         player?.stop()
         player = nil
         if backgroundTask != .invalid {
@@ -47,6 +67,33 @@ final class PairingKeepAlive {
         try? AVAudioSession.sharedInstance().setActive(
             false, options: .notifyOthersOnDeactivation)
         AppLogger.pairing.info("Pairing keep-alive stopped", event: "pairing.keepalive")
+    }
+
+    private func handleInterruption(_ note: Notification) {
+        guard let info = note.userInfo,
+              let raw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+        switch type {
+        case .began:
+            note("Audio interrupted (call/alarm) — pairing link at risk")
+        case .ended:
+            let resume = (info[AVAudioSessionInterruptionOptionKey] as? UInt).map {
+                AVAudioSession.InterruptionOptions(rawValue: $0).contains(.shouldResume)
+            } ?? false
+            if resume {
+                player?.play()
+                note(player?.isPlaying == true
+                    ? "Audio resumed after interruption"
+                    : "Audio did NOT resume — pairing may die in background")
+            }
+        @unknown default:
+            break
+        }
+    }
+
+    private func note(_ line: String) {
+        AppLogger.pairing.info(line, event: "pairing.keepalive")
+        onEvent?(line)
     }
 
     /// One second of 8 kHz 16-bit mono silence, generated in code (no asset).
