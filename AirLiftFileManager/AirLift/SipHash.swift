@@ -8,7 +8,7 @@ enum SipHash24 {
     static func hash(key0: UInt64, key1: UInt64, message: [UInt8]) -> UInt64 {
         var v0 = UInt64(0x736f6d6570736575) ^ key0
         var v1 = UInt64(0x646f72616e646f6d) ^ key1
-        var v2 = UInt64(0x6c7967656e65726f) ^ key0
+        var v2 = UInt64(0x6c7967656e657261) ^ key0
         var v3 = UInt64(0x7465646279746573) ^ key1
 
         var offset = 0

@@ -1,4 +1,5 @@
 import XCTest
+import Security
 @testable import AirLiftFileManager
 
 /// Validation tests for both accepted pairing formats. All fixtures are
@@ -132,6 +133,11 @@ final class PairingRecordValidationTests: XCTestCase {
 /// working Keychain). The Not-Imported-after-valid-import bug was caused by
 /// load() omitting kSecReturnData — the InMemory double could never catch
 /// it, so the real store is exercised here with synthetic data only.
+///
+/// NOTE: these run only where Keychain Services is available. CI builds the
+/// test host with CODE_SIGNING_ALLOWED=NO (unsigned), and unsigned processes
+/// cannot use the Keychain — the tests skip there with a logged OSStatus and
+/// run for real on signed hosts (local Xcode runs, real devices).
 final class KeychainPairingStoreTests: XCTestCase {
     private func makeStore() -> KeychainPairingStore {
         let suite = "test-keychain-\(UUID().uuidString)"
@@ -139,7 +145,23 @@ final class KeychainPairingStoreTests: XCTestCase {
             defaults: UserDefaults(suiteName: suite) ?? .standard)
     }
 
-    func testSaveThenLoadRoundTrips() {
+    private func keychainAvailable() -> Bool {
+        let probe: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "com.bbaobaob.airliftfilemanager.probe",
+            kSecAttrAccount as String: "probe-\(UUID().uuidString)",
+            kSecValueData as String: Data([0x01]),
+        ]
+        let status = SecItemAdd(probe as CFDictionary, nil)
+        SecItemDelete(probe as CFDictionary)
+        if status != errSecSuccess {
+            print("KEYCHAIN UNAVAILABLE IN TEST HOST (OSStatus \(status)) — skipping Keychain tests")
+        }
+        return status == errSecSuccess
+    }
+
+    func testSaveThenLoadRoundTrips() throws {
+        try XCTSkipUnless(keychainAvailable(), "Keychain unavailable in this (unsigned) test host")
         let store = makeStore()
         defer { store.delete() }
         let payload = Data((0..<64).map { _ in UInt8.random(in: 0...255) })
@@ -149,14 +171,16 @@ final class KeychainPairingStoreTests: XCTestCase {
         XCTAssertTrue(store.hasRecord)
     }
 
-    func testLoadReturnsNilWhenEmpty() {
+    func testLoadReturnsNilWhenEmpty() throws {
+        try XCTSkipUnless(keychainAvailable(), "Keychain unavailable in this (unsigned) test host")
         let store = makeStore()
         defer { store.delete() }
         XCTAssertNil(store.load())
         XCTAssertFalse(store.hasRecord)
     }
 
-    func testDeleteRemovesRecord() {
+    func testDeleteRemovesRecord() throws {
+        try XCTSkipUnless(keychainAvailable(), "Keychain unavailable in this (unsigned) test host")
         let store = makeStore()
         XCTAssertTrue(store.save(Data("synthetic".utf8)))
         XCTAssertTrue(store.hasRecord)
@@ -165,7 +189,8 @@ final class KeychainPairingStoreTests: XCTestCase {
         XCTAssertNil(store.load())
     }
 
-    func testRemotePairingSurvivesKeychainRoundTrip() {
+    func testRemotePairingSurvivesKeychainRoundTrip() throws {
+        try XCTSkipUnless(keychainAvailable(), "Keychain unavailable in this (unsigned) test host")
         let store = makeStore()
         defer { store.delete() }
         var dict: [String: Any] = [

@@ -19,6 +19,19 @@ final class WirelessPairingTests: XCTestCase {
         XCTAssertEqual(digest, 0x74f839c593dc67fd)
     }
 
+    func testSipHashMultiBlockVectors() {
+        // Grounded against an independent C oracle (lengths 2, 15, 32).
+        let key = Array(UInt8(0)...UInt8(15))
+        let k0 = loadLE64(key, 0)
+        let k1 = loadLE64(key, 8)
+        XCTAssertEqual(SipHash24.hash(key0: k0, key1: k1, message: [0x00, 0x01]),
+                       0x0d6c8009d9a94f5a)
+        XCTAssertEqual(SipHash24.hash(key0: k0, key1: k1, message: Array(UInt8(0)..<UInt8(15))),
+                       0xa129ca6149be45e5)
+        XCTAssertEqual(SipHash24.hash(key0: k0, key1: k1, message: Array(UInt8(0)..<UInt8(32))),
+                       0x7127512f72f27cce)
+    }
+
     private func loadLE64(_ bytes: [UInt8], _ offset: Int) -> UInt64 {
         var value: UInt64 = 0
         for i in 0..<8 { value |= UInt64(bytes[offset + i]) << (8 * i) }
