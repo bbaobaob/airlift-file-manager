@@ -116,7 +116,8 @@ struct KeychainPairingStore: PairingStoring {
             return PairingRecordService.ValidationResult(
                 isValid: false, presentKeys: validation.presentKeys,
                 missingKeys: validation.missingKeys,
-                message: "Keychain write failed. Pairing record was not stored.")
+                message: "Keychain write failed. Pairing record was not stored.",
+                format: validation.format)
         }
         defaults.set(Date(), forKey: Self.metadataKey)
         return validation

@@ -15,3 +15,9 @@ xcuserdata/
 .DS_Store
 # Swift
 .swiftpm/
+# Pairing records contain private key material — NEVER commit them.
+# (Local analysis copies like rp_pairing_file.plist stay on this machine only.)
+rp_pairing_file.plist
+pairing.plist
+*.mobiledevicepairing
+*.mobiledevicepair

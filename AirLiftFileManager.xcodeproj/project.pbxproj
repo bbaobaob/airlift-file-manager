@@ -55,6 +55,7 @@
 		64AB74A48B9F298A1989ED16 /* FileSystemServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/FileSystemServiceTests.swift'; sourceTree = SOURCE_ROOT; };
 		917164E55F79974F120C3E9A /* LockdownClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/LockdownClientTests.swift'; sourceTree = SOURCE_ROOT; };
 		A64EC5B235642F680DE10480 /* LoggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/LoggingTests.swift'; sourceTree = SOURCE_ROOT; };
+		8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/PairingRecordValidationTests.swift'; sourceTree = SOURCE_ROOT; };
 		EE54D7FD6F85959F6AB5666F /* SortingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/SortingTests.swift'; sourceTree = SOURCE_ROOT; };
 		8C93BC59E39430A83B732AA9 /* ZipArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/ZipArchiveTests.swift'; sourceTree = SOURCE_ROOT; };
 		AA0000000000000000000010 /* AirLiftFileManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AirLiftFileManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -108,6 +109,7 @@
 		6B6D92670C2A308C557AAB13 /* FileSystemServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64AB74A48B9F298A1989ED16 /* FileSystemServiceTests.swift */; };
 		14AC4056D464D9DD2F9E4F2C /* LockdownClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917164E55F79974F120C3E9A /* LockdownClientTests.swift */; };
 		71AAEDDC3777532B5D8FBFB3 /* LoggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64EC5B235642F680DE10480 /* LoggingTests.swift */; };
+		DF59538B0B17A205D51DF55B /* PairingRecordValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */; };
 		2836032F93A2548A862979E2 /* SortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE54D7FD6F85959F6AB5666F /* SortingTests.swift */; };
 		B97EBF1EFAC0696DB6253C76 /* ZipArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C93BC59E39430A83B732AA9 /* ZipArchiveTests.swift */; };
 		997B97DB8B781ECFD676A7EE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE942AA8441C9EE0CB98C4DF /* Assets.xcassets */; };
@@ -172,6 +174,7 @@
 				64AB74A48B9F298A1989ED16 /* FileSystemServiceTests.swift */,
 				917164E55F79974F120C3E9A /* LockdownClientTests.swift */,
 				A64EC5B235642F680DE10480 /* LoggingTests.swift */,
+				8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */,
 				EE54D7FD6F85959F6AB5666F /* SortingTests.swift */,
 				8C93BC59E39430A83B732AA9 /* ZipArchiveTests.swift */,
 				FE942AA8441C9EE0CB98C4DF /* Assets.xcassets */,
@@ -248,6 +251,7 @@
 				6B6D92670C2A308C557AAB13 /* FileSystemServiceTests.swift in Sources */,
 				14AC4056D464D9DD2F9E4F2C /* LockdownClientTests.swift in Sources */,
 				71AAEDDC3777532B5D8FBFB3 /* LoggingTests.swift in Sources */,
+				DF59538B0B17A205D51DF55B /* PairingRecordValidationTests.swift in Sources */,
 				2836032F93A2548A862979E2 /* SortingTests.swift in Sources */,
 				B97EBF1EFAC0696DB6253C76 /* ZipArchiveTests.swift in Sources */,
 			);
@@ -388,7 +392,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 46;
+			CURRENT_PROJECT_VERSION = 47;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -413,7 +417,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 46;
+			CURRENT_PROJECT_VERSION = 47;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;

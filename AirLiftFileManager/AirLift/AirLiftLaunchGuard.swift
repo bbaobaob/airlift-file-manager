@@ -68,14 +68,15 @@ struct AirLiftPreflightChecker: Sendable {
     }
 
     /// Local classification (no network): presence + key validation.
+    /// Accepts both the classic lockdown format and the StikPair
+    /// remote-pairing format (wireless pairing credential).
     func classifyPairing() -> PairingCheckStatus {
         pairingStore.migrateLegacyFileIfNeeded()
         guard let data = pairingStore.load() else { return .notImported }
         let validation = PairingRecordService.validate(data)
         if validation.isValid { return .imported }
-        // A record that carries none of the lockdown keys cannot come from a
-        // lockdown pairing at all.
-        if validation.presentKeys.isEmpty { return .unsupported }
+        // format == nil: the stored data is not a recognized pairing record.
+        if validation.format == nil { return .unsupported }
         return .invalid
     }
 
@@ -104,7 +105,8 @@ struct AirLiftPreflightChecker: Sendable {
                                           transportReachable: false, deviceResponded: false,
                                           failureReason: reason)
         case .invalid:
-            let reason = "The imported Pairing File is invalid (required lockdown keys are missing). " +
+            let reason = "The imported Pairing File is invalid (not a complete lockdown or " +
+                "StikPair remote-pairing record). " +
                 "AirLift is Locked — re-export from StikPair and import again."
             AppLogger.pairing.warning("Preflight blocked: pairing file invalid", event: "preflight")
             return AirLiftPreflightResult(vpnStatus: .connected, pairingStatus: pairing,

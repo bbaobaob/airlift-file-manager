@@ -26,6 +26,17 @@ implemented or planned in this repository.
   **Settings › Privacy & Security › Developer Mode › "Pair with StikPair"**,
   enters the PIN shown in a Live Activity, then exports
   `rp_pairing_file.plist` via ShareLink.
+
+**Observed on-device format (verified 2026-09-18 against a real StikPair
+export — structure only, no key material recorded):** the exported
+`rp_pairing_file.plist` is a **RemotePairing (wireless pairing) record**, NOT
+a classic lockdown record: `public_key` + `private_key` (32-byte raw keys),
+`identifier` (UUID string), `alt_irk` (16 bytes). The app's validator accepts
+this format (`PairingFormat.remotePairing`, strict type/length checks) alongside
+the classic `HostPrivateKey`/`HostCertificate`/`DeviceCertificate` lockdown
+format. Honest consequence: this credential suits RemotePairing-based flows;
+it does not by itself enable classic trusted lockdown sessions
+(`StartService`), which remain unimplemented.
 - Mechanism details verified from source: Bonjour discovery
   (`_remotepairing-manual-pairing._tcp.`) for Apple TV targets,
   `NetService` + Local Network permission, `BGContinuedProcessingTask`
