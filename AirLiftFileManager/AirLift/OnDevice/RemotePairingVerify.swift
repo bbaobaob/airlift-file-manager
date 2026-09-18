@@ -29,11 +29,11 @@ struct RemotePairingVerify {
         case cryptoFailure(String)
     }
 
-    let stream: TCPStream
+    let stream: any DataStream
     private(set) var sequence = 0
     private var encryptedSequence: UInt64 = 0
 
-    init(stream: TCPStream) {
+    init(stream: any DataStream) {
         self.stream = stream
     }
 

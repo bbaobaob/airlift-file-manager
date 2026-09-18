@@ -96,11 +96,11 @@ struct AFCClient {
 
     // MARK: - Live session
 
-    private let stream: TCPStream
+    private let stream: any DataStream
     private let timeout: TimeInterval
     private var packetNumber: UInt64 = 0
 
-    init(stream: TCPStream, timeout: TimeInterval = 10) {
+    init(stream: any DataStream, timeout: TimeInterval = 10) {
         self.stream = stream
         self.timeout = timeout
     }
@@ -242,10 +242,10 @@ struct StreamingZipConduit {
         case badResponse(String)
     }
 
-    let stream: TCPStream
+    let stream: any DataStream
     let timeout: TimeInterval
 
-    init(stream: TCPStream, timeout: TimeInterval = 30) {
+    init(stream: any DataStream, timeout: TimeInterval = 30) {
         self.stream = stream
         self.timeout = timeout
     }

@@ -1,10 +1,35 @@
 import Foundation
 import Network
 
+/// Byte-stream abstraction shared by direct TCP and tunnel-layer TCP.
+/// Every client (pairing, TLS, XPC, RSD, AFC, conduit) talks to this so the
+/// transport can switch without touching protocol code.
+protocol DataStream: Sendable {
+    func write(_ data: Data, timeout: TimeInterval) async throws
+    func readExactly(_ count: Int, timeout: TimeInterval) async throws -> Data
+    func close()
+}
+
+extension DataStream {
+    /// Reads one RPPairing frame (magic + u16BE length + JSON body).
+    func readRPPairingFrame(timeout: TimeInterval = 8) async throws -> Any {
+        let header = try await readExactly(RPPairingWire.magic.count + 2, timeout: timeout)
+        guard header.prefix(RPPairingWire.magic.count) == RPPairingWire.magic else {
+            throw RPPairingWire.WireError.badMagic
+        }
+        let length = Int(RPPairingWire.be16(header, at: RPPairingWire.magic.count))
+        let body = try await readExactly(length, timeout: timeout)
+        guard let json = try? JSONSerialization.jsonObject(with: body, options: []) else {
+            throw RPPairingWire.WireError.invalidJSON
+        }
+        return json
+    }
+}
+
 /// Async byte stream over a TCP NWConnection with per-operation timeouts.
 /// Used for every hop of the on-device chain (remote-pairing, tunnel,
 /// RSD, AFC) through the LocalDevVPN loopback.
-final class TCPStream: Sendable {
+final class TCPStream: DataStream {
     enum StreamError: Error, Equatable {
         case connectionFailed(String)
         case timeout
@@ -70,20 +95,6 @@ final class TCPStream: Sendable {
             out.append(contentsOf: slice)
         }
         return out
-    }
-
-    /// Reads one RPPairing frame (magic + u16BE length + JSON body).
-    func readRPPairingFrame(timeout: TimeInterval = 8) async throws -> Any {
-        let header = try await readExactly(RPPairingWire.magic.count + 2, timeout: timeout)
-        guard header.prefix(RPPairingWire.magic.count) == RPPairingWire.magic else {
-            throw RPPairingWire.WireError.badMagic
-        }
-        let length = Int(RPPairingWire.be16(header, at: RPPairingWire.magic.count))
-        let body = try await readExactly(length, timeout: timeout)
-        guard let json = try? JSONSerialization.jsonObject(with: body, options: []) else {
-            throw RPPairingWire.WireError.invalidJSON
-        }
-        return json
     }
 
     // MARK: - Plumbing

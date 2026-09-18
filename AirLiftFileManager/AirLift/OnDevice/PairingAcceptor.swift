@@ -9,7 +9,7 @@ import Foundation
 ///
 /// All envelopes use originatedBy "device" (responder role).
 struct PairingAcceptor {
-    let stream: TCPStream
+    let stream: any DataStream
     let identity: PairingHost.HostIdentity
     let pairingStore: any PairingStoring
     /// Called with the 6-digit PIN to display; must return when shown.
@@ -18,7 +18,7 @@ struct PairingAcceptor {
     let progress: (String) async -> Void
     private var sequence = 0
 
-    init(stream: TCPStream, identity: PairingHost.HostIdentity,
+    init(stream: any DataStream, identity: PairingHost.HostIdentity,
          pairingStore: any PairingStoring,
          pinCallback: @escaping (String) async -> Void,
          progress: @escaping (String) async -> Void = { _ in }) {

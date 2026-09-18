@@ -176,3 +176,15 @@ write flow this app ports step by step:
   implementation, e.g. aid/iTunes, loads the framework). Modeled as
   `AirTrafficTriggering` so a future trigger plugs in; until then the app
   stages/verifies/cleans honestly and says exactly where it stopped.
+
+## Tunnel TCP adapter (this build)
+
+Device evidence settled the transport question: pair-verify, TLS-PSK and the
+CDTunnel handshake all succeed over direct TCP to 10.7.0.1, the handshake
+returns a live RSD port — but direct TCP to that port times out. RSD/AFC
+listen on the CDTunnel IPv6 endpoint only, not on loopback. So every
+post-handshake connection now runs packet-layer TCP through the held-open
+tunnel (the idevice Adapter role): IPv6 + TCP codec, SYN/ACK handshake with
+MSS, sliding window with cumulative ACKs, RTO retransmit, FIN/RST handling —
+with direct TCP kept as a 3-second first attempt per connection (it wins
+wherever the bridge reaches). The tunnel stays open for the whole session.

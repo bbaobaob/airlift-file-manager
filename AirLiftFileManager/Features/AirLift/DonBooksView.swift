@@ -98,7 +98,8 @@ final class DonBooksViewModel: ObservableObject {
         runTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let handshake = try await establish(chain: chain)
+                let established = try await establish(chain: chain)
+                let handshake = established.handshake
                 await MainActor.run { [weak self] in
                     self?.emit("RSD services on this device (\(handshake.services.count)):")
                     for name in handshake.services.keys.sorted() {
@@ -119,8 +120,10 @@ final class DonBooksViewModel: ObservableObject {
         runTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let handshake = try await establish(chain: chain)
-                let access = try await afcAccess(chain: chain, handshake: handshake)
+                let established = try await establish(chain: chain)
+                let handshake = established.handshake
+                let access = try await afcAccess(connector: established.connector,
+                                                 handshake: handshake)
                 let books = BooksState(access: access, log: { [weak self] line in
                     Task { @MainActor [weak self] in self?.lines.append(line) }
                 })
@@ -177,14 +180,15 @@ final class DonBooksViewModel: ObservableObject {
                     return
                 }
                 await self.emitLine("Conduit service at port \(conduitPort) — streaming archive…")
-                let conduitStream = try await TCPStream(host: chain.host, port: conduitPort,
-                                                        timeout: 15)
+                let conduitStream = try await established.connector.connect(
+                    port: conduitPort, label: "Conduit")
                 let conduit = StreamingZipConduit(stream: conduitStream, timeout: 30)
                 let response = try await conduit.sendArchive(archive, mediaSubdir: plan.source)
                 await self.emitLine("Conduit response: \(response)")
                 conduitStream.close()
 
-                let access = try await afcAccess(chain: chain, handshake: handshake)
+                let access = try await afcAccess(connector: established.connector,
+                                                 handshake: handshake)
                 try await access.makeDirectory(path: "Books")
                 try await access.makeDirectory(path: "Books/Sync")
                 let books = try AirlockArchive.booksData(identifiers: plan.identifiers)

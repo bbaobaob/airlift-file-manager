@@ -32,7 +32,7 @@ struct RSDClient {
     }
 
     /// Runs the RSD handshake on an already-connected TCP stream.
-    static func handshake(stream: TCPStream, timeout: TimeInterval = 10) async throws -> Handshake {
+    static func handshake(stream: any DataStream, timeout: TimeInterval = 10) async throws -> Handshake {
         let xpc = try await RemoteXPCClient(stream: stream, timeout: timeout)
         try await xpc.doHandshake()
         try await xpc.sendDeviceHandshake()
@@ -69,7 +69,7 @@ struct RSDClient {
     /// `Idevice::rsd_checkin`): send {Label, ProtocolVersion "2",
     /// Request RSDCheckin} as u32BE-length-prefixed XML plist; expect a
     /// plist with Request RSDCheckin, then one with Request StartService.
-    static func checkin(stream: TCPStream, label: String,
+    static func checkin(stream: any DataStream, label: String,
                         timeout: TimeInterval = 10) async throws {
         let request: [String: Any] = ["Label": label, "ProtocolVersion": "2",
                                       "Request": "RSDCheckin"]
@@ -95,7 +95,7 @@ struct RSDClient {
         return out
     }
 
-    static func readFramedPlist(stream: TCPStream,
+    static func readFramedPlist(stream: any DataStream,
                                 timeout: TimeInterval) async throws -> [String: Any] {
         let header = try await stream.readExactly(4, timeout: timeout)
         let length = (Int(header[header.startIndex]) << 24)

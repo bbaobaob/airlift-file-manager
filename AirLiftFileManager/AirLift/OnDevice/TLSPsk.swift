@@ -269,12 +269,12 @@ enum TLSPsk {
 /// exactly: seq 0 for our Finished, then 1, 2… for app data; server seq
 /// counts every decrypted handshake record.
 final class TLSPskSession {
-    private let stream: TCPStream
+    private let stream: any DataStream
     private let keys: TLSPsk.KeyBlock
     private var writeSequence: UInt64
     private var readSequence: UInt64
 
-    private init(stream: TCPStream, keys: TLSPsk.KeyBlock,
+    private init(stream: any DataStream, keys: TLSPsk.KeyBlock,
                  writeSequence: UInt64, readSequence: UInt64) {
         self.stream = stream
         self.keys = keys
@@ -282,7 +282,7 @@ final class TLSPskSession {
         self.readSequence = readSequence
     }
 
-    static func handshake(stream: TCPStream, psk: Data,
+    static func handshake(stream: any DataStream, psk: Data,
                           timeout: TimeInterval = 10) async throws -> TLSPskSession {
         let clientRandom = TLSPsk.randomBytes(32)
         var serverRandom = Data(count: 32)
@@ -460,7 +460,7 @@ final class TLSPskSession {
         return out
     }
 
-    static func readRecord(stream: TCPStream, timeout: TimeInterval) async throws -> (UInt8, Data) {
+    static func readRecord(stream: any DataStream, timeout: TimeInterval) async throws -> (UInt8, Data) {
         let header = try await stream.readExactly(5, timeout: timeout)
         let contentType = header[header.startIndex]
         let length = (Int(header[header.startIndex + 3]) << 8)

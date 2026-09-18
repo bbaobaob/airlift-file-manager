@@ -11,6 +11,11 @@ struct RSDEstablisher {
         let pairingPort: UInt16
         let tunnelPort: UInt16
         let rsdPort: UInt16
+        /// Held open for the session: the tunnel must stay up while tunneled
+        /// connections (or direct dials alongside it) are in use, and the
+        /// connector dials every subsequent service port (direct-first,
+        /// packet-layer fallback).
+        let connector: TunnelConnector
     }
 
     let host: String
@@ -77,7 +82,14 @@ struct RSDEstablisher {
         }
         emit("RSD tunnel established (direct TCP via LocalDevVPN + handshake; RSD port \(tunnel.serverRSDPort))")
 
-        let rsdStream = try await connect(step: "RSD TCP", port: tunnel.serverRSDPort)
+        // From here every service port goes through the connector: direct
+        // TCP first (works where the bridge reaches), packet-layer TCP
+        // through the held-open tunnel as fallback (RSD/AFC only listen
+        // on the tunnel endpoint — proven by timeout on-device).
+        let connector = TunnelConnector(tls: tls, info: tunnel, host: host)
+        let rsdStream = try await mapError(step: "RSD TCP") {
+            try await connector.connect(port: tunnel.serverRSDPort, label: "RSD")
+        }
         let handshake = try await mapError(step: "RSD handshake") {
             try await RSDClient.handshake(stream: rsdStream, timeout: timeout)
         }
@@ -87,7 +99,8 @@ struct RSDEstablisher {
         }
         pairingStream.close()
         return Established(handshake: handshake, pairingPort: service.port,
-                           tunnelPort: tunnelPort, rsdPort: tunnel.serverRSDPort)
+                           tunnelPort: tunnelPort, rsdPort: tunnel.serverRSDPort,
+                           connector: connector)
     }
 
     // MARK: - Steps

@@ -12,7 +12,7 @@ final class Http2Client {
         case goAway(String)
     }
 
-    private let stream: TCPStream
+    private let stream: any DataStream
     private let timeout: TimeInterval
     private var recvBuffer = Data()
     private var cache: [UInt32: [Data]] = [:]
@@ -20,7 +20,7 @@ final class Http2Client {
     private var streamSendWindows: [UInt32: Int64] = [:]
     private var peerInitialWindow: Int64 = Http2Frames.defaultWindow
 
-    init(stream: TCPStream, timeout: TimeInterval = 10) async throws {
+    init(stream: any DataStream, timeout: TimeInterval = 10) async throws {
         self.stream = stream
         self.timeout = timeout
         try await stream.write(Http2Frames.magic, timeout: timeout)

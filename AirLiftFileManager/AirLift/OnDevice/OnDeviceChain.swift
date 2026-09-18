@@ -105,7 +105,9 @@ struct OnDeviceChain {
         }
 
         // 5. AFC session + write/read/remove self-test.
-        let afcStream = try await connect(step: "AFC TCP", port: afcPort)
+        let afcStream = try await mapError(step: "AFC TCP") {
+            try await established.connector.connect(port: afcPort, label: "AFC")
+        }
         var afc = AFCClient(stream: afcStream)
         try await mapError(step: "AFC checkin") { try await afc.checkin() }
         emit("AFC connected (over RSD)")
@@ -170,14 +172,6 @@ struct OnDeviceChain {
     private func emit(_ line: String) {
         AppLogger.airLift.info(line, event: "selftest")
         log(line)
-    }
-
-    private func connect(step: String, port: UInt16) async throws -> TCPStream {
-        do {
-            return try await TCPStream(host: host, port: port)
-        } catch {
-            throw ChainError.stepFailed(step: step, reason: "TCP \(host):\(port) failed: \(error)")
-        }
     }
 
     private func mapError<T>(step: String, operation: () async throws -> T) async throws -> T {

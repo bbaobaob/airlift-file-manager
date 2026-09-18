@@ -19,7 +19,7 @@ final class RemoteXPCClient {
     private var partial: [UInt32: Data] = [:]
     private let rootId: UInt64 = 1
 
-    init(stream: TCPStream, timeout: TimeInterval = 10) async throws {
+    init(stream: any DataStream, timeout: TimeInterval = 10) async throws {
         self.timeout = timeout
         h2 = try await Http2Client(stream: stream, timeout: timeout)
     }
