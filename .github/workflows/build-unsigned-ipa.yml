@@ -36,8 +36,17 @@ jobs:
       - name: Verify IPA
         run: ./Scripts/verify_ipa.sh build/AirLiftFileManager-unsigned.ipa
 
+      - name: Generate diagnostic report
+        run: ./Scripts/diagnostic_report.sh build/DIAGNOSTIC_REPORT.md
+
       - name: Upload unsigned IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: AirLiftFileManager-unsigned
           path: build/AirLiftFileManager-unsigned.ipa
+
+      - name: Upload diagnostic report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostic-report
+          path: build/DIAGNOSTIC_REPORT.md
