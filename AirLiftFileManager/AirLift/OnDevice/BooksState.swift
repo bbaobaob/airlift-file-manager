@@ -296,7 +296,7 @@ final class InMemoryBooksAccess: BooksFileAccess, @unchecked Sendable {
         }
     }
 
-    func makeDirectory(_ path: String) async throws {
+    func makeDirectory(path: String) async throws {
         files[path] = Node(isDirectory: true, data: Data())
     }
 

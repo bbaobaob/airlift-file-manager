@@ -39,7 +39,7 @@ final class AFCBooksAccess: BooksFileAccess {
         try await client.remove(path: path)
     }
 
-    func makeDirectory(_ path: String) async throws {
+    func makeDirectory(path: String) async throws {
         // Best-effort parents first (EnsureDirectory semantics).
         var components = path.split(separator: "/").map(String.init)
         guard components.count > 1 else {
