@@ -48,13 +48,15 @@ enum RPPairingWire {
 
     // MARK: - Envelopes
 
-    static func plainEnvelope(value: Any, sequence: Int) -> [String: Any] {
+    static func plainEnvelope(value: Any, sequence: Int,
+                              originatedBy: String = "host") -> [String: Any] {
         ["message": ["plain": ["_0": value]],
          "originatedBy": originatedBy,
          "sequenceNumber": sequence]
     }
 
-    static func encryptedEnvelope(ciphertextBase64: String, sequence: Int) -> [String: Any] {
+    static func encryptedEnvelope(ciphertextBase64: String, sequence: Int,
+                                  originatedBy: String = "host") -> [String: Any] {
         ["message": ["streamEncrypted": ["_0": ciphertextBase64]],
          "originatedBy": originatedBy,
          "sequenceNumber": sequence]

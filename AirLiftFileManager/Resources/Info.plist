@@ -68,6 +68,7 @@
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_remotepairing._tcp</string>
+		<string>_remotepairing-pairable-host._tcp</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>

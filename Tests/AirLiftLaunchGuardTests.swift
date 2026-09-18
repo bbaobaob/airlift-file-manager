@@ -6,6 +6,10 @@ import XCTest
 final class ProbeBox: @unchecked Sendable {
     var vpnUp = true
     var lockdownReachable = true
+    var remoteConnectUp = true
+    var discoveredPorts: [UInt16] = [49152]
+    var verifyProblem: String? = nil
+    var discoveryCalls = 0
 
     func vpnProbe() async -> Bool { vpnUp }
     func lockdownProbe() async -> LockdownProbeResult {
@@ -15,6 +19,16 @@ final class ProbeBox: @unchecked Sendable {
                             productType: lockdownReachable ? "iPhone12,5" : nil,
                             error: lockdownReachable ? nil : "connection refused")
     }
+    func remoteConnect(_ port: UInt16) async -> Bool { remoteConnectUp }
+    func discover() async -> [WirelessPairingDiscovery.DiscoveredService] {
+        discoveryCalls += 1
+        return discoveredPorts.map {
+            WirelessPairingDiscovery.DiscoveredService(
+                name: "TestDevice", port: $0,
+                identifier: "test-id", authTag: nil)
+        }
+    }
+    func verifyDevice(_ record: Data, _ port: UInt16) async -> String? { verifyProblem }
 }
 
 final class FakeLauncher: AirLiftExecuting, @unchecked Sendable {
@@ -83,6 +97,8 @@ final class AirLiftLaunchGuardTests: XCTestCase {
     override func setUp() async throws {
         box = ProbeBox()
         store = InMemoryPairingStore()
+        UserDefaults.standard.removeObject(
+            forKey: AirLiftPreflightChecker.cachedPortKey)
     }
 
     // MARK: - Pairing file UTI support (document picker + Open-in)
@@ -116,14 +132,27 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         AirLiftLaunchGuard(pairingStore: store,
                            vpnProbe: { [box] in await box.vpnProbe() },
                            lockdownProbe: { [box] in await box.lockdownProbe() },
+                           remoteConnect: { [box] port in await box.remoteConnect(port) },
+                           discover: { [box] in await box.discover() },
+                           verifyDevice: { [box] record, port in
+                               await box.verifyDevice(record, port)
+                           },
                            launcher: launcher,
                            watchdogInterval: watchdogInterval)
+    }
+
+    override func tearDown() async throws {
+        UserDefaults.standard.removeObject(
+            forKey: AirLiftPreflightChecker.cachedPortKey)
+        try await super.tearDown()
     }
 
     // MARK: - Startup ladder (spec pseudo-code)
 
     func testLockedWhenVPNDown() async {
         box.vpnUp = false
+        box.remoteConnectUp = false
+        box.discoveredPorts = []
         let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
         await guardVM.recheckConnection()
 
@@ -179,13 +208,51 @@ final class AirLiftLaunchGuardTests: XCTestCase {
 
     func testTransportDownAfterVpnUpLocks() async {
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
-        box.lockdownReachable = false
+        box.remoteConnectUp = false
+        box.discoveredPorts = []
         let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .locked)
-        XCTAssertTrue(guardVM.lastFailureReason?.contains("Transport unavailable") == true)
+        XCTAssertTrue(guardVM.lastFailureReason?.contains("_remotepairing") == true)
         XCTAssertEqual(guardVM.lastPreflight?.transportReachable, false)
+    }
+
+    func testLockdownFailureDoesNotBlockWhenChainTransportWorks() async {
+        // Lockdown 62078 is supplementary diagnostics, never gating: the
+        // chain dials the remotepairing endpoint, not lockdown.
+        store.inject(recordWithKeys: PairingRecordService.requiredKeys)
+        box.lockdownReachable = false
+        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        await guardVM.recheckConnection()
+
+        XCTAssertEqual(guardVM.launchState, .readyToStart)
+        XCTAssertTrue(guardVM.canStartAirLift)
+    }
+
+    func testPairVerifyFailureBlocksLaunch() async {
+        store.inject(recordWithKeys: PairingRecordService.requiredKeys)
+        box.verifyProblem = "pair-verify rejected: device refused"
+        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        await guardVM.recheckConnection()
+
+        XCTAssertEqual(guardVM.launchState, .locked)
+        XCTAssertEqual(guardVM.lastPreflight?.transportReachable, true)
+        XCTAssertEqual(guardVM.lastPreflight?.deviceResponded, false)
+        XCTAssertTrue(guardVM.lastFailureReason?.contains("pair-verify") == true)
+        XCTAssertFalse(guardVM.canStartAirLift)
+    }
+
+    func testCachedRemotePortSkipsDiscovery() async {
+        // A cached port is re-verified live (never trusted blindly).
+        UserDefaults.standard.set(49999, forKey: AirLiftPreflightChecker.cachedPortKey)
+        box.vpnUp = false
+        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        store.inject(recordWithKeys: PairingRecordService.requiredKeys)
+        await guardVM.recheckConnection()
+
+        XCTAssertEqual(box.discoveryCalls, 0, "cached port must be tried before discovery")
+        XCTAssertEqual(guardVM.launchState, .readyToStart)
     }
 
     // MARK: - Launch rules
@@ -197,8 +264,9 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         await guardVM.recheckConnection()
         XCTAssertEqual(guardVM.launchState, .readyToStart)
 
-        // Reality changes between ready and start: VPN drops.
+        // Reality changes between ready and start: the whole tunnel drops.
         box.vpnUp = false
+        box.remoteConnectUp = false
         await guardVM.startAirLift()
 
         XCTAssertEqual(launcher.executeCount, 0, "launcher must never be called on failed preflight")
@@ -276,9 +344,14 @@ final class AirLiftLaunchGuardTests: XCTestCase {
 
     func testPreflightStopsAtFirstBlockingGate() async {
         box.vpnUp = false
+        box.remoteConnectUp = false
+        box.discoveredPorts = []
         let checker = AirLiftPreflightChecker(
             vpnProbe: { [box] in await box.vpnProbe() },
             lockdownProbe: { [box] in await box.lockdownProbe() },
+            remoteConnect: { [box] port in await box.remoteConnect(port) },
+            discover: { [box] in await box.discover() },
+            verifyDevice: { [box] record, port in await box.verifyDevice(record, port) },
             pairingStore: store)
         let result = await checker.runPreflight()
         XCTAssertEqual(result.vpnStatus, .disconnected)

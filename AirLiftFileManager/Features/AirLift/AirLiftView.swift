@@ -12,6 +12,7 @@ struct AirLiftView: View {
     @State private var showingSetup = false
     @State private var showingAccessStatus = false
     @State private var showPairingImporter = false
+    @State private var showInAppPairing = false
 
     var body: some View {
         NavigationStack {
@@ -43,6 +44,12 @@ struct AirLiftView: View {
             }
             .sheet(isPresented: $showingSetup) {
                 AirLiftSetupRequiredView(guardVM: launchGuard) { showingSetup = false }
+            }
+            .sheet(isPresented: $showInAppPairing) {
+                InAppPairingView(model: InAppPairingViewModel(
+                    pairingStore: launchGuard.pairingStore)) {
+                        Task { await launchGuard.recheckConnection() }
+                    }
             }
             .navigationDestination(isPresented: $showingAccessStatus) {
                 AccessStatusView(guardVM: launchGuard)
@@ -136,34 +143,27 @@ struct AirLiftView: View {
         .accessibilityLabel("\(title): \(value)")
     }
 
-    /// Real StikPair pairing flow: guided handoff (StikPair exposes no URL
-    /// scheme, verified in its Info.plist, so the pairing ceremony happens
-    /// in StikPair itself) plus in-app import. No mock pairing anywhere.
+    /// In-app pairing entry (the real on-device ceremony; no separate app).
     private var stikPairSection: some View {
         Section {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("1. Install and open StikPair on this iPhone.")
-                Text("2. Tap Pair iPhone or iPad and allow Local Network.")
-                Text("3. Settings › Privacy & Security › Developer Mode › Pair with StikPair, enter the PIN.")
-                Text("4. Back in StikPair: Export Pairing File.")
-                Text("5. Import it below (or Share › Copy to AirLift File Manager).")
+            Button {
+                showInAppPairing = true
+            } label: {
+                Label("Pair This iPhone Here", systemImage: "key.horizontal.fill")
             }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
             Button {
                 showPairingImporter = true
             } label: {
-                Label(launchGuard.pairingStore.hasRecord
-                      ? "Replace Pairing File" : "Import Pairing File",
-                      systemImage: "key.horizontal")
+                Label("Import Pairing File", systemImage: "key.horizontal")
             }
+            .font(.footnote)
             Text(launchGuard.pairingStatusMessage)
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } header: {
-            Text("Pair with StikPair")
+            Text("Pairing")
         } footer: {
-            Text("The real on-device pairing mechanism — the record is validated and stored in the Keychain, never logged.")
+            Text("Pairing runs inside this app (advertise, PIN, SRP). Import stays for records obtained elsewhere.")
         }
     }
 

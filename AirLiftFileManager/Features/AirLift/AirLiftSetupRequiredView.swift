@@ -1,16 +1,17 @@
 import SwiftUI
 
-/// "AirLift Setup Required" screen. Shown whenever the launch requirements
-/// are not met. Shows three independent statuses (LocalDevVPN / Pairing File /
-/// AirLift) with the exact blocking reason, and every action the user needs.
-/// Start AirLift stays disabled until LocalDevVPN is Connected AND a valid
-/// Pairing File is imported AND preflight reaches Ready to Start.
+/// "AirLift Setup Required" screen. Shows three independent statuses with
+/// the exact blocking reason. Pairing happens IN THIS APP (no separate
+/// StikPair needed); a manual file import stays as the alternative for
+/// records obtained elsewhere. Start AirLift stays disabled until
+/// LocalDevVPN is Connected AND a valid Pairing File is imported AND
+/// preflight reaches Ready to Start.
 struct AirLiftSetupRequiredView: View {
     @ObservedObject var guardVM: AirLiftLaunchGuard
     let onDismiss: () -> Void
 
     @State private var showPairingImporter = false
-    @State private var showVPNHelp = false
+    @State private var showInAppPairing = false
 
     var body: some View {
         NavigationStack {
@@ -26,7 +27,6 @@ struct AirLiftSetupRequiredView: View {
                         Text("Blocking Reason")
                     }
                 }
-                vpnSection
                 pairingSection
                 actionsSection
                 footerSection
@@ -67,6 +67,12 @@ struct AirLiftSetupRequiredView: View {
                         "Document picker failed: \(error.localizedDescription)",
                         event: "pairing.import")
                 }
+            }
+            .sheet(isPresented: $showInAppPairing) {
+                InAppPairingView(model: InAppPairingViewModel(
+                    pairingStore: guardVM.pairingStore)) {
+                        Task { await guardVM.recheckConnection() }
+                    }
             }
             .task { await guardVM.recheckConnection() }
             .onChange(of: guardVM.launchState) { _, newState in
@@ -120,41 +126,16 @@ struct AirLiftSetupRequiredView: View {
         .accessibilityLabel("\(title): \(value)")
     }
 
-    private var vpnSection: some View {
-        Section {
-            Button {
-                if let url = URL(string: UIApplication.openSettingsURLString) {
-                    UIApplication.shared.open(url)
-                }
-            } label: {
-                Label("Open iOS Settings (VPN)", systemImage: "gear")
-            }
-            Button {
-                showVPNHelp = true
-            } label: {
-                Label("How to enable LocalDevVPN", systemImage: "questionmark.circle")
-            }
-            if showVPNHelp {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("1. Install LocalDevVPN (or SideStore StosVPN).")
-                    Text("2. Open it and connect the tunnel (device IP 10.7.0.0, fake IP 10.7.0.1).")
-                    Text("3. Keep Wi-Fi enabled while the tunnel is active.")
-                    Text("4. Return here and tap Recheck Connection.")
-                }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            }
-        } header: {
-            Text("1 · LocalDevVPN")
-        } footer: {
-            Text("The tunnel maps 10.7.0.1 back to this device's lockdown (port 62078). Without it AirLift is Locked.")
-        }
-    }
-
     private var pairingSection: some View {
         Section {
             Text(guardVM.pairingStatusMessage)
                 .font(.footnote)
+            Button {
+                showInAppPairing = true
+            } label: {
+                Label("Pair This iPhone Here", systemImage: "key.horizontal.fill")
+            }
+            .font(.headline)
             Button {
                 showPairingImporter = true
             } label: {
@@ -162,17 +143,19 @@ struct AirLiftSetupRequiredView: View {
                       ? "Replace Pairing File" : "Import Pairing File",
                       systemImage: "key.horizontal")
             }
+            .font(.footnote)
             if guardVM.pairingStore.hasRecord {
                 Button(role: .destructive) {
                     guardVM.removePairing()
                 } label: {
                     Label("Remove Pairing File", systemImage: "key.slash")
                 }
+                .font(.footnote)
             }
         } header: {
-            Text("2 · Pairing File")
+            Text("Pairing")
         } footer: {
-            Text("Import here with the button above, or share the file from StikPair and choose \"Copy to AirLift File Manager\". Pair on-device: Settings › Privacy & Security › Developer Mode › Pair with StikPair. The record is stored in the Keychain and never logged. Expiry cannot be detected before trusted sessions are implemented — if you re-paired in StikPair, import the new file.")
+            Text("Pairing runs the real on-device ceremony (advertise, PIN, SRP) inside this app — no separate StikPair needed. Import stays for records obtained elsewhere (e.g. iloader). Records live in the Keychain and are never logged.")
         }
     }
 
@@ -205,7 +188,7 @@ struct AirLiftSetupRequiredView: View {
                     .foregroundStyle(.secondary)
             }
         } header: {
-            Text("3 · AirLift")
+            Text("AirLift")
         }
     }
 
@@ -225,7 +208,7 @@ struct AirLiftSetupRequiredView: View {
             } label: {
                 Label("Continue in Sandbox-Only Mode", systemImage: "folder")
             }
-            Text("The Files tab always works on this app's real sandbox. Importing a Pairing File or connecting the tunnel is NOT proof that AirLift is active — AirLift launches only through the guarded preflight, and this build reports 'Transport unavailable' honestly instead of faking a Running state.")
+            Text("The Files tab always works on this app's real sandbox. A tunnel or a pairing record alone is NOT proof that AirLift is active — AirLift launches only through the guarded preflight.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
