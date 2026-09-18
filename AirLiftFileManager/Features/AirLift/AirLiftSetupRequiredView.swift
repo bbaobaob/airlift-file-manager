@@ -40,7 +40,7 @@ struct AirLiftSetupRequiredView: View {
                 }
             }
             .fileImporter(isPresented: $showPairingImporter,
-                          allowedContentTypes: [.item],
+                          allowedContentTypes: PairingFileSupport.supportedContentTypes,
                           allowsMultipleSelection: false) { result in
                 if case .success(let urls) = result, let url = urls.first {
                     Task {
@@ -153,7 +153,7 @@ struct AirLiftSetupRequiredView: View {
         } header: {
             Text("2 · Pairing File")
         } footer: {
-            Text("Pair on-device with StikPair (Settings › Privacy & Security › Developer Mode › Pair with StikPair), export the plist, and import it here. The record is stored in the Keychain and never logged. Expiry cannot be detected before trusted sessions are implemented — if you re-paired in StikPair, import the new file.")
+            Text("Import here with the button above, or share the file from StikPair and choose \"Copy to AirLift File Manager\". Pair on-device: Settings › Privacy & Security › Developer Mode › Pair with StikPair. The record is stored in the Keychain and never logged. Expiry cannot be detected before trusted sessions are implemented — if you re-paired in StikPair, import the new file.")
         }
     }
 

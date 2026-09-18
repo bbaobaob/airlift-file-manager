@@ -85,6 +85,32 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         store = InMemoryPairingStore()
     }
 
+    // MARK: - Pairing file UTI support (document picker + Open-in)
+
+    func testSupportedContentTypesMatchVerifiedSet() {
+        let identifiers = PairingFileSupport.supportedContentTypes.map(\.identifier)
+        XCTAssertTrue(identifiers.contains("com.apple.property-list"),
+                      "StikPair exports .plist files")
+        XCTAssertTrue(identifiers.contains { $0.contains("mobiledevicepair") },
+                      "iloader-style .mobiledevicepairing files must be accepted")
+        XCTAssertFalse(identifiers.contains("public.item"),
+                       "generic .item grays out rows in the iOS document picker")
+    }
+
+    func testAppAcceptsPairingFilesViaOpenIn() {
+        // CFBundleDocumentTypes in the checked-in Info.plist enable the
+        // share-sheet path that bypasses the document picker entirely.
+        guard let url = Bundle.main.url(forResource: "Info", withExtension: "plist"),
+              let info = NSDictionary(contentsOf: url),
+              let docTypes = info["CFBundleDocumentTypes"] as? [[String: Any]] else {
+            XCTFail("app Info.plist must be present in the bundle")
+            return
+        }
+        let contentTypes = docTypes.flatMap { $0["LSItemContentTypes"] as? [String] ?? [] }
+        XCTAssertTrue(contentTypes.contains("com.apple.property-list"))
+        XCTAssertTrue(contentTypes.contains("com.apple.mobiledevicepairing"))
+    }
+
     private func makeGuard(launcher: AirLiftExecuting,
                            watchdogInterval: TimeInterval = 3.0) -> AirLiftLaunchGuard {
         AirLiftLaunchGuard(pairingStore: store,

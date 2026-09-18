@@ -273,43 +273,43 @@ def gen() -> str:
 \t\t\tSWIFT_OPTIMIZATION_LEVEL = "-O";"""
 
     def target_settings(bundle, tests=False):
-        base = f"""\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-\t\t\tASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-\t\t\tCODE_SIGN_STYLE = Manual;
+        if tests:
+            base = f"""\t\t\tCODE_SIGN_STYLE = Manual;
 \t\t\tCODE_SIGN_IDENTITY = "";
 \t\t\tCODE_SIGNING_REQUIRED = NO;
 \t\t\tCODE_SIGNING_ALLOWED = NO;
 \t\t\tDEVELOPMENT_TEAM = "";
 \t\t\tGENERATE_INFOPLIST_FILE = YES;
-\t\t\tINFOPLIST_KEY_CFBundleDisplayName = "AirLift File Manager";
-\t\t\tINFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-\t\t\tINFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-\t\t\tINFOPLIST_KEY_UILaunchScreen_Generation = YES;
-\t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-\t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 \t\t\tIPHONEOS_DEPLOYMENT_TARGET = 26.0;
-\t\t\tLD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+\t\t\tLD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+\t\t\tBUNDLE_LOADER = "$(TEST_HOST)";
+\t\t\tTEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager";
 \t\t\tPRODUCT_BUNDLE_IDENTIFIER = {bundle};
 \t\t\tPRODUCT_NAME = "$(TARGET_NAME)";
 \t\t\tSDKROOT = iphoneos;
 \t\t\tSWIFT_EMIT_LOC_STRINGS = YES;
 \t\t\tSWIFT_VERSION = 5.0;
 \t\t\tTARGETED_DEVICE_FAMILY = "1,2";"""
-        if tests:
-            base = base.replace(
-                "\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;\n", "").replace(
-                "\t\t\tASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;\n", "").replace(
-                "\t\t\tINFOPLIST_KEY_CFBundleDisplayName = \"AirLift File Manager\";\n", "").replace(
-                "\t\t\tINFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;\n", "").replace(
-                "\t\t\tINFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;\n", "").replace(
-                "\t\t\tINFOPLIST_KEY_UILaunchScreen_Generation = YES;\n", "").replace(
-                "\t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = \"UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight\";\n", "").replace(
-                "\t\t\tINFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = \"UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight\";\n", "").replace(
-                "\t\t\tLD_RUNPATH_SEARCH_PATHS = \"$(inherited) @executable_path/Frameworks\";",
-                "\t\t\tBUNDLE_LOADER = \"$(TEST_HOST)\";\n"
-                "\t\t\tLD_RUNPATH_SEARCH_PATHS = \"$(inherited) @executable_path/Frameworks @loader_path/Frameworks\";\n"
-                "\t\t\tTEST_HOST = \"$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager\";")
-        return base
+            return base
+        return f"""\t\t\tASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+\t\t\tASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+\t\t\tCODE_SIGN_STYLE = Manual;
+\t\t\tCODE_SIGN_IDENTITY = "";
+\t\t\tCODE_SIGNING_REQUIRED = NO;
+\t\t\tCODE_SIGNING_ALLOWED = NO;
+\t\t\tDEVELOPMENT_TEAM = "";
+\t\t\tCURRENT_PROJECT_VERSION = 1;
+\t\t\tGENERATE_INFOPLIST_FILE = NO;
+\t\t\tINFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
+\t\t\tIPHONEOS_DEPLOYMENT_TARGET = 26.0;
+\t\t\tLD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+\t\t\tMARKETING_VERSION = 1.0;
+\t\t\tPRODUCT_BUNDLE_IDENTIFIER = {bundle};
+\t\t\tPRODUCT_NAME = "$(TARGET_NAME)";
+\t\t\tSDKROOT = iphoneos;
+\t\t\tSWIFT_EMIT_LOC_STRINGS = YES;
+\t\t\tSWIFT_VERSION = 5.0;
+\t\t\tTARGETED_DEVICE_FAMILY = "1,2";"""
 
     def config(cid, name, settings, is_project=False):
         a(f"\t\t{cid} /* {name} */ = {{")

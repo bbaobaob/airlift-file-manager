@@ -13,6 +13,7 @@
 		3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/CapabilityProbe.swift'; sourceTree = SOURCE_ROOT; };
 		197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/KeychainPairingStore.swift'; sourceTree = SOURCE_ROOT; };
 		3B6096BBE832F8427D8EC64C /* LockdownClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/LockdownClient.swift'; sourceTree = SOURCE_ROOT; };
+		A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/PairingFileSupport.swift'; sourceTree = SOURCE_ROOT; };
 		70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/PairingRecordService.swift'; sourceTree = SOURCE_ROOT; };
 		302B835FB337EF500C3953E6 /* AirLiftFileManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/App/AirLiftFileManagerApp.swift'; sourceTree = SOURCE_ROOT; };
 		91F060275DA3DF0E680738F5 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/App/AppState.swift'; sourceTree = SOURCE_ROOT; };
@@ -66,6 +67,7 @@
 		6CFE8B5379C22DDAD85D8143 /* CapabilityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */; };
 		A517278E9DB4D774DA7AEB50 /* KeychainPairingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */; };
 		0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6096BBE832F8427D8EC64C /* LockdownClient.swift */; };
+		8C9633E390FB192C259F58CD /* PairingFileSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */; };
 		A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */; };
 		57F6303E93CDE14914040445 /* AirLiftFileManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302B835FB337EF500C3953E6 /* AirLiftFileManagerApp.swift */; };
 		056489BAB43AB83DAFD2EE31 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F060275DA3DF0E680738F5 /* AppState.swift */; };
@@ -129,6 +131,7 @@
 				3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */,
 				197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */,
 				3B6096BBE832F8427D8EC64C /* LockdownClient.swift */,
+				A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */,
 				70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */,
 				302B835FB337EF500C3953E6 /* AirLiftFileManagerApp.swift */,
 				91F060275DA3DF0E680738F5 /* AppState.swift */,
@@ -197,6 +200,7 @@
 				6CFE8B5379C22DDAD85D8143 /* CapabilityProbe.swift in Sources */,
 				A517278E9DB4D774DA7AEB50 /* KeychainPairingStore.swift in Sources */,
 				0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */,
+				8C9633E390FB192C259F58CD /* PairingFileSupport.swift in Sources */,
 				A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */,
 				57F6303E93CDE14914040445 /* AirLiftFileManagerApp.swift in Sources */,
 				056489BAB43AB83DAFD2EE31 /* AppState.swift in Sources */,
@@ -384,15 +388,12 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			GENERATE_INFOPLIST_FILE = YES;
-			INFOPLIST_KEY_CFBundleDisplayName = "AirLift File Manager";
-			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-			INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = NO;
+			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+			MARKETING_VERSION = 1.0;
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager;
 			PRODUCT_NAME = "$(TARGET_NAME)";
 			SDKROOT = iphoneos;
@@ -412,15 +413,12 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			GENERATE_INFOPLIST_FILE = YES;
-			INFOPLIST_KEY_CFBundleDisplayName = "AirLift File Manager";
-			INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-			INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-			INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-			INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+			CURRENT_PROJECT_VERSION = 1;
+			GENERATE_INFOPLIST_FILE = NO;
+			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+			MARKETING_VERSION = 1.0;
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager;
 			PRODUCT_NAME = "$(TARGET_NAME)";
 			SDKROOT = iphoneos;
@@ -440,8 +438,8 @@
 			DEVELOPMENT_TEAM = "";
 			GENERATE_INFOPLIST_FILE = YES;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-			BUNDLE_LOADER = "$(TEST_HOST)";
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+			BUNDLE_LOADER = "$(TEST_HOST)";
 			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager";
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager.tests;
 			PRODUCT_NAME = "$(TARGET_NAME)";
@@ -462,8 +460,8 @@
 			DEVELOPMENT_TEAM = "";
 			GENERATE_INFOPLIST_FILE = YES;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
-			BUNDLE_LOADER = "$(TEST_HOST)";
 			LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+			BUNDLE_LOADER = "$(TEST_HOST)";
 			TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AirLiftFileManager.app/AirLiftFileManager";
 			PRODUCT_BUNDLE_IDENTIFIER = com.bbaobaob.airliftfilemanager.tests;
 			PRODUCT_NAME = "$(TARGET_NAME)";
