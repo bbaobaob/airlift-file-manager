@@ -305,10 +305,8 @@ struct PairingAcceptor {
         return out
     }
 
-    private func randomBytes(_ count: Int) -> Data {
-        var out = Data(count: count)
-        for i in out.indices { out[i] = UInt8.random(in: 0...255) }
-        return out
+    private func randomBytes(_ count: Int) -> [UInt8] {
+        (0..<count).map { _ in UInt8.random(in: 0...255) }
     }
 
     private func hkdfSHA512(salt: Data, ikm: Data, info: Data) -> Data {
