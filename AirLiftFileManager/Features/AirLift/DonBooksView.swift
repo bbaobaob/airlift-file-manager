@@ -76,7 +76,7 @@ final class DonBooksViewModel: ObservableObject {
         return try await establisher.establish(recordData: recordData)
     }
 
-    private func afcAccess(chain: OnDeviceChain,
+    private func afcAccess(connector: TunnelConnector,
                            handshake: RSDClient.Handshake) async throws -> AFCBooksAccess {
         guard let afcPort = handshake.port(for: RSDClient.afcServiceName) else {
             throw OnDeviceChain.ChainError.stepFailed(
@@ -84,7 +84,7 @@ final class DonBooksViewModel: ObservableObject {
                 reason: "no \(RSDClient.afcServiceName) (services: " +
                     "\(handshake.services.keys.sorted().joined(separator: ", ")))")
         }
-        let stream = try await TCPStream(host: chain.host, port: afcPort, timeout: 10)
+        let stream = try await connector.connect(port: afcPort, label: "AFC")
         var client = AFCClient(stream: stream, timeout: 10)
         try await client.checkin()
         return AFCBooksAccess(client: client)
@@ -171,7 +171,8 @@ final class DonBooksViewModel: ObservableObject {
                 await self.emitLine("Archive built: \(entries.count) entries, \(archive.count) bytes " +
                     "(symlink p0/p1/p2/link → ../../../\(target.dropFirst()))")
 
-                let handshake = try await establish(chain: chain)
+                let established = try await establish(chain: chain)
+                let handshake = established.handshake
                 guard let conduitPort = self.conduitPort(in: handshake) else {
                     await self.emitLine("No streaming_zip_conduit port in RSD table " +
                         "(\(handshake.services.count) services) — cannot stage.")
