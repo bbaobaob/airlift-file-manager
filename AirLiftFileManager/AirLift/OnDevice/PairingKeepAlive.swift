@@ -69,8 +69,8 @@ final class PairingKeepAlive {
         AppLogger.pairing.info("Pairing keep-alive stopped", event: "pairing.keepalive")
     }
 
-    private func handleInterruption(_ note: Notification) {
-        guard let info = note.userInfo,
+    private func handleInterruption(_ notification: Notification) {
+        guard let info = notification.userInfo,
               let raw = info[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
         switch type {
