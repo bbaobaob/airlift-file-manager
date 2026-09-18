@@ -93,6 +93,7 @@ all pass                    ⇒ AirLift: Ready to Start
   running — no fake success state is ever shown.
 - Start AirLift executes the real on-device chain (pair-verify → tunnel → RSD → AFC self-test) and reports exactly what was verified (AFC scope only)
 - In-app pairing: the app advertises itself, shows the PIN, runs SRP pair-setup and saves the record (audio keep-alive scoped to pairing so iOS does not suspend the session)
+- Dọn Books: Books sync-state cleanup + exploit staging (Airlock archive + conduit streaming + AFC verify) with the reference transcript; the AirTraffic sync trigger is a documented pending seam
   (the exploit executes on a paired Mac) instead of pretending to run; a real
   executor plugs in behind the `AirLiftExecuting` seam.
 - Pairing records live in the Keychain and are never logged; a TCP connect,

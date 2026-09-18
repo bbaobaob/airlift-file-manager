@@ -184,4 +184,107 @@ struct AFCClient {
         _ = try await exchange(operation: .removePath,
                                headerPayload: Data(path.utf8))
     }
+
+    mutating func makeDirectory(path: String) async throws {
+        _ = try await exchange(operation: .makeDir,
+                               headerPayload: Data(path.utf8))
+    }
+
+    /// GetFileInfo: header_payload = path bytes → NUL-separated
+    /// key/value strings (st_size, st_ifmt, st_mtime, ...).
+    mutating func getFileInfo(path: String) async throws -> [String: String] {
+        let reply = try await exchange(operation: .getFileInfo,
+                                       headerPayload: Data(path.utf8))
+        var info: [String: String] = [:]
+        let parts = reply.headerPayload.split(separator: 0, omittingEmptySubsequences: false)
+        var index = parts.startIndex
+        while index < parts.endIndex {
+            let key = String(data: Data(parts[index]), encoding: .utf8) ?? ""
+            let next = parts.index(after: index)
+            let value = next < parts.endIndex
+                ? (String(data: Data(parts[next]), encoding: .utf8) ?? "") : ""
+            if !key.isEmpty { info[key] = value }
+            index = next < parts.endIndex ? parts.index(after: next) : parts.endIndex
+        }
+        return info
+    }
+
+    mutating func kindOf(path: String) async throws -> String? {
+        try await getFileInfo(path: path)["st_ifmt"]
+    }
+
+    /// Exists check via open-for-read (matches AFCExists semantics).
+    /// Returns false only on object-not-found (AFC status 8).
+    mutating func exists(path: String) async -> Bool {
+        do {
+            let fd = try await open(path: path, mode: .readOnly)
+            try? await close(fd: fd)
+            return true
+        } catch AFCError.deviceStatus(let code) where code == 8 {
+            return false
+        } catch {
+            // Directories cannot open-for-read: fall back to GetFileInfo.
+            if let info = try? await getFileInfo(path: path) {
+                return info["st_ifmt"] != nil
+            }
+            return false
+        }
+    }
+}
+
+/// Client for `com.apple.streaming_zip_conduit` (upstream `stage` step).
+/// Direct port of device_helper.m Stage streaming half: connect the service,
+/// send `{"MediaSubdir": source}` as a u32BE-length-prefixed binary plist,
+/// stream the raw archive bytes, then read the response plist.
+/// (AMDServiceConnectionSendMessage/ReceiveMessage framing.)
+struct StreamingZipConduit {
+    enum ConduitError: Error, Equatable {
+        case badResponse(String)
+    }
+
+    let stream: TCPStream
+    let timeout: TimeInterval
+
+    init(stream: TCPStream, timeout: TimeInterval = 30) {
+        self.stream = stream
+        self.timeout = timeout
+    }
+
+    /// Streams one archive; returns the service's response dictionary.
+    @discardableResult
+    func sendArchive(_ archive: Data, mediaSubdir: String) async throws -> [String: Any] {
+        let message = try PropertyListSerialization.data(
+            fromPropertyList: ["MediaSubdir": mediaSubdir], format: .binary, options: 0)
+        var header = Data()
+        let length = UInt32(message.count)
+        header.append(contentsOf: [UInt8((length >> 24) & 0xff), UInt8((length >> 16) & 0xff),
+                                   UInt8((length >> 8) & 0xff), UInt8(length & 0xff)])
+        try await stream.write(header + message, timeout: timeout)
+        // Raw archive bytes follow (SendAll semantics, chunked).
+        var offset = archive.startIndex
+        while offset < archive.endIndex {
+            let end = archive.index(offset, offsetBy: 256 * 1024,
+                                    limitedBy: archive.endIndex) ?? archive.endIndex
+            try await stream.write(archive[offset..<end], timeout: timeout)
+            offset = end
+        }
+        return try await readResponse()
+    }
+
+    private func readResponse() async throws -> [String: Any] {
+        let header = try await stream.readExactly(4, timeout: timeout)
+        let length = (Int(header[header.startIndex]) << 24)
+            | (Int(header[header.startIndex + 1]) << 16)
+            | (Int(header[header.startIndex + 2]) << 8)
+            | Int(header[header.startIndex + 3])
+        guard length <= 16 * 1024 * 1024 else {
+            throw ConduitError.badResponse("response length out of range")
+        }
+        let body = try await stream.readExactly(length, timeout: timeout)
+        guard let dict = try? PropertyListSerialization.propertyList(
+            from: body, format: nil) as? [String: Any] else {
+            throw ConduitError.badResponse("response is not a plist dictionary")
+        }
+        return dict
+    }
 }

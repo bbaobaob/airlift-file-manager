@@ -19,6 +19,7 @@ struct AirLiftView: View {
             List {
                 connectionSection
                 SelfTestView(guardVM: launchGuard)
+                DonBooksView(guardVM: launchGuard)
                 stikPairSection
                 LocalDevVPNSection(state: model.tunnelState,
                                    summary: model.tunnelSummary,

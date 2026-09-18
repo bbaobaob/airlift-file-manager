@@ -95,50 +95,10 @@ struct OnDeviceChain {
         }
         emit("RPPairing record loaded")
 
-        // 1. Pair-verify over the discovered _remotepairing port.
-        let services = await discover()
-        guard let service = pickService(services, recordData: recordData) else {
-            if services.isEmpty {
-                throw ChainError.noPairingService
-            }
-            throw ChainError.stepFailed(
-                step: "discovery",
-                reason: "found \(services.count) _remotepairing service(s) but none accepts " +
-                    "this pairing credential (authTag mismatch) — re-pair in StikPair")
-        }
-        let pairingStream = try await connect(step: "RPPairing tunnel", port: service.port)
-        emit("RPPairing tunnel → \(host):\(service.port)")
-        var verifier = RemotePairingVerify(stream: pairingStream)
-        let credential = try await mapError(step: "pair-verify",
-                                              operation: { try RemotePairingVerify.credential(from: recordData) })
-        let encryptionKey = try await mapError(step: "pair-verify") {
-            try await verifier.run(credential: credential)
-        }
-
-        // 2. Ask the device for a tunnel listener.
-        let tunnelPort = try await mapError(step: "createListener") {
-            try await verifier.createTunnelListener(encryptionKey: encryptionKey)
-        }
-
-        // 3. TLS-PSK + CDTunnel on the tunnel port.
-        let tunnelStream = try await connect(step: "tunnel TCP", port: tunnelPort)
-        let tls = try await mapError(step: "TLS-PSK handshake") {
-            try await TLSPskSession.handshake(stream: tunnelStream, psk: encryptionKey)
-        }
-        try await mapError(step: "CDTunnel handshake") {
-            try await tls.writeAppData(CDTunnel.handshakeRequest())
-        }
-        let rawResponse = try await readCDTunnelResponse(tls: tls)
-        let tunnel = try await mapError(step: "CDTunnel handshake") {
-            try CDTunnel.parseResponse(rawResponse)
-        }
-        emit("RSD tunnel established (direct TCP via LocalDevVPN + handshake; RSD port \(tunnel.serverRSDPort))")
-
-        // 4. RSD handshake → AFC port.
-        let rsdStream = try await connect(step: "RSD TCP", port: tunnel.serverRSDPort)
-        let handshake = try await mapError(step: "RSD handshake") {
-            try await RSDClient.handshake(stream: rsdStream)
-        }
+        // Front half: discovery → pair-verify → tunnel → RSD handshake.
+        let establisher = RSDEstablisher(host: host, discover: discover, log: log)
+        let established = try await establisher.establish(recordData: recordData)
+        let handshake = established.handshake
         guard let afcPort = handshake.port(for: RSDClient.afcServiceName) else {
             throw ChainError.stepFailed(step: "RSD services",
                                         reason: "RSD advertises \(handshake.services.count) service(s) but no \(RSDClient.afcServiceName)")
@@ -177,7 +137,6 @@ struct OnDeviceChain {
         emit("AFC cleanup done (marker removed)")
         emit("SELF-TEST PASSED ✓ (RSD tunnel + AFC write/read/remove)")
 
-        pairingStream.close()
         return .passed(detail: "RSD tunnel + AFC write/read/remove verified (\(markerBody.count) bytes)")
     }
 
@@ -213,19 +172,6 @@ struct OnDeviceChain {
         log(line)
     }
 
-    private func pickService(_ services: [WirelessPairingDiscovery.DiscoveredService],
-                             recordData: Data) -> WirelessPairingDiscovery.DiscoveredService? {
-        // Prefer a service that accepts our credential (authTag check first),
-        // like idevice's find_remote_pairing. Unresolved entries (port 0)
-        // cannot be dialed.
-        guard let altIrk = CapabilityProbeService.altIrk(from: recordData) else {
-            return services.first { $0.port != 0 }
-        }
-        return services.first {
-            $0.port != 0 && WirelessPairingDiscovery.matchesCredential(service: $0, altIrk: altIrk)
-        }
-    }
-
     private func connect(step: String, port: UInt16) async throws -> TCPStream {
         do {
             return try await TCPStream(host: host, port: port)
@@ -242,19 +188,5 @@ struct OnDeviceChain {
         } catch {
             throw ChainError.stepFailed(step: step, reason: String(describing: error))
         }
-    }
-
-    private func readCDTunnelResponse(tls: TLSPskSession) async throws -> Data {
-        // Response framing: "CDTunnel" + u16BE length + JSON. Read enough for
-        // the header first, then the body.
-        var buffer = try await tls.readAppData()
-        while buffer.count < CDTunnel.magic.count + 2 {
-            buffer.append(contentsOf: try await tls.readAppData())
-        }
-        let length = Int(RPPairingWire.be16(buffer, at: CDTunnel.magic.count))
-        while buffer.count < CDTunnel.magic.count + 2 + length {
-            buffer.append(contentsOf: try await tls.readAppData())
-        }
-        return buffer
     }
 }

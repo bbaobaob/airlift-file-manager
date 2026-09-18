@@ -150,3 +150,29 @@ needed. Two device realities shaped the implementation:
   refusal is gone: Start now executes pair-verify → tunnel → RSD → AFC
   self-test through the guarded preflight and reports exactly what was
   verified (AFC scope). The Mac-side AirTraffic path stays out of scope.
+
+## Books / Airlock write path (upstream airlift, verified in source)
+
+Upstream `airlift.py` + `device_helper.m` + `airtraffic_host.m` show the full
+write flow this app ports step by step:
+
+- **Archive** (`build_archive`): streaming zip with `p0/p1/p2/link` symlink
+  to `../../../<target>`, `0x5A53` extra field carrying unix modes,
+  `META-INF/com.apple.ZipMetadata.plist`. Ported byte-exactly to
+  `AirlockArchive` (unit-tested).
+- **Delivery**: the archive is streamed to `com.apple.streaming_zip_conduit`
+  (`{"MediaSubdir": source}` + raw bytes — standard service framing), NOT
+  through AFC. Ported to `StreamingZipConduit`; works only if RSD advertises
+  the conduit port, which the app reports live.
+- **Books state** (`snapshot-books`/`finish`): tracked paths
+  (`Books/Books.plist`, `Books/Sync/*`, `OutstandingAssets_4.sqlite*`),
+  snapshot/restore, absent-checks. Ported to `BooksState`; the "Dọn Books"
+  screen reproduces the reference transcript (`books[...] = absent` →
+  CLEAN → BOOKS DONE ✓).
+- **Trigger (pending seam)**: the AirTraffic sync (`SyncAllowed` →
+  HostInfo → SyncRequest → ReadyForSync → MetadataSyncFinished → assets →
+  AssetCompleted) runs inside AirTrafficHost.framework; its ATCFMessage wire
+  framing is private with no public implementation anywhere (every known
+  implementation, e.g. aid/iTunes, loads the framework). Modeled as
+  `AirTrafficTriggering` so a future trigger plugs in; until then the app
+  stages/verifies/cleans honestly and says exactly where it stopped.
