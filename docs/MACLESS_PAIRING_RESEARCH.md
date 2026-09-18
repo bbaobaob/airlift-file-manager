@@ -133,3 +133,20 @@ real, working mechanism.
    guide the user to re-export from StikPair.
 4. Re-verify everything on each iOS 27 beta bump; pairing behavior and
    Developer Mode options change between betas.
+
+## In-app pairing host (this build)
+
+The app now implements the responder side itself (port of
+`idevice/src/remote_pairing/responder.rs`): it advertises
+`_remotepairing-pairable-host._tcp`, shows the 6-digit PIN, runs SRP
+pair-setup M1–M6 and saves the fresh record — no separate StikPair app
+needed. Two device realities shaped the implementation:
+
+- **Background suspension.** iOS suspends our sockets seconds after the user
+  leaves for Settings, so the device could never connect back (no PIN ever
+  appeared). A scoped audio + background-task keep-alive runs only during
+  pairing (same approach as StikPair itself).
+- **Start AirLift runs the real chain.** The old "Transport unavailable"
+  refusal is gone: Start now executes pair-verify → tunnel → RSD → AFC
+  self-test through the guarded preflight and reports exactly what was
+  verified (AFC scope). The Mac-side AirTraffic path stays out of scope.

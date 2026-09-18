@@ -22,6 +22,7 @@
 		1DCF0240588A2DB410842821 /* PairingAcceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/PairingAcceptor.swift'; sourceTree = SOURCE_ROOT; };
 		D8EAB5288D376A07751682E3 /* PairingAdvertiser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/PairingAdvertiser.swift'; sourceTree = SOURCE_ROOT; };
 		B90E9EEDD1DFC64ADDBA7AB6 /* PairingHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/PairingHost.swift'; sourceTree = SOURCE_ROOT; };
+		231F701A34963F5C9219C2D7 /* PairingKeepAlive.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/PairingKeepAlive.swift'; sourceTree = SOURCE_ROOT; };
 		94E461D74512AB5535BC113B /* RPPairingWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/RPPairingWire.swift'; sourceTree = SOURCE_ROOT; };
 		DC9EE50EDB999EBB0A7CC0EA /* RSDClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/RSDClient.swift'; sourceTree = SOURCE_ROOT; };
 		EB40C91E9CD09A6F694D1A56 /* RemotePairingVerify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/RemotePairingVerify.swift'; sourceTree = SOURCE_ROOT; };
@@ -103,6 +104,7 @@
 		968BAE513A7612D1491083BE /* PairingAcceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCF0240588A2DB410842821 /* PairingAcceptor.swift */; };
 		67DA4095E15398C920E289BE /* PairingAdvertiser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8EAB5288D376A07751682E3 /* PairingAdvertiser.swift */; };
 		03ABF2505207BB29A7E155C7 /* PairingHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = B90E9EEDD1DFC64ADDBA7AB6 /* PairingHost.swift */; };
+		4D47F8E1797CC2091D5E0AFB /* PairingKeepAlive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 231F701A34963F5C9219C2D7 /* PairingKeepAlive.swift */; };
 		136D409C2F42A6967623C92A /* RPPairingWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E461D74512AB5535BC113B /* RPPairingWire.swift */; };
 		06958328F25CBF9E4C16DFCF /* RSDClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9EE50EDB999EBB0A7CC0EA /* RSDClient.swift */; };
 		993EC4847D38C664F8B333F5 /* RemotePairingVerify.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB40C91E9CD09A6F694D1A56 /* RemotePairingVerify.swift */; };
@@ -194,6 +196,7 @@
 				1DCF0240588A2DB410842821 /* PairingAcceptor.swift */,
 				D8EAB5288D376A07751682E3 /* PairingAdvertiser.swift */,
 				B90E9EEDD1DFC64ADDBA7AB6 /* PairingHost.swift */,
+				231F701A34963F5C9219C2D7 /* PairingKeepAlive.swift */,
 				94E461D74512AB5535BC113B /* RPPairingWire.swift */,
 				DC9EE50EDB999EBB0A7CC0EA /* RSDClient.swift */,
 				EB40C91E9CD09A6F694D1A56 /* RemotePairingVerify.swift */,
@@ -290,6 +293,7 @@
 				968BAE513A7612D1491083BE /* PairingAcceptor.swift in Sources */,
 				67DA4095E15398C920E289BE /* PairingAdvertiser.swift in Sources */,
 				03ABF2505207BB29A7E155C7 /* PairingHost.swift in Sources */,
+				4D47F8E1797CC2091D5E0AFB /* PairingKeepAlive.swift in Sources */,
 				136D409C2F42A6967623C92A /* RPPairingWire.swift in Sources */,
 				06958328F25CBF9E4C16DFCF /* RSDClient.swift in Sources */,
 				993EC4847D38C664F8B333F5 /* RemotePairingVerify.swift in Sources */,
@@ -496,7 +500,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 57;
+			CURRENT_PROJECT_VERSION = 65;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -521,7 +525,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 57;
+			CURRENT_PROJECT_VERSION = 65;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;

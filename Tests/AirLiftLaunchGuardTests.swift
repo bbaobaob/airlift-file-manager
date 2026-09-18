@@ -31,6 +31,14 @@ final class ProbeBox: @unchecked Sendable {
     func verifyDevice(_ record: Data, _ port: UInt16) async -> String? { verifyProblem }
 }
 
+/// Fails the test loudly if the launch path is ever reached.
+final class NeverRunsLauncher: AirLiftExecuting, @unchecked Sendable {
+    func execute() async -> AirLiftExecutionOutcome {
+        XCTFail("launcher must not run on this path")
+        return .failed(reason: "test double invoked")
+    }
+}
+
 final class FakeLauncher: AirLiftExecuting, @unchecked Sendable {
     var outcome: AirLiftExecutionOutcome
     var executeCount = 0
@@ -153,7 +161,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         box.vpnUp = false
         box.remoteConnectUp = false
         box.discoveredPorts = []
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .locked)
@@ -163,7 +171,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
     }
 
     func testLockedWhenPairingFileMissing() async {
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .locked)
@@ -175,7 +183,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
 
     func testLockedWhenPairingFileInvalid() async {
         store.inject(recordWithKeys: ["HostPrivateKey"]) // missing certificate keys
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .locked)
@@ -186,7 +194,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
 
     func testUnsupportedWhenFileIsNotAPairingRecord() async {
         store.save(Data("definitely not a pairing record".utf8))
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.pairingStatus, .unsupported)
@@ -195,7 +203,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
 
     func testReadyToStartWhenAllGatesPass() async {
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .readyToStart)
@@ -210,7 +218,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
         box.remoteConnectUp = false
         box.discoveredPorts = []
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .locked)
@@ -223,7 +231,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         // chain dials the remotepairing endpoint, not lockdown.
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
         box.lockdownReachable = false
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .readyToStart)
@@ -233,7 +241,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
     func testPairVerifyFailureBlocksLaunch() async {
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
         box.verifyProblem = "pair-verify rejected: device refused"
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
 
         XCTAssertEqual(guardVM.launchState, .locked)
@@ -247,7 +255,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         // A cached port is re-verified live (never trusted blindly).
         UserDefaults.standard.set(49999, forKey: AirLiftPreflightChecker.cachedPortKey)
         box.vpnUp = false
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
         await guardVM.recheckConnection()
 
@@ -274,16 +282,35 @@ final class AirLiftLaunchGuardTests: XCTestCase {
         XCTAssertFalse(guardVM.canStartAirLift)
     }
 
-    func testOnDeviceLaunchReportsTransportUnavailableNotRunning() async {
+    func testStartRunsRealChainAndReportsExactFailure() async {
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let chain = OnDeviceChain(
+            pairingStore: store,
+            vpnProbe: { true },
+            discover: { [] },
+            log: { _ in })
+        let guardVM = makeGuard(launcher: OnDeviceChain.Launcher(chain: chain))
         await guardVM.recheckConnection()
+        XCTAssertEqual(guardVM.launchState, .readyToStart)
         await guardVM.startAirLift()
 
         XCTAssertEqual(guardVM.launchState, .failed)
-        XCTAssertTrue(guardVM.lastFailureReason?.contains("Transport unavailable") == true)
+        XCTAssertTrue(guardVM.lastFailureReason?.contains("_remotepairing") == true)
         XCTAssertNotEqual(guardVM.launchState, .running,
                           "no mock Running state may ever be shown")
+    }
+
+    func testChainLauncherMapsOutcomes() async {
+        let failing = OnDeviceChain(
+            pairingStore: InMemoryPairingStore(),
+            vpnProbe: { true },
+            discover: { [] },
+            log: { _ in })
+        let failed = await OnDeviceChain.Launcher(chain: failing).execute()
+        guard case .failed(let reason) = failed else {
+            XCTFail("expected failed outcome"); return
+        }
+        XCTAssertTrue(reason.contains("preflight"))
     }
 
     func testSuccessfulExecutorReachesRunning() async {
@@ -318,7 +345,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
     // MARK: - Pairing actions
 
     func testInvalidPairingImportIsRejected() async {
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         let tmp = FileManager.default.temporaryDirectory
             .appendingPathComponent("bad-pairing-\(UUID().uuidString).plist")
         try? Data("not a pairing record".utf8).write(to: tmp)
@@ -331,7 +358,7 @@ final class AirLiftLaunchGuardTests: XCTestCase {
 
     func testRemovePairingLocksReadyState() async {
         store.inject(recordWithKeys: PairingRecordService.requiredKeys)
-        let guardVM = makeGuard(launcher: TransportUnavailableLauncher())
+        let guardVM = makeGuard(launcher: NeverRunsLauncher())
         await guardVM.recheckConnection()
         XCTAssertEqual(guardVM.launchState, .readyToStart)
 

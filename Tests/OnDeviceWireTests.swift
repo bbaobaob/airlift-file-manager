@@ -311,3 +311,26 @@ final class OnDeviceWireTests: XCTestCase {
         XCTAssertNil(handshake.services["broken"])
     }
 }
+
+extension OnDeviceWireTests {
+    func testSilenceWAVStructure() {
+        let wav = PairingKeepAlive.silenceWAV()
+        XCTAssertEqual(Array(wav.prefix(4)), Array("RIFF".utf8))
+        XCTAssertEqual(wav.count, 44 + 16000)
+        // data chunk header at offset 36: "data" + u32LE(32000).
+        XCTAssertEqual(Array(wav[36..<40]), Array("data".utf8))
+        let size = UInt32(wav[40]) | (UInt32(wav[41]) << 8)
+            | (UInt32(wav[42]) << 16) | (UInt32(wav[43]) << 24)
+        XCTAssertEqual(size, 32000)
+    }
+
+    func testChainErrorMessages() {
+        XCTAssertTrue(OnDeviceChain.ChainError.noPairingService.message.contains("_remotepairing"))
+        XCTAssertTrue(OnDeviceChain.ChainError.tunnelDown.message.contains("10.7.0.1"))
+        if case .failed(let step, _) = OnDeviceChain.Outcome.failed(step: "preflight", reason: "x") {
+            XCTAssertEqual(step, "preflight")
+        } else {
+            XCTFail("expected failed outcome")
+        }
+    }
+}

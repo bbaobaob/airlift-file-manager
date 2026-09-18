@@ -297,20 +297,6 @@ protocol AirLiftExecuting: Sendable {
     func execute() async -> AirLiftExecutionOutcome
 }
 
-/// Current on-device reality: the AirLift exploit executes inside
-/// AirTrafficHost.framework on a paired macOS host. There is no on-device
-/// execution channel yet, so this executor refuses — loudly and honestly.
-struct TransportUnavailableLauncher: AirLiftExecuting {
-    func execute() async -> AirLiftExecutionOutcome {
-        AppLogger.airLift.error("Launch refused: on-device AirLift execution is not implemented", event: "guard.launch")
-        return .unavailable(reason:
-            "Transport unavailable: AirLift executes inside AirTrafficHost.framework on a paired " +
-            "macOS host. On-device execution is not implemented in this build, so no Running " +
-            "state is shown. Run airlift from a paired Mac, or add a Mac-host relay behind the " +
-            "AirLiftExecuting seam.")
-    }
-}
-
 // MARK: - Launch guard
 
 /// Single authority for AirLift launches.
@@ -349,7 +335,7 @@ final class AirLiftLaunchGuard: ObservableObject {
          remoteConnect: (@Sendable (UInt16) async -> Bool)? = nil,
          discover: (@Sendable () async -> [WirelessPairingDiscovery.DiscoveredService])? = nil,
          verifyDevice: (@Sendable (Data, UInt16) async -> String?)? = nil,
-         launcher: AirLiftExecuting = TransportUnavailableLauncher(),
+         launcher: AirLiftExecuting = OnDeviceChain.Launcher(),
          watchdogInterval: TimeInterval = 3.0) {
         self.pairingStore = pairingStore
         self.launcher = launcher

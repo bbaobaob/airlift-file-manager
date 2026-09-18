@@ -91,7 +91,8 @@ all pass                    ⇒ AirLift: Ready to Start
   Logs; the user can retry.
 - A tunnel watchdog stops everything safely if LocalDevVPN drops while
   running — no fake success state is ever shown.
-- This build's on-device executor honestly reports **"Transport unavailable"**
+- Start AirLift executes the real on-device chain (pair-verify → tunnel → RSD → AFC self-test) and reports exactly what was verified (AFC scope only)
+- In-app pairing: the app advertises itself, shows the PIN, runs SRP pair-setup and saves the record (audio keep-alive scoped to pairing so iOS does not suspend the session)
   (the exploit executes on a paired Mac) instead of pretending to run; a real
   executor plugs in behind the `AirLiftExecuting` seam.
 - Pairing records live in the Keychain and are never logged; a TCP connect,

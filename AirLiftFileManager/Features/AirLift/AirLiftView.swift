@@ -125,7 +125,7 @@ struct AirLiftView: View {
         } header: {
             Text("AirLift Launch")
         } footer: {
-            Text("AirLift operates only with LocalDevVPN Connected and a valid Pairing File. Import or a tunnel alone is never treated as proof that AirLift is active.")
+            Text("AirLift operates only with LocalDevVPN Connected and a valid Pairing File. Start runs the real on-device chain (pair-verify → RSD → AFC self-test); scope is AFC file access.")
         }
     }
 

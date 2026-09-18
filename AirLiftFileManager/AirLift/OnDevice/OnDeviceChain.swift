@@ -17,6 +17,23 @@ struct OnDeviceChain {
         case tunnelDown
         case noPairingService
         case stepFailed(step: String, reason: String)
+
+        /// User-facing explanation (never includes key material).
+        var message: String {
+            switch self {
+            case .noPairingRecord:
+                return "No pairing record stored. Pair this iPhone first."
+            case .invalidPairingRecord(let detail):
+                return "Stored pairing record is invalid: \(detail)"
+            case .tunnelDown:
+                return "LocalDevVPN tunnel is not routing (10.7.0.1 unreachable)."
+            case .noPairingService:
+                return "No _remotepairing service discovered on the local network. " +
+                    "Join Wi-Fi, allow Local Network access, then retry."
+            case .stepFailed(let step, let reason):
+                return "\(step): \(reason)"
+            }
+        }
     }
 
     enum Outcome: Equatable {
@@ -54,10 +71,10 @@ struct OnDeviceChain {
             return try await performSelfTest()
         } catch let error as ChainError {
             switch error {
-            case .noPairingRecord, .invalidPairingRecord, .tunnelDown, .noPairingService:
-                return .failed(step: "preflight", reason: String(describing: error))
             case .stepFailed(let step, let reason):
                 return .failed(step: step, reason: reason)
+            default:
+                return .failed(step: "preflight", reason: error.message)
             }
         } catch {
             return .failed(step: "unknown", reason: error.localizedDescription)
@@ -162,6 +179,31 @@ struct OnDeviceChain {
 
         pairingStream.close()
         return .passed(detail: "RSD tunnel + AFC write/read/remove verified (\(markerBody.count) bytes)")
+    }
+
+    // MARK: - Launch-guard executor
+
+    /// What Start AirLift executes: the real on-device chain above.
+    /// Maps the self-test outcome to the guard's launch states — a pass
+    /// means exactly what was verified (AFC-scope file access), never more.
+    /// The guard invokes execute() serially (busy/starting gates), which is
+    /// what the unchecked conformance relies on.
+    final class Launcher: AirLiftExecuting, @unchecked Sendable {
+        let chain: OnDeviceChain
+
+        init(chain: OnDeviceChain = OnDeviceChain()) {
+            self.chain = chain
+        }
+
+        func execute() async -> AirLiftExecutionOutcome {
+            switch await chain.runSelfTest() {
+            case .passed(let detail):
+                return .started(detail: "On-device chain verified: \(detail). " +
+                    "Scope: AFC file access only — not /var/mobile.")
+            case .failed(let step, let reason):
+                return .failed(reason: "On-device chain failed at \(step): \(reason)")
+            }
+        }
     }
 
     // MARK: - Steps

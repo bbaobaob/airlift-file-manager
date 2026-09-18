@@ -17,9 +17,11 @@ final class InAppPairingViewModel: ObservableObject {
     }
 
     @Published private(set) var phase: Phase = .idle
+    @Published private(set) var events: [String] = []
 
     private let pairingStore: any PairingStoring
     private let hostStore: HostIdentityStore
+    private let keepAlive = PairingKeepAlive()
     private var runTask: Task<Void, Never>?
 
     init(pairingStore: any PairingStoring = KeychainPairingStore(),
@@ -40,6 +42,8 @@ final class InAppPairingViewModel: ObservableObject {
     func start() {
         guard !isRunning else { return }
         phase = .starting
+        events = []
+        keepAlive.start()
         runTask = Task { [weak self] in
             await self?.runPairing()
         }
@@ -48,6 +52,7 @@ final class InAppPairingViewModel: ObservableObject {
     func cancel() {
         runTask?.cancel()
         runTask = nil
+        keepAlive.stop()
         if isRunning {
             phase = .failed("Cancelled.")
         }
@@ -77,23 +82,32 @@ final class InAppPairingViewModel: ObservableObject {
                                    event: "pairing.host")
             let stream = TCPStream(wrapping: connection, queue: .main)
             var acceptor = PairingAcceptor(stream: stream, identity: identity,
-                                           pairingStore: pairingStore) { [weak self] pin in
-                await MainActor.run { [weak self] in
-                    self?.phase = .pinShown(pin)
-                }
-                AppLogger.pairing.info("PIN displayed for device entry",
-                                       event: "pairing.host")
-            }
+                                           pairingStore: pairingStore,
+                                           pinCallback: { [weak self] pin in
+                                               await MainActor.run { [weak self] in
+                                                   self?.phase = .pinShown(pin)
+                                               }
+                                               AppLogger.pairing.info("PIN displayed for device entry",
+                                                                      event: "pairing.host")
+                                           },
+                                           progress: { [weak self] line in
+                                               await MainActor.run { [weak self] in
+                                                   self?.events.append(line)
+                                               }
+                                           })
             phase = .verifying
             let peer = try await acceptor.accept()
             advertiser.stop()
+            keepAlive.stop()
             AppLogger.pairing.info("In-app pairing complete", event: "pairing.host")
             phase = .succeeded(deviceName: peer.name.isEmpty ? "iPhone" : peer.name)
         } catch is CancellationError {
             advertiser.stop()
+            keepAlive.stop()
             phase = .failed("Cancelled.")
         } catch {
             advertiser.stop()
+            keepAlive.stop()
             AppLogger.pairing.error("In-app pairing failed: \(error)",
                                     event: "pairing.host")
             phase = .failed(friendlyError(error))
@@ -140,6 +154,15 @@ struct InAppPairingView: View {
     var body: some View {
         NavigationStack {
             List {
+                if !model.events.isEmpty {
+                    Section("Steps") {
+                        ForEach(model.events.indices, id: \.self) { index in
+                            Text(model.events[index])
+                                .font(.caption.monospaced())
+                                .textSelection(.enabled)
+                        }
+                    }
+                }
                 Section {
                     switch model.phase {
                     case .idle:
@@ -149,10 +172,15 @@ struct InAppPairingView: View {
                     case .starting:
                         pairingProgressRow("Starting pairing…")
                     case .waitingForDevice:
-                        pairingProgressRow("Waiting for the device…")
-                        Text("On this iPhone open Settings › Privacy & Security › Developer Mode › Pair with AirLift.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                        pairingProgressRow("Advertising — now open Settings on this iPhone…")
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("1. Stay here (advertising is live; audio keep-alive is on).")
+                            Text("2. Open Settings › Privacy & Security › Developer Mode.")
+                            Text("3. Tap Pair with AirLift (unlock with device passcode if asked).")
+                            Text("4. Come back here for the PIN.")
+                        }
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                     case .pinShown(let pin):
                         Text("Enter this PIN on the device:")
                             .font(.footnote)

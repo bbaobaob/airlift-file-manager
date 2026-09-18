@@ -46,8 +46,10 @@ struct PairingAcceptor {
             throw PairingHost.PairError.protocolError(
                 "device requested pair-verify; only device-initiated pair-setup is supported")
         }
+        await emit("Device handshake received")
         let reply = PairingHost.handshakeReply(identity: identity)
         try await sendPlain(reply)
+        await emit("Handshake reply sent (pair-setup offered)")
     }
 
     // MARK: - Pair-setup M1–M6
@@ -56,6 +58,7 @@ struct PairingAcceptor {
         // M1.
         let m1 = try await receivePairingTLV()
         try expectState(m1, 1)
+        await emit("M1 received — generating salt, PIN and ephemeral key")
 
         // M2: salt + PIN + verifier + ephemeral B (retry until 384 bytes).
         let reducer = SRPBigUInt.BarrettReducer(modulus: SRP3072.modulus)
@@ -77,6 +80,7 @@ struct PairingAcceptor {
             }
         }
         let b = SRPBigUInt(bytesBE: bBytes)
+        await emit("M2 sent (salt + ephemeral key) — PIN ready")
         await pinCallback(pin)
         var m2: [TLV8.Entry] = [
             TLV8.Entry(.state, Data([0x02])),
@@ -85,10 +89,11 @@ struct PairingAcceptor {
         m2.append(contentsOf: chunked(.publicKey, Data(bPubBytes)))
         try await sendPairingTLV(m2)
 
-        // M3: A + client proof.
+        // M3: A + client proof (arrives after the user types the PIN).
         let m3 = try await receivePairingTLV()
         try ensureNoError(m3)
         try expectState(m3, 3)
+        await emit("M3 received — verifying PIN proof")
         guard let aEntry = m3.first(where: { $0.component == .publicKey }),
               let proofEntry = m3.first(where: { $0.component == .proof }),
               !aEntry.data.isEmpty, !proofEntry.data.isEmpty else {
@@ -113,6 +118,7 @@ struct PairingAcceptor {
                 "client proof mismatch — wrong PIN typed on the device?")
         }
 
+        await emit("PIN verified — sending server proof (M4)")
         // M4: server proof.
         let serverProof = SRP3072.m2(clientPublic: aPub, m1: expectedM1, key: sessionKey)
         try await sendPairingTLV([
@@ -130,6 +136,7 @@ struct PairingAcceptor {
         let m5 = try await receivePairingTLV()
         try ensureNoError(m5)
         try expectState(m5, 5)
+        await emit("M5 received — decrypting device identity")
         guard let encEntry = m5.first(where: { $0.component == .encryptedData }) else {
             throw PairingHost.PairError.protocolError("M5 missing EncryptedData")
         }
@@ -160,6 +167,7 @@ struct PairingAcceptor {
             throw PairingHost.PairError.protocolError(
                 "fresh pairing record failed validation: \(result.message)")
         }
+        await emit("M6 sent — pairing record saved to Keychain")
         return peer
     }
 

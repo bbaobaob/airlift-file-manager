@@ -208,7 +208,7 @@ struct AirLiftSetupRequiredView: View {
             } label: {
                 Label("Continue in Sandbox-Only Mode", systemImage: "folder")
             }
-            Text("The Files tab always works on this app's real sandbox. A tunnel or a pairing record alone is NOT proof that AirLift is active — AirLift launches only through the guarded preflight.")
+            Text("The Files tab always works on this app's real sandbox. A tunnel or a pairing record alone is NOT proof that AirLift is active — Start runs the real on-device chain (pair-verify → RSD → AFC self-test) through the guarded preflight.")
                 .font(.caption2)
                 .foregroundStyle(.secondary)
         }
