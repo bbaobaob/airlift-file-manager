@@ -63,28 +63,37 @@ Source analyzed: https://github.com/0xjohnnydev/airlift (`README.md`,
   The word *Macless* describes pairing and transport only — **not** AirLift
   execution, which still requires a paired Mac.
 
-## Connection gate (startup flow)
+## AirLift launch guard (startup requirements)
 
-On launch the app runs the real ladder and shows the setup screen if it cannot
-reach `ready`:
+AirLift may only launch when **LocalDevVPN is connected** AND a **valid Pairing
+File is imported** — and it launches only through the guard; the UI never
+starts AirLift directly. On launch (and via *Recheck Connection*) the app runs
+the preflight ladder and shows **AirLift Setup Required** until all gates pass:
 
 ```
-disconnected → vpnRequired → vpnConnected → pairingRequired →
-pairingImported → transportChecking → transportReady →
-capabilityChecking → ready        (failed from any checkable step)
+1. LocalDevVPN connected?   → not connected ⇒ AirLift Locked
+2. Pairing File imported?   → missing       ⇒ AirLift Locked
+3. Pairing File valid?      → invalid/unsupported ⇒ AirLift Locked
+4. Transport reachable?     → lockdown did not answer ⇒ AirLift Locked
+5. Device responds?         → no plist exchange      ⇒ AirLift Locked
+all pass                    ⇒ AirLift: Ready to Start
 ```
 
-- **vpnRequired** — TCP probe of `10.7.0.1:62078`. Fails → instructions to
-  connect LocalDevVPN/StosVPN. No simulated "Connected" state.
-- **pairingRequired** — imports a StikPair-style record; validated
-  (`HostPrivateKey`, `HostCertificate`, `DeviceCertificate`); stored in the
-  Keychain; replaceable and removable; never logged.
-- **transportChecking** — real length-prefixed binary-plist lockdown exchange.
-- **capabilityChecking** — every capability probed independently
-  (`CapabilityProbeService`), each reported `Verified` / `Failed` /
-  `Not available` / `Not implemented` with reasons.
-- A TCP connect ≠ filesystem access; pairing ≠ transport; transport ≠
-  AirLift exploit access. Features unlock strictly per verified state.
+- Statuses are shown independently: LocalDevVPN (`Connected` / `Disconnected`
+  / `Checking` / `Permission Required`), Pairing File (`Not Imported` /
+  `Imported` / `Invalid` / `Expired` / `Unsupported` when determinable),
+  AirLift (`Locked` / `Ready to Start` / `Starting` / `Running` / `Failed` /
+  `Disconnected`).
+- **Every** launch re-runs the full preflight — no cached permission. A failed
+  gate refuses the launch, shows the exact reason, and logs it to Technical
+  Logs; the user can retry.
+- A tunnel watchdog stops everything safely if LocalDevVPN drops while
+  running — no fake success state is ever shown.
+- This build's on-device executor honestly reports **"Transport unavailable"**
+  (the exploit executes on a paired Mac) instead of pretending to run; a real
+  executor plugs in behind the `AirLiftExecuting` seam.
+- Pairing records live in the Keychain and are never logged; a TCP connect,
+  an import, or a tunnel is never treated as proof that AirLift is active.
 
 ## Files tab (Directory Hub)
 

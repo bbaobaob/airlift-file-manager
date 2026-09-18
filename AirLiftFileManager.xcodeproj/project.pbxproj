@@ -7,11 +7,10 @@
 	objects = {
 		0DE6CB4412CB7CC024B67AD8 /* ActivationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/ActivationManager.swift'; sourceTree = SOURCE_ROOT; };
 		01AEA3B4FBFD63686ACC2AE1 /* AirLiftAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/AirLiftAdapter.swift'; sourceTree = SOURCE_ROOT; };
+		AE9ED5A0EA2ACA29BD515674 /* AirLiftLaunchGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/AirLiftLaunchGuard.swift'; sourceTree = SOURCE_ROOT; };
 		6CFC16716ECF6B6A3329EA82 /* AirLiftModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/AirLiftModels.swift'; sourceTree = SOURCE_ROOT; };
 		889C994A05A9DCBA498E987F /* AirLiftService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/AirLiftService.swift'; sourceTree = SOURCE_ROOT; };
 		3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/CapabilityProbe.swift'; sourceTree = SOURCE_ROOT; };
-		D7EF8985BF58A3C1F2B6C5A7 /* ConnectionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/ConnectionGate.swift'; sourceTree = SOURCE_ROOT; };
-		25F44EB31D8BCA5DD00BD638 /* ConnectionGateViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/ConnectionGateViewModel.swift'; sourceTree = SOURCE_ROOT; };
 		197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/KeychainPairingStore.swift'; sourceTree = SOURCE_ROOT; };
 		3B6096BBE832F8427D8EC64C /* LockdownClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/LockdownClient.swift'; sourceTree = SOURCE_ROOT; };
 		70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/PairingRecordService.swift'; sourceTree = SOURCE_ROOT; };
@@ -23,9 +22,9 @@
 		C2A216E2F7A6999D06D6FFA6 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Core/Utilities/Formatters.swift'; sourceTree = SOURCE_ROOT; };
 		C8DA5079C7A61E90ABDB3B3E /* AccessStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AccessStatusView.swift'; sourceTree = SOURCE_ROOT; };
 		76D00CADD38D197D170CB17F /* AirLiftLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftLogView.swift'; sourceTree = SOURCE_ROOT; };
+		9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftSetupRequiredView.swift'; sourceTree = SOURCE_ROOT; };
 		A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftView.swift'; sourceTree = SOURCE_ROOT; };
 		9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftViewModel.swift'; sourceTree = SOURCE_ROOT; };
-		42D078566E6487B699B314C0 /* ConnectionSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/ConnectionSetupView.swift'; sourceTree = SOURCE_ROOT; };
 		7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/DirectoryHubView.swift'; sourceTree = SOURCE_ROOT; };
 		95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/DirectoryHubViewModel.swift'; sourceTree = SOURCE_ROOT; };
 		9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/FileContextMenu.swift'; sourceTree = SOURCE_ROOT; };
@@ -47,7 +46,7 @@
 		8AFA31B6314B43B8764B68AA /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Services/PersistenceService.swift'; sourceTree = SOURCE_ROOT; };
 		FE942AA8441C9EE0CB98C4DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = 'AirLiftFileManager/Resources/Assets.xcassets'; sourceTree = SOURCE_ROOT; };
 		B4FAC10075D848869EDD969F /* ActivationPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/ActivationPersistenceTests.swift'; sourceTree = SOURCE_ROOT; };
-		91A83D37DAD93C22742DFB5E /* ConnectionGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/ConnectionGateTests.swift'; sourceTree = SOURCE_ROOT; };
+		4566AED0D5B5511A645002FD /* AirLiftLaunchGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/AirLiftLaunchGuardTests.swift'; sourceTree = SOURCE_ROOT; };
 		CFEE0113E975549D6C9263E1 /* ErrorHandlerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/ErrorHandlerTests.swift'; sourceTree = SOURCE_ROOT; };
 		E964355DEE34E3D1487C9450 /* FileOperationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/FileOperationsTests.swift'; sourceTree = SOURCE_ROOT; };
 		ECF51ECC795ECCD75F77DCB2 /* FileSelectionManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/FileSelectionManagerTests.swift'; sourceTree = SOURCE_ROOT; };
@@ -61,11 +60,10 @@
 		AA0000000000000000000011 /* AirLiftFileManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AirLiftFileManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F942DBAC4811C35917097F9C /* ActivationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE6CB4412CB7CC024B67AD8 /* ActivationManager.swift */; };
 		69AB0A4501F62B6C8589641D /* AirLiftAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01AEA3B4FBFD63686ACC2AE1 /* AirLiftAdapter.swift */; };
+		86F8B9B6F97166D15731E574 /* AirLiftLaunchGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE9ED5A0EA2ACA29BD515674 /* AirLiftLaunchGuard.swift */; };
 		BC6630C948F59FE325AB5EA5 /* AirLiftModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CFC16716ECF6B6A3329EA82 /* AirLiftModels.swift */; };
 		D970AB203A87FB3AC46227BF /* AirLiftService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 889C994A05A9DCBA498E987F /* AirLiftService.swift */; };
 		6CFE8B5379C22DDAD85D8143 /* CapabilityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */; };
-		4B2C12ED8BBBE9134E5564DA /* ConnectionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EF8985BF58A3C1F2B6C5A7 /* ConnectionGate.swift */; };
-		19FC5B83820CBE07C5ABC0C5 /* ConnectionGateViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25F44EB31D8BCA5DD00BD638 /* ConnectionGateViewModel.swift */; };
 		A517278E9DB4D774DA7AEB50 /* KeychainPairingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */; };
 		0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6096BBE832F8427D8EC64C /* LockdownClient.swift */; };
 		A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */; };
@@ -77,9 +75,9 @@
 		9016B21D84A5DFB7EA192F52 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A216E2F7A6999D06D6FFA6 /* Formatters.swift */; };
 		F4A31366025070BE3059979D /* AccessStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8DA5079C7A61E90ABDB3B3E /* AccessStatusView.swift */; };
 		4A639B81E90427E0436B4E6C /* AirLiftLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D00CADD38D197D170CB17F /* AirLiftLogView.swift */; };
+		BEF847F7C596C034BB8EDA79 /* AirLiftSetupRequiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */; };
 		F724FFDC7D852A38927CCF89 /* AirLiftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */; };
 		D6D109892E93998C39CE9DF1 /* AirLiftViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */; };
-		0FFA872523B88EBB243829C9 /* ConnectionSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42D078566E6487B699B314C0 /* ConnectionSetupView.swift */; };
 		5DDBE49D0BDC36752EAE52F0 /* DirectoryHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */; };
 		74B9D0C578CB250FBB6EB300 /* DirectoryHubViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */; };
 		2D8C9944A5D83D80CBB0DC2A /* FileContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */; };
@@ -100,7 +98,7 @@
 		5F46C2207EC0C2F562D98C5D /* PermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F538173423B3AE7575820DCD /* PermissionService.swift */; };
 		F254F1DA28DD6DCDC5434D5C /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA31B6314B43B8764B68AA /* PersistenceService.swift */; };
 		C73DD091728AFB2D869FD6EF /* ActivationPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FAC10075D848869EDD969F /* ActivationPersistenceTests.swift */; };
-		5433C85FD48C5D7CE90F5CFE /* ConnectionGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91A83D37DAD93C22742DFB5E /* ConnectionGateTests.swift */; };
+		0E245C7D3B7CEA2E628C5787 /* AirLiftLaunchGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4566AED0D5B5511A645002FD /* AirLiftLaunchGuardTests.swift */; };
 		188D64F7E94DCE06FA94E467 /* ErrorHandlerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEE0113E975549D6C9263E1 /* ErrorHandlerTests.swift */; };
 		EA857D9DEF3151FBE3604CC0 /* FileOperationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964355DEE34E3D1487C9450 /* FileOperationsTests.swift */; };
 		EABB38BD2FBCEFE36B125C29 /* FileSelectionManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECF51ECC795ECCD75F77DCB2 /* FileSelectionManagerTests.swift */; };
@@ -125,11 +123,10 @@
 			children = (
 				0DE6CB4412CB7CC024B67AD8 /* ActivationManager.swift */,
 				01AEA3B4FBFD63686ACC2AE1 /* AirLiftAdapter.swift */,
+				AE9ED5A0EA2ACA29BD515674 /* AirLiftLaunchGuard.swift */,
 				6CFC16716ECF6B6A3329EA82 /* AirLiftModels.swift */,
 				889C994A05A9DCBA498E987F /* AirLiftService.swift */,
 				3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */,
-				D7EF8985BF58A3C1F2B6C5A7 /* ConnectionGate.swift */,
-				25F44EB31D8BCA5DD00BD638 /* ConnectionGateViewModel.swift */,
 				197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */,
 				3B6096BBE832F8427D8EC64C /* LockdownClient.swift */,
 				70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */,
@@ -141,9 +138,9 @@
 				C2A216E2F7A6999D06D6FFA6 /* Formatters.swift */,
 				C8DA5079C7A61E90ABDB3B3E /* AccessStatusView.swift */,
 				76D00CADD38D197D170CB17F /* AirLiftLogView.swift */,
+				9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */,
 				A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */,
 				9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */,
-				42D078566E6487B699B314C0 /* ConnectionSetupView.swift */,
 				7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */,
 				95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */,
 				9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */,
@@ -164,7 +161,7 @@
 				F538173423B3AE7575820DCD /* PermissionService.swift */,
 				8AFA31B6314B43B8764B68AA /* PersistenceService.swift */,
 				B4FAC10075D848869EDD969F /* ActivationPersistenceTests.swift */,
-				91A83D37DAD93C22742DFB5E /* ConnectionGateTests.swift */,
+				4566AED0D5B5511A645002FD /* AirLiftLaunchGuardTests.swift */,
 				CFEE0113E975549D6C9263E1 /* ErrorHandlerTests.swift */,
 				E964355DEE34E3D1487C9450 /* FileOperationsTests.swift */,
 				ECF51ECC795ECCD75F77DCB2 /* FileSelectionManagerTests.swift */,
@@ -194,11 +191,10 @@
 			files = (
 				F942DBAC4811C35917097F9C /* ActivationManager.swift in Sources */,
 				69AB0A4501F62B6C8589641D /* AirLiftAdapter.swift in Sources */,
+				86F8B9B6F97166D15731E574 /* AirLiftLaunchGuard.swift in Sources */,
 				BC6630C948F59FE325AB5EA5 /* AirLiftModels.swift in Sources */,
 				D970AB203A87FB3AC46227BF /* AirLiftService.swift in Sources */,
 				6CFE8B5379C22DDAD85D8143 /* CapabilityProbe.swift in Sources */,
-				4B2C12ED8BBBE9134E5564DA /* ConnectionGate.swift in Sources */,
-				19FC5B83820CBE07C5ABC0C5 /* ConnectionGateViewModel.swift in Sources */,
 				A517278E9DB4D774DA7AEB50 /* KeychainPairingStore.swift in Sources */,
 				0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */,
 				A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */,
@@ -210,9 +206,9 @@
 				9016B21D84A5DFB7EA192F52 /* Formatters.swift in Sources */,
 				F4A31366025070BE3059979D /* AccessStatusView.swift in Sources */,
 				4A639B81E90427E0436B4E6C /* AirLiftLogView.swift in Sources */,
+				BEF847F7C596C034BB8EDA79 /* AirLiftSetupRequiredView.swift in Sources */,
 				F724FFDC7D852A38927CCF89 /* AirLiftView.swift in Sources */,
 				D6D109892E93998C39CE9DF1 /* AirLiftViewModel.swift in Sources */,
-				0FFA872523B88EBB243829C9 /* ConnectionSetupView.swift in Sources */,
 				5DDBE49D0BDC36752EAE52F0 /* DirectoryHubView.swift in Sources */,
 				74B9D0C578CB250FBB6EB300 /* DirectoryHubViewModel.swift in Sources */,
 				2D8C9944A5D83D80CBB0DC2A /* FileContextMenu.swift in Sources */,
@@ -240,7 +236,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C73DD091728AFB2D869FD6EF /* ActivationPersistenceTests.swift in Sources */,
-				5433C85FD48C5D7CE90F5CFE /* ConnectionGateTests.swift in Sources */,
+				0E245C7D3B7CEA2E628C5787 /* AirLiftLaunchGuardTests.swift in Sources */,
 				188D64F7E94DCE06FA94E467 /* ErrorHandlerTests.swift in Sources */,
 				EA857D9DEF3151FBE3604CC0 /* FileOperationsTests.swift in Sources */,
 				EABB38BD2FBCEFE36B125C29 /* FileSelectionManagerTests.swift in Sources */,

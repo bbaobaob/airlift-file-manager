@@ -9,7 +9,7 @@ final class AppState: ObservableObject {
     let permission: PermissionService
     let activation: ActivationManager
     let persistence: PersistenceService
-    let gate: ConnectionGateViewModel
+    let launchGuard: AirLiftLaunchGuard
 
     init(fileSystem: FileSystemService = SandboxFileSystemService(),
          persistence: PersistenceService = PersistenceService()) {
@@ -22,7 +22,7 @@ final class AppState: ObservableObject {
             probe: airLift,
             persistence: persistence
         )
-        self.gate = ConnectionGateViewModel()
+        self.launchGuard = AirLiftLaunchGuard()
         AppLogger.app.info("AppState initialized")
     }
 

@@ -3,7 +3,7 @@ import SwiftUI
 struct RootTabView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var activation: ActivationManager
-    @EnvironmentObject private var gate: ConnectionGateViewModel
+    @EnvironmentObject private var launchGuard: AirLiftLaunchGuard
     @State private var startupCheckDone = false
     @State private var showSetupCover = false
 
@@ -29,17 +29,17 @@ struct RootTabView: View {
                 }
         }
         .fullScreenCover(isPresented: $showSetupCover) {
-            ConnectionSetupView(gate: gate) { showSetupCover = false }
-                .interactiveDismissDisabled(gate.isBusy)
+            AirLiftSetupRequiredView(guardVM: launchGuard) { showSetupCover = false }
+                .interactiveDismissDisabled(launchGuard.isChecking)
         }
         .task {
             guard !startupCheckDone else { return }
             startupCheckDone = true
             await appState.performStartupVerification()
-            // Connection gate: run the real ladder on launch. If it cannot
-            // reach `ready`, present setup so the user can finish the steps.
-            await gate.runChecks()
-            if gate.phase != .ready {
+            // Startup requirements (spec): check LocalDevVPN, pairing file,
+            // validity, transport — AirLift stays Locked until all pass.
+            await launchGuard.recheckConnection()
+            if launchGuard.launchState != .readyToStart {
                 showSetupCover = true
             }
         }
@@ -73,5 +73,5 @@ enum iOS27Gate {
         .environmentObject(ActivationManager(
             probe: AirLiftService(),
             persistence: PersistenceService()))
-        .environmentObject(ConnectionGateViewModel())
+        .environmentObject(AirLiftLaunchGuard())
 }

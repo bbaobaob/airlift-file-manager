@@ -3,7 +3,7 @@ import SwiftUI
 /// Replaces the old static "AirLift Capabilities" screen. Everything shown
 /// here comes from a real probe run on this device; nothing is hardcoded.
 struct AccessStatusView: View {
-    @ObservedObject var gate: ConnectionGateViewModel
+    @ObservedObject var guardVM: AirLiftLaunchGuard
     @StateObject private var model = DiagnosticsViewModel()
 
     var body: some View {
@@ -21,13 +21,11 @@ struct AccessStatusView: View {
     private var liveSection: some View {
         Section {
             statusRow(title: "VPN (tunnel)",
-                      ok: gate.lastLockdownResult?.reachable == true || model.report?.transportReady == true,
+                      ok: guardVM.vpnStatus == .connected || model.report?.transportReady == true,
                       value: tunnelValue)
             statusRow(title: "Pairing",
-                      ok: gate.pairingStore.metadata().isValid,
-                      value: gate.pairingStore.hasRecord
-                      ? (gate.pairingStore.metadata().isValid ? "Valid record in Keychain"
-                         : "Invalid record") : "No record imported")
+                      ok: guardVM.pairingStatus == .imported,
+                      value: guardVM.pairingStatus.rawValue)
             statusRow(title: "Transport",
                       ok: model.report?.transportReady == true,
                       value: model.report?.transportReady == true
@@ -51,7 +49,9 @@ struct AccessStatusView: View {
     }
 
     private var tunnelValue: String {
-        if model.report?.transportReady == true { return "10.7.0.1 reachable" }
+        if model.report?.transportReady == true || guardVM.vpnStatus == .connected {
+            return "10.7.0.1 reachable"
+        }
         return "10.7.0.1 not reachable"
     }
 

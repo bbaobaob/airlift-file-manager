@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 
 struct AirLiftView: View {
     @EnvironmentObject private var activation: ActivationManager
-    @EnvironmentObject private var gate: ConnectionGateViewModel
+    @EnvironmentObject private var launchGuard: AirLiftLaunchGuard
     @StateObject private var model = AirLiftViewModel()
     @State private var showingLogs = false
     @State private var showingSetup = false
@@ -40,10 +40,10 @@ struct AirLiftView: View {
                 NavigationStack { LogViewerView() }
             }
             .sheet(isPresented: $showingSetup) {
-                ConnectionSetupView(gate: gate) { showingSetup = false }
+                AirLiftSetupRequiredView(guardVM: launchGuard) { showingSetup = false }
             }
             .navigationDestination(isPresented: $showingAccessStatus) {
-                AccessStatusView(gate: gate)
+                AccessStatusView(guardVM: launchGuard)
             }
             .task {
                 model.refreshAccessReports()
@@ -138,30 +138,62 @@ struct AirLiftView: View {
 
     private var connectionSection: some View {
         Section {
+            launchStatusRow(title: "LocalDevVPN",
+                            value: launchGuard.vpnStatus.rawValue,
+                            ok: launchGuard.vpnStatus == .connected)
+            launchStatusRow(title: "Pairing File",
+                            value: launchGuard.pairingStatus.rawValue,
+                            ok: launchGuard.pairingStatus == .imported)
+            launchStatusRow(title: "AirLift",
+                            value: launchGuard.launchState.rawValue,
+                            ok: launchGuard.launchState == .readyToStart
+                                || launchGuard.launchState == .running)
+            if let reason = launchGuard.lastFailureReason {
+                Text(reason)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             HStack {
-                Image(systemName: gate.phase == .ready
-                      ? "checkmark.seal.fill"
-                      : (gate.phase == .failed ? "xmark.octagon.fill" : "circle.dashed"))
-                    .foregroundStyle(gate.phase == .ready ? Color.green
-                                     : (gate.phase == .failed ? Color.red : Color.orange))
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Setup: \(gate.phase.rawValue)")
-                        .font(.subheadline.weight(.semibold))
-                    Text(gate.statusSummary)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                Button {
+                    Task { await launchGuard.startAirLift() }
+                } label: {
+                    Label(launchGuard.launchState == .failed ? "Retry Start AirLift" : "Start AirLift",
+                          systemImage: "bolt.horizontal.circle.fill")
                 }
-                Spacer(minLength: 0)
+                .disabled(!launchGuard.canStartAirLift
+                          || launchGuard.isChecking
+                          || launchGuard.launchState == .starting)
+                if launchGuard.launchState == .starting {
+                    Spacer()
+                    ProgressView()
+                }
             }
-            if gate.phase != .ready {
-                Button("Open Connection Setup") { showingSetup = true }
-                    .font(.footnote.weight(.medium))
+            Button("Recheck Connection") {
+                Task { await launchGuard.recheckConnection() }
             }
+            .disabled(launchGuard.isChecking)
+            Button("AirLift Setup") { showingSetup = true }
+                .font(.footnote.weight(.medium))
         } header: {
-            Text("Connection Gate")
+            Text("AirLift Launch")
         } footer: {
-            Text("AirLift-dependent features unlock only after VPN, pairing, lockdown transport, and capability checks all pass with real results.")
+            Text("AirLift launches only through the guarded preflight: LocalDevVPN Connected + valid Pairing File + transport verified. Import or a tunnel is never treated as proof that AirLift is active.")
         }
+    }
+
+    private func launchStatusRow(title: String, value: String, ok: Bool) -> some View {
+        HStack {
+            Image(systemName: ok ? "checkmark.circle.fill" : "circle.dashed")
+                .foregroundStyle(ok ? Color.green : Color.orange)
+            Text(title)
+            Spacer()
+            Text(value)
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(ok ? .green : .orange)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)")
     }
 
     private var accessStatusSection: some View {
@@ -315,5 +347,5 @@ struct LabeledRow: View {
 
 #Preview {
     AirLiftView()
-        .environmentObject(ConnectionGateViewModel())
+        .environmentObject(AirLiftLaunchGuard())
 }
