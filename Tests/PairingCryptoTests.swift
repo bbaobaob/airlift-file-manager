@@ -215,7 +215,8 @@ extension PairingCryptoTests {
     func testChunkedPublicKeyReassembles() {
         // A 384-byte client ephemeral arrives as 255 + 129 byte entries;
         // the acceptor must concatenate, not take the first chunk.
-        let full = Data((0..<384).map { UInt8($0 & 0xff) })
+        // (First byte nonzero so the value is a full 384 bytes.)
+        let full = Data((1...384).map { UInt8($0 & 0xff) })
         var entries: [TLV8.Entry] = []
         var offset = full.startIndex
         while offset < full.endIndex {
