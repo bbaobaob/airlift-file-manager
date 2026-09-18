@@ -116,7 +116,7 @@ struct BooksAttempt {
         }
         let ups = Array(repeating: "..", count: rootParts.count - common)
         let down = Array(pathParts[common...])
-        let parts = ups + down.map(String.init)
+        let parts = ups + down
         return parts.isEmpty ? "." : parts.joined(separator: "/")
     }
 
