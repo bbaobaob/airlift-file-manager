@@ -2,70 +2,168 @@
 
 A standalone iOS app (SwiftUI) that provides:
 
-1. **AirLift tab** — activation status, honest capability reporting, real per-directory access probes, technical logs.
-2. **Files tab** — a full-featured file manager over the app's real sandbox: browse, list/grid, sorting, selection mode, copy/move/rename/delete/duplicate/compress/extract/replace/share/import, QuickLook previews, Get Info, dark mode, Dynamic Type, VoiceOver labels.
+1. **AirLift tab** — honest connection gate (LocalDevVPN → pairing → lockdown
+   transport → capability probe), activation status with re-verification on
+   every launch, Access Status & Diagnostics with a real probe engine, and a
+   professional log viewer.
+2. **Files tab** — a Directory Hub that probes each target location with real
+   `FileManager` checks and only opens paths the sandbox can genuinely reach,
+   plus a full-featured file browser over the app's real sandbox: list/grid,
+   sorting, selection mode, copy/move/rename/delete/duplicate/compress/extract/
+   replace/import/share, QuickLook, Get Info, progress + cancel for operations,
+   conflict handling, dark mode, Dynamic Type, VoiceOver labels.
 
-The build output is an **unsigned IPA** you sign yourself (AltStore, Sideloadly, Xcode, TrollStore, etc.).
+The build output is an **unsigned IPA** you sign yourself (AltStore, Sideloadly,
+Xcode, TrollStore, etc.).
 
 ## Honest AirLift analysis (verified against the upstream repo)
 
-Source analyzed: https://github.com/0xjohnnydev/airlift (`README.md`, `airlift.py`, `Sources/`, `Makefile`).
+Source analyzed: https://github.com/0xjohnnydev/airlift (`README.md`,
+`airlift.py`, `Sources/`, `Makefile`). Full details:
+[docs/AIRLIFT_ON_DEVICE_RESEARCH.md](docs/AIRLIFT_ON_DEVICE_RESEARCH.md).
 
 ### What AirLift actually is
 
-- A **macOS-side** exploit tool ("paired-Mac AirTraffic/ATAirlock sandbox escape") for iOS 27.0 (tested builds **24A435**/RC and **24A437**).
-- Execution flow: `airlift.py` drives `xcrun devicectl` plus two **compiled macOS helpers** that link `MobileDevice.framework` and `AirTrafficHost.framework`.
-- Device-side chain: `com.apple.streaming_zip_conduit` → `com.apple.afc` → `com.apple.atc` / `AirTrafficDevice` → Books sync client → `ATLegacyAssetLink` → `ATAirlock` → `NSFileManager`.
-- **Verified write scope** (fresh-file writes): `/var/mobile`, `/var/mobile/Documents`, `/var/mobile/Library`, `/var/mobile/Library/Preferences`, `/var/mobile/Library/Caches`, `/var/mobile/Library/SpringBoard`, `/var/mobile/Library/SMS`, `/var/mobile/Library/Safari`, `/var/mobile/Containers`, `/var/mobile/Containers/Data/Application`, `/var/mobile/Containers/Shared/AppGroup`, `/var/tmp`.
-- **Reads are indirect**: move a known file into Media, read it through AFC, move it back.
-- Upstream is a PoC: it writes a random canary, verifies bytes, cleans up, and restores Books sync state.
+- A **macOS-side** exploit tool ("paired-Mac AirTraffic/ATAirlock sandbox
+  escape") for iOS 27.0 (tested builds **24A435**/RC and **24A437**).
+- Execution flow: `airlift.py` drives `xcrun devicectl` plus two **compiled
+  macOS helpers** that link `MobileDevice.framework` and
+  `AirTrafficHost.framework`.
+- Device-side chain: `com.apple.streaming_zip_conduit` → `com.apple.afc` →
+  `com.apple.atc` / `AirTrafficDevice` → Books sync client →
+  `ATLegacyAssetLink` → `ATAirlock` → `NSFileManager`.
+- **Verified write scope** (fresh-file writes): the twelve paths listed under
+  `AppConstants.AirLift.verifiedWriteScope` (e.g. `/var/mobile`,
+  `/var/mobile/Library/SMS`, `/var/tmp`, …).
+- **Reads are indirect**: move a known file into Media, read it through AFC,
+  move it back.
 
 ### Consequences for this app (the rules we do not break)
 
-- **In-app activation is not possible.** The exploit executes inside `AirTrafficHost.framework` on a paired Mac. A sandboxed iOS app cannot reach that framework or the device daemons in the chain. The AirLift tab therefore reports **Unsupported** with the exact technical reason instead of faking an Activated state.
-- **No persistent "activation" exists to keep alive.** AirLift performs one-shot writes when the Mac-side tool runs. There is nothing to persist after closing the app — so the app persists only *observed facts* (last state, last verification time, last result) and **re-verifies on every launch**. A stored flag is never treated as proof that AirLift still works (unit-tested: stale `Activated` downgrades to `Disconnected`).
-- **LocalDevVPN is not part of upstream AirLift — but it is real and relevant.** A code search of the airlift repo returns **0 matches** for `LocalDevVPN`; airlift uses the standard paired-device transport (USB/Wi-Fi). However, **LocalDevVPN is a real, separately distributed packet-tunnel app** (SideStore's StosVPN implements the identical mechanism: `NEPacketTunnelProvider` with device IP `10.7.0.0` / fake IP `10.7.0.1`), used by StikDebug, Locus and others to map `10.7.0.1` back to the iPhone's own services — so a sandboxed app can open TCP to lockdown (`10.7.0.1:62078`), the transport AFC rides on. This app therefore performs a **live TCP probe** of `10.7.0.1:62078` and reports the result honestly in the AirLift tab. Driving the full AirLift AirTraffic exploit through the tunnel from on-device is **not implemented and remains unverified** — the state machine stays `Unsupported` regardless of tunnel status.
-- **/var/mobile access from the Files tab is honestly labeled.** The Files tab operates on the app's real sandbox via `FileSystemService`. The AirLift tab probes each spec directory (`/var/mobile`, `.../SMS`, `.../SpringBoard`, ...) and labels results `Accessible` / `Read-only` / `Restricted` / `Not Found` — in a sandboxed app the /var/mobile paths report **Restricted**, which is the truth. `AirLiftFileSystemAdapter` is the documented seam where a future Mac-host relay would plug in; it currently reports `Unsupported` rather than pretending.
+- **In-app activation is not possible.** The exploit executes inside
+  `AirTrafficHost.framework` on a paired Mac. The AirLift tab therefore reports
+  **Unsupported** with the exact technical reason instead of faking an
+  Activated state, and no button merely flips a state variable.
+- **No persistent "activation" exists to keep alive.** The app persists only
+  *observed facts* (last state, last verification time, last result) and
+  **re-verifies on every launch**. A stored flag is never treated as proof
+  that AirLift still works (unit-tested: stale `Activated` downgrades).
+- **LocalDevVPN is real and relevant** (but not part of upstream AirLift —
+  0 code matches). SideStore's StosVPN implements the identical
+  `NEPacketTunnelProvider` mechanism mapping `10.7.0.1` back to this device,
+  which is exactly what StikDebug uses (`DeviceConnectionContext`
+  `defaultTargetIPAddress = "10.7.0.1"`). This app performs a **live TCP
+  probe** of `10.7.0.1:62078` **and a real lockdown plist exchange**
+  (`QueryType`/`GetValue`) through it. That proves *transport* — never
+  filesystem access.
+- **Pairing is Macless on iOS 27** (StikPair: Developer Mode → "Pair with
+  StikPair" → export). This app imports and validates that record and stores
+  it in the **Keychain** — never in plain files, never logged. See
+  [docs/MACLESS_PAIRING_RESEARCH.md](docs/MACLESS_PAIRING_RESEARCH.md).
+  The word *Macless* describes pairing and transport only — **not** AirLift
+  execution, which still requires a paired Mac.
 
-### Tested target directories (spec §6)
+## Connection gate (startup flow)
 
-All twelve directories are probed at runtime with real `FileManager` checks (existence, readability, writability, plus a create-and-remove probe file). Results appear in the AirLift tab with per-path explanations.
+On launch the app runs the real ladder and shows the setup screen if it cannot
+reach `ready`:
+
+```
+disconnected → vpnRequired → vpnConnected → pairingRequired →
+pairingImported → transportChecking → transportReady →
+capabilityChecking → ready        (failed from any checkable step)
+```
+
+- **vpnRequired** — TCP probe of `10.7.0.1:62078`. Fails → instructions to
+  connect LocalDevVPN/StosVPN. No simulated "Connected" state.
+- **pairingRequired** — imports a StikPair-style record; validated
+  (`HostPrivateKey`, `HostCertificate`, `DeviceCertificate`); stored in the
+  Keychain; replaceable and removable; never logged.
+- **transportChecking** — real length-prefixed binary-plist lockdown exchange.
+- **capabilityChecking** — every capability probed independently
+  (`CapabilityProbeService`), each reported `Verified` / `Failed` /
+  `Not available` / `Not implemented` with reasons.
+- A TCP connect ≠ filesystem access; pairing ≠ transport; transport ≠
+  AirLift exploit access. Features unlock strictly per verified state.
+
+## Files tab (Directory Hub)
+
+- Each of the twelve spec paths is probed with real existence/read/write
+  checks (including a create-and-remove probe file) and shown as
+  `Accessible` / `Read-only` / `Restricted` / `Not Found` — in a sandboxed app
+  the `/var/mobile` paths report **Restricted**, which is the truth.
+- Only genuinely reachable paths open a browser; the rest show their verified
+  status instead of fake content.
+- The browser operates through the `FileSystemService` abstraction:
+  `SandboxFileSystemService` (real), `AirLiftFileSystemAdapter` (honest
+  `Unsupported` seam for a future Mac relay), capability-driven UI
+  (`FileSystemCapabilities`) so unsupported actions are never offered.
+
+## Logging
+
+`AppLogger` is the single shared logging service: ring buffer (bounded RAM),
+categories (App/AirLift/VPN/Files/Filesystem/Permissions/Network/Pairing/
+Security), levels (Debug/Info/Warning/Error), event names, real-time viewer
+with search/level/category filters, row selection + Select All, Copy
+Selected/All, Share, Clear, Export TXT/JSON, pause/resume. **Every message
+passes `Redactor`** — key material and long token runs are replaced with
+`[REDACTED]` at record time; pairing data, file contents, tokens and private
+keys are never logged.
 
 ## Architecture
 
 ```
 AirLiftFileManager/
-├── App/            AirLiftFileManagerApp, AppState, RootTabView
-├── Core/           Constants, Logging (AppLogger + Debug Logs screen), Formatters
-├── AirLift/        AirLiftModels (9-state machine), AirLiftService, ActivationManager, AirLiftAdapter
+├── App/            AirLiftFileManagerApp, AppState, RootTabView (+ iOS27Gate)
+├── Core/           Constants, Logging (AppLogger + Redactor + LogViewer),
+│                   Formatters
+├── AirLift/        AirLiftModels (9-state machine), AirLiftService,
+│                   ActivationManager, AirLiftAdapter,
+│                   LockdownClient, PairingRecordService,
+│                   KeychainPairingStore, ConnectionGate (+ machine/VM),
+│                   CapabilityProbe
 ├── LocalDevVPN/    Honest status service (not part of AirLift)
 ├── FileSystem/     FileModels, FileSystemService protocol, SandboxFileSystemService,
-│                   FileSystemAdapter (AirLift seam), FileOperationManager,
-│                   FileSelectionManager, ZipArchive (pure-Swift ZIP via Apple Compression)
+│                   FileSystemAdapter (AirLift seam), FileSystemCapabilities,
+│                   FileOperationManager (progress + cancel), FileSelectionManager,
+│                   ZipArchive (pure-Swift ZIP via Apple Compression)
 ├── Services/       PersistenceService, PermissionService, ErrorHandler
 ├── Features/
-│   ├── AirLift/    AirLiftView, AirLiftViewModel, AirLiftLogView
-│   └── Files/      FilesView, FilesViewModel, FileRowView/FileGridCellView,
-│                   FileContextMenu, FileSupportViews (picker/info/share/QuickLook)
+│   ├── AirLift/    AirLiftView, AirLiftViewModel, ConnectionSetupView,
+│   │               AccessStatusView (diagnostics), LogViewerView, LocalDevVPNSection
+│   └── Files/      DirectoryHubView(+VM), FilesView, FilesViewModel,
+│                   FileRowView/FileGridCellView, FileContextMenu,
+│                   FileSupportViews (picker/info/share/QuickLook)
 └── Resources/      Assets.xcassets (app icon, accent color)
-Tests/              XCTest: file system, operations, ZIP round-trip, selection,
-                    sorting, activation persistence, error handling
+Tests/              XCTest: filesystem, operations, ZIP round-trip + zip-slip,
+                    selection, sorting, activation persistence, error handling,
+                    capability gating, connection gate ladder, pairing import,
+                    log filtering/export/redaction, operation cancellation
+docs/               AIRLIFT_ON_DEVICE_RESEARCH.md, MACLESS_PAIRING_RESEARCH.md
 ```
 
-No third-party dependencies. ZIP compress/extract is implemented in pure Swift on Apple's `Compression` framework (method 0/8, CRC-32 validation, zip-slip protection).
+No third-party dependencies. ZIP compress/extract is implemented in pure Swift
+on Apple's `Compression` framework (method 0/8, CRC-32 validation, zip-slip
+protection).
 
 ## Building the unsigned IPA
 
-Requirements: macOS with Xcode 16 (CI uses `macos-15`).
+Requirements: macOS with Xcode 26 (CI uses `macos-26`).
 
 Local:
 
 ```bash
-./Scripts/build.sh                                    # tests via run-tests.sh in CI
+./Scripts/run-tests.sh                                # XCTest on a simulator
+./Scripts/build.sh                                    # unsigned IPA
 ./Scripts/verify_ipa.sh build/AirLiftFileManager-unsigned.ipa
+./Scripts/diagnostic_report.sh build/DIAGNOSTIC_REPORT.md
 ```
 
-Or just push — GitHub Actions (`.github/workflows/build-unsigned-ipa.yml`) runs the XCTest suite on an iOS Simulator, builds with `CODE_SIGNING_ALLOWED=NO`, verifies the bundle has **no** `_CodeSignature` and **no** `embedded.mobileprovision`, and uploads the artifact.
+Or just push — GitHub Actions (`.github/workflows/build-unsigned-ipa.yml`)
+runs the XCTest suite on an iOS Simulator, builds with
+`CODE_SIGNING_ALLOWED=NO`, verifies the bundle has **no** `_CodeSignature`,
+**no** `embedded.mobileprovision` and a **non-simulator** Mach-O, then uploads
+two artifacts: the unsigned IPA and a diagnostic report.
 
 Regenerate the Xcode project after adding files:
 
@@ -75,14 +173,28 @@ python3 Scripts/gen_pbxproj.py
 
 ### Signing state of the IPA
 
-`AirLiftFileManager-unsigned.ipa` contains `Payload/AirLiftFileManager.app` with no code signature and no provisioning profile. `codesign -d` on it reports "code object is not signed at all" — exactly what sideloading tools expect before re-signing. Bundle ID: `com.bbaobaob.airliftfilemanager`, display name: **AirLift File Manager**.
+`AirLiftFileManager-unsigned.ipa` contains `Payload/AirLiftFileManager.app`
+with no code signature and no provisioning profile. Bundle ID:
+`com.bbaobaob.airliftfilemanager`, display name: **AirLift File Manager**.
 
 ## Testing status
 
-- **Automated (GitHub Actions, iOS Simulator)**: 40+ XCTest cases across file system service, operations, ZIP round-trip + zip-slip rejection, selection logic, sorting, activation persistence/re-verification, error handling, permission probing.
-- **Not performed**: no real-device testing has been done (no paired iPhone available in CI). Nothing here claims device testing.
+- **Automated (GitHub Actions, iOS Simulator)**: 70+ XCTest cases covering the
+  filesystem service, operations, ZIP round-trip + zip-slip rejection,
+  selection logic, sorting, activation persistence/re-verification, error
+  handling, permission probing, capability gating, the connection-gate ladder
+  (with injected probes), pairing validation, log filtering/export/redaction,
+  and operation cancellation.
+- **Device-tested by the owner on iOS 27 beta** (iPhone): app installs and
+  launches; tunnel/lockdown probes require LocalDevVPN to be connected on the
+  device at run time.
 
 ## Future work
 
-- Implement a macOS companion relay (`airlift serve`) + in-app client so the Files tab can browse/write the verified scope through the Mac. The `AirLiftFileSystemAdapter` seam is prepared for it.
-- If AirLift upstream ever ships a device-side API, the AirLift tab's state machine can flip from `Unsupported` to real activation without UI changes.
+1. Trusted lockdown session (TLS client identity from the pairing record) +
+   `StartService com.apple.afc` → honest AFC-scope browsing (Media folder).
+2. macOS companion relay (`airlift serve`) + in-app client so the Files tab
+   can browse/write the verified scope through the Mac — the
+   `AirLiftFileSystemAdapter` seam is prepared.
+3. If AirLift upstream ever ships a device-side API, the state machine can
+   flip from `Unsupported` to real activation without UI changes.
