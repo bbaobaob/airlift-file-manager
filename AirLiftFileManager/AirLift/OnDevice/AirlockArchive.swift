@@ -86,40 +86,40 @@ enum AirlockArchive {
             let crc = crc32(entry.data)
             // Local header.
             var local = Data()
-            local.appendLE(UInt32(0x04034b50))
-            local.appendLE(UInt16(20))
-            local.appendLE(UInt16(0x0800)) // UTF-8
-            local.appendLE(UInt16(0))      // stored
-            local.appendLE(UInt16(0x2800)) // mod time 05:00 (upstream date_time)
-            local.appendLE(UInt16(0x5D2E)) // mod date 2026-09-14 (upstream date_time)
-            local.appendLE(crc)
-            local.appendLE(UInt32(entry.data.count))
-            local.appendLE(UInt32(entry.data.count))
-            local.appendLE(UInt16(name.count))
-            local.appendLE(UInt16(extra.count))
+            local.appendAL32(UInt32(0x04034b50))
+            local.appendAL16(UInt16(20))
+            local.appendAL16(UInt16(0x0800)) // UTF-8
+            local.appendAL16(UInt16(0))      // stored
+            local.appendAL16(UInt16(0x2800)) // mod time 05:00 (upstream date_time)
+            local.appendAL16(UInt16(0x5D2E)) // mod date 2026-09-14 (upstream date_time)
+            local.appendAL32(crc)
+            local.appendAL32(UInt32(entry.data.count))
+            local.appendAL32(UInt32(entry.data.count))
+            local.appendAL16(UInt16(name.count))
+            local.appendAL16(UInt16(extra.count))
             local.append(contentsOf: name)
             local.append(contentsOf: extra)
             body.append(contentsOf: local)
             body.append(contentsOf: entry.data)
             // Central record.
             var record = Data()
-            record.appendLE(UInt32(0x02014b50))
-            record.appendLE(UInt16(3 << 8 | 20)) // made by unix
-            record.appendLE(UInt16(20))
-            record.appendLE(UInt16(0x0800))
-            record.appendLE(UInt16(0))
-            record.appendLE(UInt16(0x2800))
-            record.appendLE(UInt16(0x5D2E))
-            record.appendLE(crc)
-            record.appendLE(UInt32(entry.data.count))
-            record.appendLE(UInt32(entry.data.count))
-            record.appendLE(UInt16(name.count))
-            record.appendLE(UInt16(extra.count))
-            record.appendLE(UInt16(0)) // comment
-            record.appendLE(UInt16(0)) // disk
-            record.appendLE(UInt16(0)) // internal attr
-            record.appendLE(UInt32(entry.mode) << 16) // external attr
-            record.appendLE(offset)
+            record.appendAL32(UInt32(0x02014b50))
+            record.appendAL16(UInt16(3 << 8 | 20)) // made by unix
+            record.appendAL16(UInt16(20))
+            record.appendAL16(UInt16(0x0800))
+            record.appendAL16(UInt16(0))
+            record.appendAL16(UInt16(0x2800))
+            record.appendAL16(UInt16(0x5D2E))
+            record.appendAL32(crc)
+            record.appendAL32(UInt32(entry.data.count))
+            record.appendAL32(UInt32(entry.data.count))
+            record.appendAL16(UInt16(name.count))
+            record.appendAL16(UInt16(extra.count))
+            record.appendAL16(UInt16(0)) // comment
+            record.appendAL16(UInt16(0)) // disk
+            record.appendAL16(UInt16(0)) // internal attr
+            record.appendAL32(UInt32(entry.mode) << 16) // external attr
+            record.appendAL32(offset)
             record.append(contentsOf: name)
             record.append(contentsOf: extra)
             central.append(record)
@@ -129,14 +129,14 @@ enum AirlockArchive {
         var centralData = Data()
         for record in central { centralData.append(contentsOf: record) }
         var eocd = Data()
-        eocd.appendLE(UInt32(0x06054b50))
-        eocd.appendLE(UInt16(0))
-        eocd.appendLE(UInt16(0))
-        eocd.appendLE(UInt16(central.count))
-        eocd.appendLE(UInt16(central.count))
-        eocd.appendLE(UInt32(centralData.count))
+        eocd.appendAL32(UInt32(0x06054b50))
+        eocd.appendAL16(UInt16(0))
+        eocd.appendAL16(UInt16(0))
+        eocd.appendAL16(UInt16(central.count))
+        eocd.appendAL16(UInt16(central.count))
+        eocd.appendAL32(UInt32(centralData.count))
         eocd.appendLE(centralStart)
-        eocd.appendLE(UInt16(0))
+        eocd.appendAL16(UInt16(0))
         var out = body
         out.append(contentsOf: centralData)
         out.append(contentsOf: eocd)
@@ -146,7 +146,7 @@ enum AirlockArchive {
     static func extraField(mode: UInt16) -> Data {
         var out = Data()
         out.appendLE(extraID)
-        out.appendLE(UInt16(2))
+        out.appendAL16(UInt16(2))
         out.appendLE(mode)
         return out
     }
@@ -184,12 +184,12 @@ private enum AirlockCRC {
 }
 
 private extension Data {
-    mutating func appendLE(_ value: UInt16) {
+    mutating func appendAL16(_ value: UInt16) {
         append(UInt8(value & 0xff))
         append(UInt8((value >> 8) & 0xff))
     }
 
-    mutating func appendLE(_ value: UInt32) {
+    mutating func appendAL32(_ value: UInt32) {
         append(UInt8(value & 0xff))
         append(UInt8((value >> 8) & 0xff))
         append(UInt8((value >> 16) & 0xff))
