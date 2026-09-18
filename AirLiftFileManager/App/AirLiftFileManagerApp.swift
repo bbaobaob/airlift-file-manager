@@ -19,7 +19,7 @@ struct AirLiftFileManagerApp: App {
                 // AirLift File Manager") or Files "Open in…" — a path that
                 // never touches the document picker. Import immediately.
                 .onOpenURL { url in
-                    AppLogger.app.info("Incoming file: \(url.lastPathComponent, privacy: .public)", event: "open")
+                    AppLogger.app.info("Incoming file: \(url.lastPathComponent)", event: "open")
                     Task {
                         await appState.launchGuard.importPairing(from: url)
                         await appState.launchGuard.recheckConnection()
