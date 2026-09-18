@@ -19,7 +19,7 @@ protocol BooksFileAccess: Sendable {
     func read(_ path: String) async throws -> Data
     func write(_ path: String, data: Data) async throws
     func remove(_ path: String) async throws
-    func makeDirectory(_ path: String) async throws
+    func makeDirectory(path: String) async throws
     func isDirectory(_ path: String) async -> Bool
 }
 
