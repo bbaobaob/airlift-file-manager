@@ -210,3 +210,23 @@ final class PairingCryptoTests: XCTestCase {
         XCTAssertEqual(signbuf.suffix(32), Data(repeating: 0xBB, count: 32))
     }
 }
+
+extension PairingCryptoTests {
+    func testChunkedPublicKeyReassembles() {
+        // A 384-byte client ephemeral arrives as 255 + 129 byte entries;
+        // the acceptor must concatenate, not take the first chunk.
+        let full = Data((0..<384).map { UInt8($0 & 0xff) })
+        var entries: [TLV8.Entry] = []
+        var offset = full.startIndex
+        while offset < full.endIndex {
+            let end = full.index(offset, offsetBy: 255, limitedBy: full.endIndex) ?? full.endIndex
+            entries.append(TLV8.Entry(.publicKey, Data(full[offset..<end])))
+            offset = end
+        }
+        XCTAssertEqual(entries.count, 2)
+        let reassembled = entries.filter { $0.component == .publicKey }
+            .reduce(Data(), { $0 + $1.data })
+        XCTAssertEqual(reassembled, full)
+        XCTAssertEqual(SRPBigUInt(bytesBE: Array(reassembled)).bytesBE.count, 384)
+    }
+}
