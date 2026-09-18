@@ -316,12 +316,12 @@ extension OnDeviceWireTests {
     func testSilenceWAVStructure() {
         let wav = PairingKeepAlive.silenceWAV()
         XCTAssertEqual(Array(wav.prefix(4)), Array("RIFF".utf8))
-        XCTAssertEqual(wav.count, 44 + 16000)
-        // data chunk header at offset 36: "data" + u32LE(32000).
+        XCTAssertEqual(wav.count, 44 + 16000) // 1s × 8kHz × 16-bit mono
+        // data chunk header at offset 36: "data" + u32LE(16000).
         XCTAssertEqual(Array(wav[36..<40]), Array("data".utf8))
         let size = UInt32(wav[40]) | (UInt32(wav[41]) << 8)
             | (UInt32(wav[42]) << 16) | (UInt32(wav[43]) << 24)
-        XCTAssertEqual(size, 32000)
+        XCTAssertEqual(size, 16000)
     }
 
     func testChainErrorMessages() {
