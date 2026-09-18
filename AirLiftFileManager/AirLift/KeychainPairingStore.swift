@@ -45,7 +45,7 @@ struct KeychainPairingStore: PairingStoring {
 
     @discardableResult
     func save(_ data: Data) -> Bool {
-        SecItemDelete(query)
+        SecItemDelete(query as CFDictionary)
         let attrs: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: Self.service,

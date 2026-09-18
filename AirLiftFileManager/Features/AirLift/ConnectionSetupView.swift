@@ -105,7 +105,8 @@ struct ConnectionSetupView: View {
     }
 
     private var pairingSection: some View {
-        Section("Pairing File") {
+        Section {
+            // Pairing File
             Text(gate.pairingStatusMessage)
                 .font(.footnote)
             Button {
@@ -128,6 +129,8 @@ struct ConnectionSetupView: View {
                     LabeledRow(label: "Device iOS", value: v)
                 }
             }
+        } header: {
+            Text("Pairing File")
         } footer: {
             Text("Pair on-device with StikPair (iOS 27 Developer Mode → Pair with StikPair), export the pairing plist, and import it here. It is stored in the Keychain — never in plain files — and its contents are never logged.")
         }

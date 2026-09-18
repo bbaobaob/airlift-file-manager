@@ -86,15 +86,15 @@ final class FilesViewModel: ObservableObject {
 
     // MARK: - Operations
 
-    func createFolder(named name: String) async { await run { try await operations.createFolder(named: name, in: currentURL) } }
-    func rename(item: URL, to newName: String) async { await run { _ = try await operations.rename(item: item, to: newName) } }
-    func delete(urls: [URL]) async { await run { try await operations.delete(items: urls) }; selection.end() }
-    func copySelected(_ urls: [URL], to directory: URL) async { await run { try await operations.copy(items: urls, to: directory) } }
-    func moveSelected(_ urls: [URL], to directory: URL) async { await run { try await operations.move(items: urls, to: directory) }; selection.end() }
-    func compressSelected(_ selectedItems: [FileItem]) async { await run { _ = try await operations.compress(items: selectedItems, in: currentURL) } }
-    func extract(archive: URL) async { await run { _ = try await operations.extract(archive: archive) } }
-    func duplicate(item: URL) async { await run { _ = try await operations.duplicate(item: item) } }
-    func replace(target: URL, with source: URL) async { await run { try await operations.replace(target: target, with: source) } }
+    func createFolder(named name: String) async { await run { try await self.operations.createFolder(named: name, in: self.currentURL) } }
+    func rename(item: URL, to newName: String) async { await run { _ = try await self.operations.rename(item: item, to: newName) } }
+    func delete(urls: [URL]) async { await run { try await self.operations.delete(items: urls) }; selection.end() }
+    func copySelected(_ urls: [URL], to directory: URL) async { await run { try await self.operations.copy(items: urls, to: directory) } }
+    func moveSelected(_ urls: [URL], to directory: URL) async { await run { try await self.operations.move(items: urls, to: directory) }; selection.end() }
+    func compressSelected(_ selectedItems: [FileItem]) async { await run { _ = try await self.operations.compress(items: selectedItems, in: self.currentURL) } }
+    func extract(archive: URL) async { await run { _ = try await self.operations.extract(archive: archive) } }
+    func duplicate(item: URL) async { await run { _ = try await self.operations.duplicate(item: item) } }
+    func replace(target: URL, with source: URL) async { await run { try await self.operations.replace(target: target, with: source) } }
 
     private func run(_ work: @escaping () async throws -> Void) async {
         do {
