@@ -14,15 +14,24 @@ struct PairingAcceptor {
     let pairingStore: any PairingStoring
     /// Called with the 6-digit PIN to display; must return when shown.
     let pinCallback: (String) async -> Void
+    /// Fine-grained step events (UI transcript + diagnostics).
+    let progress: (String) async -> Void
     private var sequence = 0
 
     init(stream: TCPStream, identity: PairingHost.HostIdentity,
          pairingStore: any PairingStoring,
-         pinCallback: @escaping (String) async -> Void) {
+         pinCallback: @escaping (String) async -> Void,
+         progress: @escaping (String) async -> Void = { _ in }) {
         self.stream = stream
         self.identity = identity
         self.pairingStore = pairingStore
         self.pinCallback = pinCallback
+        self.progress = progress
+    }
+
+    private func emit(_ line: String) async {
+        AppLogger.pairing.info(line, event: "pairing.steps")
+        await progress(line)
     }
 
     /// Runs handshake + M1–M6. Returns the paired peer device and persists
