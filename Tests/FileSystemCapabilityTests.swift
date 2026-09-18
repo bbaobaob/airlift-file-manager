@@ -61,7 +61,7 @@ final class FileSystemCapabilityTests: XCTestCase {
 
 @MainActor
 final class DirectoryHubViewModelTests: XCTestCase {
-    private func report(_ path: String, _ level: AccessLevel) -> DirectoryAccessReport {
+    nonisolated private func report(_ path: String, _ level: AccessLevel) -> DirectoryAccessReport {
         DirectoryAccessReport(path: path, level: level, detail: "test detail")
     }
 
