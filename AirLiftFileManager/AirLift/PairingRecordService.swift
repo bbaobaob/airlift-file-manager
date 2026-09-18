@@ -3,10 +3,10 @@ import Foundation
 /// Imports and validates a StikPair-style on-device pairing file.
 ///
 /// StikPair (iOS 27 Developer Mode "Pair with <app>") exports a lockdown
-/// pairing record from the device itself. This service imports the exported
-/// plist, validates the keys needed for trusted lockdown sessions, and stores
-/// it in the app container for later authenticated service requests
-/// (StartService: com.apple.afc and friends).
+/// pairing record from the device itself. This service validates the keys
+/// needed for trusted lockdown sessions. Storage lives in
+/// `KeychainPairingStore` (kSecClassGenericPassword) — pairing secrets are
+/// never written to plain files or defaults.
 struct PairingRecordService {
     struct ValidationResult: Equatable {
         let isValid: Bool
@@ -44,18 +44,5 @@ struct PairingRecordService {
         return ValidationResult(
             isValid: false, presentKeys: present, missingKeys: missing,
             message: "Pairing record is missing: \(missing.joined(separator: ", ")).")
-    }
-
-    static func importPairing(data: Data) throws -> ValidationResult {
-        let result = validate(data)
-        guard result.isValid else { return result }
-        try data.write(to: storedURL, options: .atomic)
-        AppLogger.airLift.info("Pairing record imported (\(result.presentKeys.count) keys)")
-        return result
-    }
-
-    static func removePairing() {
-        try? FileManager.default.removeItem(at: storedURL)
-        AppLogger.airLift.info("Pairing record removed")
     }
 }

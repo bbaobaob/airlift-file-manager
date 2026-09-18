@@ -3,22 +3,25 @@ import UniformTypeIdentifiers
 
 struct AirLiftView: View {
     @EnvironmentObject private var activation: ActivationManager
+    @EnvironmentObject private var gate: ConnectionGateViewModel
     @StateObject private var model = AirLiftViewModel()
     @State private var showingLogs = false
+    @State private var showingSetup = false
+    @State private var showingAccessStatus = false
 
     var body: some View {
         NavigationStack {
             List {
             statusSection
             actionSection
+            connectionSection
             LocalDevVPNSection(state: model.tunnelState,
                                summary: model.tunnelSummary,
                                background: model.tunnelBackground,
                                isProbing: model.isProbingTunnel,
                                onRefresh: { Task { await model.probeTunnel() } })
             lockdownSection
-            pairingSection
-            capabilitiesSection
+            accessStatusSection
                 scopeSection
                 versionSection
             }
@@ -34,14 +37,13 @@ struct AirLiftView: View {
                 }
             }
             .sheet(isPresented: $showingLogs) {
-                NavigationStack { AirLiftLogView() }
+                NavigationStack { LogViewerView() }
             }
-            .fileImporter(isPresented: $model.showPairingImporter,
-                          allowedContentTypes: [.propertyList, .data],
-                          allowsMultipleSelection: false) { result in
-                if case .success(let urls) = result, let url = urls.first {
-                    Task { await model.importPairing(from: url) }
-                }
+            .sheet(isPresented: $showingSetup) {
+                ConnectionSetupView(gate: gate) { showingSetup = false }
+            }
+            .navigationDestination(isPresented: $showingAccessStatus) {
+                AccessStatusView(gate: gate)
             }
             .task {
                 model.refreshAccessReports()
@@ -104,6 +106,18 @@ struct AirLiftView: View {
             }
             .disabled(activation.isBusy)
 
+            Button {
+                showingSetup = true
+            } label: {
+                Label("Connection Setup", systemImage: "circle.and.line.horizontal")
+            }
+
+            Button {
+                showingAccessStatus = true
+            } label: {
+                Label("Access Status & Diagnostics", systemImage: "stethoscope")
+            }
+
             Button(role: .destructive) {
                 activation.reset()
             } label: {
@@ -119,6 +133,67 @@ struct AirLiftView: View {
             .disabled(activation.isBusy)
         } footer: {
             Text("Activation state is always re-verified against the real environment on launch. A stored flag is never treated as proof that AirLift is active.")
+        }
+    }
+
+    private var connectionSection: some View {
+        Section {
+            HStack {
+                Image(systemName: gate.phase == .ready
+                      ? "checkmark.seal.fill"
+                      : (gate.phase == .failed ? "xmark.octagon.fill" : "circle.dashed"))
+                    .foregroundStyle(gate.phase == .ready ? Color.green
+                                     : (gate.phase == .failed ? Color.red : Color.orange))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Setup: \(gate.phase.rawValue)")
+                        .font(.subheadline.weight(.semibold))
+                    Text(gate.statusSummary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+            }
+            if gate.phase != .ready {
+                Button("Open Connection Setup") { showingSetup = true }
+                    .font(.footnote.weight(.medium))
+            }
+        } header: {
+            Text("Connection Gate")
+        } footer: {
+            Text("AirLift-dependent features unlock only after VPN, pairing, lockdown transport, and capability checks all pass with real results.")
+        }
+    }
+
+    private var accessStatusSection: some View {
+        Section {
+            ForEach(model.accessReports.prefix(4)) { report in
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Text(report.path)
+                            .font(.footnote.monospaced())
+                            .textSelection(.enabled)
+                        Spacer()
+                        Text(report.level.rawValue)
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .background(badgeColor(report.level).opacity(0.18),
+                                        in: Capsule())
+                            .foregroundStyle(badgeColor(report.level))
+                    }
+                    Text(report.detail)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 2)
+            }
+            Text("Full per-path list in Access Status & Diagnostics and the Files tab.")
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+        } header: {
+            Text("Access Status (live probes)")
+        } footer: {
+            Text("Each row reflects a real probe performed by this app on this device. AirLift can reach these paths only from the paired Mac.")
         }
     }
 
@@ -170,52 +245,6 @@ struct AirLiftView: View {
         return lines.joined(separator: " · ")
     }
 
-    private var pairingSection: some View {
-        Section {
-            Text(model.pairingStatus)
-                .font(.footnote)
-            Button {
-                model.showPairingImporter = true
-            } label: {
-                Label(PairingRecordService.hasStoredPairing()
-                      ? "Replace Pairing File" : "Import Pairing File",
-                      systemImage: "key.horizontal")
-            }
-            if PairingRecordService.hasStoredPairing() {
-                Button(role: .destructive) {
-                    PairingRecordService.removePairing()
-                    model.pairingStatus = "Pairing record removed."
-                } label: {
-                    Label("Remove Pairing Record", systemImage: "key.slash")
-                }
-            }
-        } header: {
-            Text("Pairing (StikPair-style, on-device)")
-        } footer: {
-            Text("Pair on-device with StikPair (Developer Mode → Pair with StikPair on iOS 27), export the pairing file, then import it here. The record enables trusted lockdown services (e.g. com.apple.afc) in a later build.")
-        }
-    }
-
-    private var capabilitiesSection: some View {
-        Section {
-            capabilityRow("In-app activation",
-                          model.capabilities.inAppActivationSupported ? "Supported" : "Not possible",
-                          ok: model.capabilities.inAppActivationSupported)
-            capabilityRow("LocalDevVPN integration",
-                          model.capabilities.localDevVPNReferenced ? "Available" : "Not part of AirLift",
-                          ok: model.capabilities.localDevVPNReferenced)
-            capabilityRow("Read model", model.capabilities.readModel, ok: true)
-            ForEach(model.capabilities.requiredHostComponents, id: \.self) { component in
-                Label(component, systemImage: "desktopcomputer")
-                    .font(.subheadline)
-            }
-        } header: {
-            Text("AirLift Capabilities")
-        } footer: {
-            Text("Facts verified from the upstream repository: \(AppConstants.AirLift.repositoryURL)")
-        }
-    }
-
     private var scopeSection: some View {
         Section {
             ForEach(model.accessReports) { report in
@@ -257,24 +286,14 @@ struct AirLiftView: View {
         }
     }
 
-    private func capabilityRow(_ label: String, _ value: String, ok: Bool) -> some View {
-        HStack {
-            Text(label)
-            Spacer()
-            Text(value)
-                .foregroundStyle(ok ? .green : .orange)
-                .font(.subheadline.weight(.medium))
-        }
-    }
-
     private func badgeColor(_ level: AccessLevel) -> Color {
         switch level {
         case .accessible: return .green
         case .readOnly: return .blue
         case .restricted: return .orange
-        case .unsupported: return .gray
-        case .notFound: return .gray
-        case .requiresExternalComponent: return .purple
+        case .notFound, .notTested: return .gray
+        case .connectionRequired: return .purple
+        case .unsupported, .requiresExternalComponent: return .secondary
         }
     }
 }
@@ -296,4 +315,5 @@ struct LabeledRow: View {
 
 #Preview {
     AirLiftView()
+        .environmentObject(ConnectionGateViewModel())
 }

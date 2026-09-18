@@ -3,7 +3,9 @@ import SwiftUI
 struct RootTabView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var activation: ActivationManager
+    @EnvironmentObject private var gate: ConnectionGateViewModel
     @State private var startupCheckDone = false
+    @State private var showSetupCover = false
 
     var body: some View {
         Group {
@@ -21,16 +23,25 @@ struct RootTabView: View {
                 .tabItem {
                     Label("AirLift", systemImage: "airplane.departure")
                 }
-            FilesView(service: appState.fileSystem,
-                      operations: appState.operations)
+            DirectoryHubView(ops: appState.operations)
                 .tabItem {
                     Label("Files", systemImage: "folder")
                 }
+        }
+        .fullScreenCover(isPresented: $showSetupCover) {
+            ConnectionSetupView(gate: gate) { showSetupCover = false }
+                .interactiveDismissDisabled(gate.isBusy)
         }
         .task {
             guard !startupCheckDone else { return }
             startupCheckDone = true
             await appState.performStartupVerification()
+            // Connection gate: run the real ladder on launch. If it cannot
+            // reach `ready`, present setup so the user can finish the steps.
+            await gate.runChecks()
+            if gate.phase != .ready {
+                showSetupCover = true
+            }
         }
     }
 
@@ -58,4 +69,9 @@ enum iOS27Gate {
 
 #Preview {
     RootTabView()
+        .environmentObject(AppState())
+        .environmentObject(ActivationManager(
+            probe: AirLiftService(),
+            persistence: PersistenceService()))
+        .environmentObject(ConnectionGateViewModel())
 }

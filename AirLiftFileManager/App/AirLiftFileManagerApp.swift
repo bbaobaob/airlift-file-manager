@@ -14,6 +14,7 @@ struct AirLiftFileManagerApp: App {
             RootTabView()
                 .environmentObject(appState)
                 .environmentObject(appState.activation)
+                .environmentObject(appState.gate)
         }
     }
 }
