@@ -40,8 +40,8 @@ final class FileOperationManager: ObservableObject {
     private func end() {
         activeOperation = nil
         isRunning = false
-        progressCompleted = 0
-        progressTotal = 0
+        // Keep progressCompleted/progressTotal so the final state stays
+        // observable (the UI bar hides itself via isRunning).
         cancelRequested = false
     }
 
