@@ -174,7 +174,7 @@ struct BooksState {
                 do {
                     try await ensureParents(of: path)
                     try await access.write(path, data: data)
-                    let back = try? await access.read(path: path)
+                    let back = try? await access.read(path)
                     if back != data {
                         failures.append(path)
                     }

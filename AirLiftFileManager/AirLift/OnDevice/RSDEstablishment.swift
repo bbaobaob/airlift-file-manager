@@ -46,8 +46,8 @@ struct RSDEstablisher {
         let pairingStream = try await connect(step: "RPPairing tunnel", port: service.port)
         emit("RPPairing tunnel → \(host):\(service.port)")
         var verifier = RemotePairingVerify(stream: pairingStream)
-        let credential = try mapError(step: "pair-verify",
-                                      operation: { try RemotePairingVerify.credential(from: recordData) })
+        let credential = try await mapError(step: "pair-verify",
+                                            operation: { try RemotePairingVerify.credential(from: recordData) })
         let encryptionKey = try await mapError(step: "pair-verify") {
             try await verifier.run(credential: credential)
         }
@@ -72,7 +72,7 @@ struct RSDEstablisher {
         while buffer.count < CDTunnel.magic.count + 2 + length {
             buffer.append(contentsOf: try await tls.readAppData(timeout: timeout))
         }
-        let tunnel = try mapError(step: "CDTunnel handshake") {
+        let tunnel = try await mapError(step: "CDTunnel handshake") {
             try CDTunnel.parseResponse(buffer)
         }
         emit("RSD tunnel established (direct TCP via LocalDevVPN + handshake; RSD port \(tunnel.serverRSDPort))")
