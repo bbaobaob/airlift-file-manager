@@ -62,7 +62,13 @@ enum AccessLevel: String {
     case restricted = "Restricted"
     case unsupported = "Unsupported"
     case notFound = "Not Found"
+    case notTested = "Not tested"
+    case connectionRequired = "Connection required"
     case requiresExternalComponent = "Requires External Component"
+
+    var canBrowse: Bool { self == .accessible }
+    var canRead: Bool { self == .accessible || self == .readOnly }
+    var canWrite: Bool { self == .accessible }
 }
 
 struct DirectoryAccessReport: Identifiable {

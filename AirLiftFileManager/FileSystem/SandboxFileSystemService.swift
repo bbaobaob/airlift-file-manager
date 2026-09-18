@@ -4,8 +4,11 @@ import Foundation
 /// All errors are surfaced as typed throws; no call can crash the host app.
 struct SandboxFileSystemService: FileSystemService {
     let scopeRoots: [URL]
+    let capabilities: FileSystemCapabilities
 
-    init(scopeRoots: [URL]? = nil) {
+    init(scopeRoots: [URL]? = nil,
+         capabilities: FileSystemCapabilities = .fullSandbox) {
+        self.capabilities = capabilities
         if let scopeRoots {
             self.scopeRoots = scopeRoots
         } else {

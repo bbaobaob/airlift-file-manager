@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct FilesView: View {
     @StateObject private var model: FilesViewModel
+    let capabilities: FileSystemCapabilities
 
     // Sheets & flows
     @State private var showNewFolderAlert = false
@@ -17,13 +18,20 @@ struct FilesView: View {
     @State private var importPicker = false
     @State private var showReplaceImporter = false
     @State private var replaceTarget: URL?
-    @State private var showDeleteAlert = false
     @State private var deleteConfirmation: [URL]?
 
     init(service: FileSystemService,
-         operations: FileOperationManager) {
+         operations: FileOperationManager? = nil,
+         rootURL: URL? = nil,
+         locationTitle: String = "Files") {
+        let resolvedRoot = rootURL
+            ?? FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let resolvedOperations = operations ?? FileOperationManager(service: service)
+        capabilities = service.capabilities
         _model = StateObject(wrappedValue: FilesViewModel(service: service,
-                                                          operations: operations))
+                                                          operations: resolvedOperations,
+                                                          rootURL: resolvedRoot,
+                                                          locationTitle: locationTitle))
     }
 
     var body: some View {
@@ -35,6 +43,8 @@ struct FilesView: View {
                 .overlay(alignment: .bottom) {
                     if model.selection.isActive {
                         selectionStatusBar
+                    } else if model.operations.isRunning {
+                        operationStatusBar
                     }
                 }
         }
@@ -56,7 +66,9 @@ struct FilesView: View {
             }
             Button("Cancel", role: .cancel) { renameTarget = nil }
         }
-        .alert("Delete", isPresented: $showDeleteAlert) {
+        .alert("Delete", isPresented: Binding(
+            get: { deleteConfirmation != nil },
+            set: { if !$0 { deleteConfirmation = nil } })) {
             Button("Delete", role: .destructive) {
                 if let urls = deleteConfirmation { Task { await model.delete(urls: urls) } }
                 deleteConfirmation = nil
@@ -182,7 +194,7 @@ struct FilesView: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            FileContextMenu.menu(for: item) { action in
+            FileContextMenu.menu(for: item, capabilities: capabilities) { action in
                 handleContextAction(action, item: item)
             }
         }
@@ -202,7 +214,7 @@ struct FilesView: View {
         }
         .buttonStyle(.plain)
         .contextMenu {
-            FileContextMenu.menu(for: item) { action in
+            FileContextMenu.menu(for: item, capabilities: capabilities) { action in
                 handleContextAction(action, item: item)
             }
         }
@@ -223,6 +235,29 @@ struct FilesView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(.thinMaterial)
+    }
+
+    private var operationStatusBar: some View {
+        HStack(spacing: 10) {
+            ProgressView()
+            VStack(alignment: .leading, spacing: 2) {
+                Text(model.operations.activeOperation ?? "Working…")
+                    .font(.footnote.weight(.medium))
+                if model.operations.progressTotal > 1 {
+                    Text("\(model.operations.progressCompleted)/\(model.operations.progressTotal)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            Button("Cancel") { model.operations.cancelCurrentOperation() }
+                .font(.footnote.weight(.semibold))
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.thinMaterial)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Operation \(model.operations.activeOperation ?? "") in progress, cancel available")
     }
     // MARK: - Navigation helpers
 
@@ -285,15 +320,19 @@ struct FilesView: View {
                     Label("Select", systemImage: "checkmark.circle")
                 }
             }
-            Button {
-                showNewFolderAlert = true
-            } label: {
-                Label("New Folder", systemImage: "folder.badge.plus")
+            if capabilities.contains(.write) {
+                Button {
+                    showNewFolderAlert = true
+                } label: {
+                    Label("New Folder", systemImage: "folder.badge.plus")
+                }
             }
-            Button {
-                importPicker = true
-            } label: {
-                Label("Import File", systemImage: "square.and.arrow.down")
+            if capabilities.contains(.importFiles) {
+                Button {
+                    importPicker = true
+                } label: {
+                    Label("Import File", systemImage: "square.and.arrow.down")
+                }
             }
             Button {
                 Task { await model.refresh() }
@@ -325,18 +364,20 @@ struct FilesView: View {
                 }
                 Toggle("Show Hidden Files", isOn: $model.showHidden)
             }
-            Button {
-                if let first = model.selection.selectedItems(from: model.sortedItems).first {
-                    infoItem = first
-                } else {
-                    Task {
-                        if let info = try? await model.service.getFileMetadata(at: model.currentURL) {
-                            infoItem = info
+            if capabilities.contains(.readFile) {
+                Button {
+                    if let first = model.selection.selectedItems(from: model.sortedItems).first {
+                        infoItem = first
+                    } else {
+                        Task {
+                            if let info = try? await model.service.getFileMetadata(at: model.currentURL) {
+                                infoItem = info
+                            }
                         }
                     }
+                } label: {
+                    Label("Get Info", systemImage: "info.circle")
                 }
-            } label: {
-                Label("Get Info", systemImage: "info.circle")
             }
         } label: {
             Image(systemName: "ellipsis.circle")

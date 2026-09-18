@@ -15,6 +15,7 @@ struct AirLiftFileSystemAdapter: FileSystemService {
     static let shared = AirLiftFileSystemAdapter()
 
     let scopeRoots: [URL] = []
+    let capabilities: FileSystemCapabilities = .none
 
     private static let reason =
         "AirLift writes files from the paired Mac side (AirTrafficHost.framework). " +

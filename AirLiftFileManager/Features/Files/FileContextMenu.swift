@@ -32,32 +32,52 @@ enum FileContextAction: String, CaseIterable {
 }
 
 enum FileContextMenu {
-    /// Actions valid for this item. Unsupported actions are simply not offered,
-    /// per the product rule: never show a dead button.
-    static func actions(for item: FileItem) -> [FileContextAction] {
+    /// The capability each action needs from the filesystem backend.
+    static func requiredCapability(_ action: FileContextAction) -> FileSystemCapabilities {
+        switch action {
+        case .open: return [.browse]
+        case .copy: return [.copy]
+        case .move: return [.move]
+        case .rename: return [.rename]
+        case .compress: return [.compress]
+        case .extract: return [.extract]
+        case .share: return [.share]
+        case .replace: return [.write]
+        case .duplicate: return [.copy]
+        case .delete: return [.delete]
+        case .getInfo: return [.readFile]
+        }
+    }
+
+    /// Actions valid for this item on a backend with `capabilities`.
+    /// Unsupported actions are simply not offered, per the product rule:
+    /// never show a dead button.
+    static func actions(for item: FileItem,
+                        capabilities: FileSystemCapabilities = .fullSandbox) -> [FileContextAction] {
         var actions: [FileContextAction] = []
-        actions.append(.open)
-        actions.append(.copy)
-        actions.append(.move)
-        actions.append(.rename)
-        actions.append(.compress)
-        if item.url.pathExtension.lowercased() == "zip" {
+        if capabilities.contains(.browse) { actions.append(.open) }
+        if capabilities.contains(.copy) { actions.append(.copy) }
+        if capabilities.contains(.move) { actions.append(.move) }
+        if capabilities.contains(.rename) { actions.append(.rename) }
+        if capabilities.contains(.compress) { actions.append(.compress) }
+        if capabilities.contains(.extract), item.url.pathExtension.lowercased() == "zip" {
             actions.append(.extract)
         }
-        actions.append(.share)
-        actions.append(.replace)
-        if !item.isDirectory {
+        if capabilities.contains(.share) { actions.append(.share) }
+        if capabilities.contains(.write) { actions.append(.replace) }
+        if capabilities.contains(.copy), !item.isDirectory {
             actions.append(.duplicate)
         }
-        actions.append(.getInfo)
-        actions.append(.delete)
+        if capabilities.contains(.readFile) { actions.append(.getInfo) }
+        if capabilities.contains(.delete) { actions.append(.delete) }
         return actions
     }
 
     @ViewBuilder
     static func menu(for item: FileItem,
+                     capabilities: FileSystemCapabilities = .fullSandbox,
                      onAction: @escaping (FileContextAction) -> Void) -> some View {
-        ForEach(actions(for: item), id: \.rawValue) { action in
+        ForEach(actions(for: item, capabilities: capabilities), id: \.rawValue) { action in
             Button(role: action == .delete ? .destructive : nil) {
                 onAction(action)
             } label: {
