@@ -13,7 +13,7 @@ import Foundation
 @MainActor
 final class ConnectionGateViewModel: ObservableObject {
     @Published private(set) var machine = ConnectionMachine()
-    @Published private(set) var steps: [ConnectionCheckStep] = Self.initialSteps
+    @Published private(set) var steps: [ConnectionCheckStep] = ConnectionGateViewModel.initialSteps
     @Published private(set) var isBusy = false
     @Published private(set) var lastLockdownResult: LockdownProbeResult?
     @Published private(set) var lastCapabilityReport: CapabilityReport?
