@@ -149,6 +149,7 @@ enum TLSPsk {
         precondition(data.count % 16 == 0, "CBC input must be block-aligned (we pad manually)")
         var out = Data(count: data.count)
         var moved = 0
+        let outCapacity = out.count
         let status = out.withUnsafeMutableBytes { outPtr in
             data.withUnsafeBytes { inPtr in
                 key.withUnsafeBytes { keyPtr in
@@ -159,7 +160,7 @@ enum TLSPsk {
                                 keyPtr.baseAddress, key.count,
                                 ivPtr.baseAddress,
                                 inPtr.baseAddress, data.count,
-                                outPtr.baseAddress, out.count,
+                                outPtr.baseAddress, outCapacity,
                                 &moved)
                     }
                 }
