@@ -37,9 +37,8 @@ struct WirelessPairingDiscovery {
 
     /// Parses a TXT record blob into (identifier, authTag).
     static func parseTXT(_ data: Data) -> (identifier: String?, authTag: String?) {
-        guard let dict = NetService.dictionary(fromTXTRecord: data) else {
-            return (nil, nil)
-        }
+        // Non-optional API: garbage yields an empty dictionary.
+        let dict = NetService.dictionary(fromTXTRecord: data)
         func string(_ key: String) -> String? {
             guard let raw = dict[key] else { return nil }
             return String(data: raw, encoding: .utf8)
