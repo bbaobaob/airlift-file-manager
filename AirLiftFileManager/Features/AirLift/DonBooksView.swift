@@ -59,7 +59,7 @@ final class DonBooksViewModel: ObservableObject {
 
     /// Gates + RSD establishment shared by every action. Returns the
     /// handshake (service table) for the caller to dial services.
-    private func establish(chain: OnDeviceChain) async throws -> RSDClient.Handshake {
+    private func establish(chain: OnDeviceChain) async throws -> RSDEstablisher.Established {
         guard let recordData = chain.pairingStore.load(),
               PairingRecordService.validate(recordData).isValid else {
             throw OnDeviceChain.ChainError.noPairingRecord
@@ -73,7 +73,7 @@ final class DonBooksViewModel: ObservableObject {
                                                  self?.lines.append(line)
                                              }
                                          })
-        return try await establisher.establish(recordData: recordData).handshake
+        return try await establisher.establish(recordData: recordData)
     }
 
     private func afcAccess(chain: OnDeviceChain,

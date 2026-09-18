@@ -270,7 +270,7 @@ struct PairingAcceptor {
     private mutating func sendPlain(_ value: [String: Any]) async throws {
         try await stream.write(RPPairingWire.frame(jsonObject:
             RPPairingWire.plainEnvelope(value: value, sequence: sequence,
-                                        originatedBy: "device")))
+                                        originatedBy: "device")), timeout: 8)
         sequence += 1
     }
 

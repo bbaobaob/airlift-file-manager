@@ -24,6 +24,16 @@ extension DataStream {
         }
         return json
     }
+
+    /// Default-timeout overloads so call sites stay terse; the explicit
+    /// variants above remain for handshakes needing longer windows.
+    func write(_ data: Data) async throws {
+        try await write(data, timeout: 8)
+    }
+
+    func readExactly(_ count: Int) async throws -> Data {
+        try await readExactly(count, timeout: 8)
+    }
 }
 
 /// Async byte stream over a TCP NWConnection with per-operation timeouts.

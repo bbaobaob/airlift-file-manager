@@ -221,11 +221,11 @@ struct RemotePairingVerify {
     // MARK: - Transport helpers
 
     private func sendRaw(_ data: Data) async throws {
-        try await stream.write(data)
+        try await stream.write(data, timeout: 8)
     }
 
     private func sendPlain(_ envelope: [String: Any]) async throws {
-        try await stream.write(RPPairingWire.frame(jsonObject: envelope))
+        try await stream.write(RPPairingWire.frame(jsonObject: envelope), timeout: 8)
     }
 
     private func receivePlain() async throws -> Any {

@@ -122,7 +122,7 @@ actor TunnelStack {
                 ?? data.endIndex
             let chunk = Data(data[offset..<end])
             // Respect the peer window for in-flight bytes.
-            while Int64(bitPattern: conn.sndNxt &- conn.sndUna) + Int64(chunk.count)
+            while Int64(bitPattern: UInt64(conn.sndNxt) &- UInt64(conn.sndUna)) + Int64(chunk.count)
                     > Int64(conn.peerWindow) {
                 try await waitForWindow(port: port)
                 guard let updated = connections[port],
@@ -148,7 +148,7 @@ actor TunnelStack {
         while Date() < deadline {
             guard let conn = connections[port] else { throw StackError.closed }
             if let failure = conn.failure { throw failure }
-            if Int64(bitPattern: conn.sndNxt &- conn.sndUna) < Int64(conn.peerWindow) { return }
+            if Int64(bitPattern: UInt64(conn.sndNxt) &- UInt64(conn.sndUna)) < Int64(conn.peerWindow) { return }
             try? await Task.sleep(nanoseconds: 100_000_000)
         }
         throw StackError.timeout("peer window stuck")
