@@ -25,23 +25,34 @@ enum AirlockArchive {
         case unsafeTarget(String)
     }
 
-    /// Port of `normalize_target`: absolute, non-root, no NUL, no ./..,
-    /// at most 768 bytes.
+    /// Port of `normalize_target`: posix normpath (collapse slashes, resolve
+    /// `.`/`..` clamped at root — exactly like Python posixpath.normpath),
+    /// then absolute, non-root, no NUL, at most 768 bytes.
     static func normalizeTarget(_ value: String) throws -> String {
-        guard value.hasPrefix("/"), value != "/", !value.contains("\0") else {
+        guard value.hasPrefix("/"), !value.contains("\0") else {
             throw ArchiveError.unsafeTarget("target must be a non-root absolute directory")
         }
-        // normpath-equivalent: collapse duplicate slashes (no .. resolution —
-        // any dot component is rejected below like upstream).
-        let collapsed = value.replacingOccurrences(of: "//", with: "/")
-        let components = collapsed.dropFirst().split(separator: "/", omittingEmptySubsequences: false)
-        if components.contains(where: { $0.isEmpty || $0 == "." || $0 == ".." }) {
-            throw ArchiveError.unsafeTarget("target contains an unsafe path component")
+        var parts: [String] = []
+        for rawComponent in value.split(separator: "/", omittingEmptySubsequences: false) {
+            let component = String(rawComponent)
+            if component.isEmpty || component == "." {
+                continue
+            } else if component == ".." {
+                if !parts.isEmpty {
+                    parts.removeLast()
+                }
+            } else {
+                parts.append(component)
+            }
         }
-        guard collapsed.utf8.count <= 768 else {
+        let normalized = "/" + parts.joined(separator: "/")
+        guard normalized != "/" else {
+            throw ArchiveError.unsafeTarget("target must be a non-root absolute directory")
+        }
+        guard normalized.utf8.count <= 768 else {
             throw ArchiveError.unsafeTarget("target path is too long")
         }
-        return collapsed
+        return normalized
     }
 
     struct Entry {

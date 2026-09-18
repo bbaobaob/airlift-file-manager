@@ -103,9 +103,21 @@ struct BooksAttempt {
                 linkIdentifier, payloadIdentifier, targetIdentifier)
     }
 
+    /// Port of posixpath.relpath (lexical: common prefix, then one ".."
+    /// per remaining root component). Upstream feeds this straight into the
+    /// Books manifest, `..` segments included.
     static func relativePath(of path: String, to root: String) -> String {
-        guard path.hasPrefix(root + "/") else { return path }
-        return String(path.dropFirst(root.count + 1))
+        let pathParts = path.split(separator: "/").map(String.init)
+        let rootParts = root.split(separator: "/").map(String.init)
+        var common = 0
+        while common < min(pathParts.count, rootParts.count),
+              pathParts[common] == rootParts[common] {
+            common += 1
+        }
+        let ups = Array(repeating: "..", count: rootParts.count - common)
+        let down = Array(pathParts[common...])
+        let parts = ups + down.map(String.init)
+        return parts.isEmpty ? "." : parts.joined(separator: "/")
     }
 
     /// Upstream canary payload (airlift canary + build + nonce).
