@@ -69,9 +69,9 @@ struct PairingAcceptor {
         while true {
             let candidate = randomBytes(32)
             let candidateB = SRP3072.serverPublic(
-                b: SRPBigUInt(bytesBE: candidate), v: v, k: k, reducer: reducer)
+                b: SRPBigUInt(bytesBE: Array(candidate)), v: v, k: k, reducer: reducer)
             if let fixed = candidateB.fixedBE(SRP3072.nLength) {
-                bBytes = candidate
+                bBytes = Array(candidate)
                 bPubBytes = fixed
                 break
             }
@@ -305,8 +305,10 @@ struct PairingAcceptor {
         return out
     }
 
-    private func randomBytes(_ count: Int) -> [UInt8] {
-        (0..<count).map { _ in UInt8.random(in: 0...255) }
+    private func randomBytes(_ count: Int) -> Data {
+        var out = Data(count: count)
+        for i in out.indices { out[i] = UInt8.random(in: 0...255) }
+        return out
     }
 
     private func hkdfSHA512(salt: Data, ikm: Data, info: Data) -> Data {
