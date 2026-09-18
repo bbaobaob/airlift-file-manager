@@ -11,11 +11,13 @@ final class SortingTests: XCTestCase {
     }
 
     private func sorted(_ items: [FileItem], field: SortField, ascending: Bool) -> [FileItem] {
-        let model = FilesViewModel(service: SandboxFileSystemService(),
-                                   operations: FileOperationManager(
-                                       service: SandboxFileSystemService()),
-                                   sortField: field,
-                                   sortAscending: ascending)
+        let model = FilesViewModel(
+            service: SandboxFileSystemService(),
+            operations: FileOperationManager(service: SandboxFileSystemService()),
+            rootURL: FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0],
+            locationTitle: "Files",
+            sortField: field,
+            sortAscending: ascending)
         // Inject preloaded items through the sortedItems path via reflection-free setup:
         // sortedItems sorts `items`; we use a small test seam instead.
         model.injectForTesting(items)
