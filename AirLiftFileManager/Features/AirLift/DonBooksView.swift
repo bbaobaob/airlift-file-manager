@@ -27,6 +27,9 @@ final class DonBooksViewModel: ObservableObject {
     @Published var targetDirectory: String = "/var/mobile/Library/SpringBoard"
     private var runTask: Task<Void, Never>?
 
+    /// Upstream-tested iOS builds; anything else proceeds with a warning.
+    static let testedBuilds = ["24A435", "24A5390f", "24A437"]
+
     var isRunning: Bool {
         if case .running = phase { return true }
         return false
@@ -147,6 +150,7 @@ final class DonBooksViewModel: ObservableObject {
         runTask = Task { [weak self] in
             guard let self else { return }
             do {
+                await self.checkBuildWarning()
                 let target: String
                 do {
                     target = try AirlockArchive.normalizeTarget(self.targetDirectory)
@@ -203,6 +207,21 @@ final class DonBooksViewModel: ObservableObject {
             } catch {
                 await self.fail("Stage archive", error: error)
             }
+        }
+    }
+
+    /// Best-effort build check via lockdown GetValue (informational only:
+    /// unknown builds warn, never block — same as upstream).
+    private func checkBuildWarning() async {
+        do {
+            let client = LockdownClient()
+            if let build = try await client.getValue("BuildVersion", timeout: 4),
+               !build.isEmpty, !Self.testedBuilds.contains(build) {
+                await emitLine("Warning: iOS build \(build) is not in the tested set " +
+                    "\(Self.testedBuilds.joined(separator: ", ")) — proceeding anyway.")
+            }
+        } catch {
+            await emitLine("Build check skipped (lockdown unreachable) — proceeding anyway.")
         }
     }
 
