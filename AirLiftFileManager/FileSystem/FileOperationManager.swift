@@ -18,8 +18,10 @@ final class FileOperationManager: ObservableObject {
         self.service = service
     }
 
+    /// Requests cancellation of the running operation. If called before an
+    /// operation starts, the request is honored by the first tick of the next
+    /// operation (deterministic, race-free for tests and quick UI taps).
     func cancelCurrentOperation() {
-        guard isRunning else { return }
         cancelRequested = true
     }
 
@@ -28,7 +30,6 @@ final class FileOperationManager: ObservableObject {
         progressTotal = total
         progressCompleted = 0
         isRunning = true
-        cancelRequested = false
     }
 
     private func tick() throws {
