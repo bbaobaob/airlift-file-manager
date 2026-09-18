@@ -60,15 +60,20 @@ struct CapabilityProbeService: CapabilityProbing {
     let vpnProbe: () async -> Bool
     let lockdownProbe: () async -> LockdownProbeResult
     let pairingStore: any PairingStoring
+    let discover: () async -> [WirelessPairingDiscovery.DiscoveredService]
 
     init(vpnProbe: @escaping () async -> Bool = { await LocalDevVPNService().probeTunnel() },
          lockdownProbe: @escaping () async -> LockdownProbeResult = {
              await LockdownClient.probeDevice()
          },
-         pairingStore: any PairingStoring = KeychainPairingStore()) {
+         pairingStore: any PairingStoring = KeychainPairingStore(),
+         discover: @escaping () async -> [WirelessPairingDiscovery.DiscoveredService] = {
+             await WirelessPairingBrowser().browse()
+         }) {
         self.vpnProbe = vpnProbe
         self.lockdownProbe = lockdownProbe
         self.pairingStore = pairingStore
+        self.discover = discover
     }
 
     func run() async -> CapabilityReport {
@@ -124,6 +129,42 @@ struct CapabilityProbeService: CapabilityProbing {
                 detail: "No pairing record imported. Pair on-device with StikPair (Developer Mode) and import the exported plist."))
         }
 
+        // 3b. Wireless-pairing endpoint — real mDNS discovery plus authTag
+        // validation against the stored credential. This is step 1 of the
+        // real wireless chain (idevice: discovery → session → RSD);
+        // steps 2–3 are not implemented yet and say so below.
+        if metadata.isValid,
+           let recordData = pairingStore.load(),
+           let altIrk = Self.altIrk(from: recordData) {
+            let services = await discover()
+            let matched = services.filter {
+                WirelessPairingDiscovery.matchesCredential(service: $0, altIrk: altIrk)
+            }
+            if let first = matched.first {
+                checks.append(CapabilityCheck(
+                    id: "wireless-pairing.discoverable", status: .passed,
+                    detail: "\"\(first.name)\" advertises _remotepairing._tcp and accepts " +
+                        "this pairing credential (authTag verified). Encrypted session " +
+                        "handshake + RSD are not implemented yet."))
+            } else if services.isEmpty {
+                checks.append(CapabilityCheck(
+                    id: "wireless-pairing.discoverable", status: .notAvailable,
+                    detail: "No _remotepairing._tcp service seen on the local network. " +
+                        "Join Wi-Fi (Local Network permission granted) and ensure the " +
+                        "device advertises wireless pairing."))
+            } else {
+                checks.append(CapabilityCheck(
+                    id: "wireless-pairing.discoverable", status: .failed,
+                    detail: "Found \(services.count) wireless-pairing service(s), but none " +
+                        "accepts this pairing credential (authTag mismatch). Re-pair in " +
+                        "StikPair and import the new file."))
+            }
+        } else {
+            checks.append(CapabilityCheck(
+                id: "wireless-pairing.discoverable", status: .skipped,
+                detail: "Skipped: needs a valid remote-pairing record with alt_irk."))
+        }
+
         // 4. Trusted lockdown session (StartService with pairing identity) —
         //    TLS client identity from the pairing record is plumbed, but the
         //    authenticated StartService flow is not implemented on-device yet.
@@ -147,5 +188,16 @@ struct CapabilityProbeService: CapabilityProbing {
         let report = CapabilityReport(startedAt: start, finishedAt: Date(), checks: checks)
         AppLogger.airLift.info("Capability probe finished: passed=\(report.passedCount) failed=\(report.failureCount)")
         return report
+    }
+
+    /// Extracts the 16-byte alt_irk from a stored remote-pairing record.
+    static func altIrk(from recordData: Data) -> Data? {
+        guard let dict = (try? PropertyListSerialization.propertyList(
+            from: recordData, format: nil)) as? [String: Any],
+              let irk = dict["alt_irk"] as? Data,
+              irk.count == 16 else {
+            return nil
+        }
+        return irk
     }
 }

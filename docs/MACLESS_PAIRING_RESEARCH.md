@@ -35,7 +35,15 @@ a classic lockdown record: `public_key` + `private_key` (32-byte raw keys),
 this format (`PairingFormat.remotePairing`, strict type/length checks) alongside
 the classic `HostPrivateKey`/`HostCertificate`/`DeviceCertificate` lockdown
 format. Honest consequence: this credential suits RemotePairing-based flows;
-it does not by itself enable classic trusted lockdown sessions
+it does not by itself enable classic trusted lockdown sessions (`StartService`), which remain unimplemented.
+
+**Wireless chain status (this build):** the credential is now *used*, not just stored.
+The app implements step 1 of the real idevice wireless chain — live mDNS discovery
+of `_remotepairing._tcp` plus the exact authTag validation (`SipHash-2-4`, ported
+from `idevice/src/remote_pairing/peer_device.rs`), surfaced as the
+`wireless-pairing.discoverable` capability check. Steps 2–3 (encrypted
+RemotePairing session handshake, then RSD → lockdown services) are not
+implemented yet; no UI claims otherwise.
 (`StartService`), which remain unimplemented.
 - Mechanism details verified from source: Bonjour discovery
   (`_remotepairing-manual-pairing._tcp.`) for Apple TV targets,

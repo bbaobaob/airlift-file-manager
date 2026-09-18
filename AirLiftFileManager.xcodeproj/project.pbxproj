@@ -15,6 +15,8 @@
 		3B6096BBE832F8427D8EC64C /* LockdownClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/LockdownClient.swift'; sourceTree = SOURCE_ROOT; };
 		A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/PairingFileSupport.swift'; sourceTree = SOURCE_ROOT; };
 		70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/PairingRecordService.swift'; sourceTree = SOURCE_ROOT; };
+		08E1B5B5B579F973E365F1B4 /* SipHash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/SipHash.swift'; sourceTree = SOURCE_ROOT; };
+		556D6B7BE07D6B4E940A18A0 /* WirelessPairingDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/WirelessPairingDiscovery.swift'; sourceTree = SOURCE_ROOT; };
 		302B835FB337EF500C3953E6 /* AirLiftFileManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/App/AirLiftFileManagerApp.swift'; sourceTree = SOURCE_ROOT; };
 		91F060275DA3DF0E680738F5 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/App/AppState.swift'; sourceTree = SOURCE_ROOT; };
 		5615288AF260FC02E2AD21A7 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/App/RootTabView.swift'; sourceTree = SOURCE_ROOT; };
@@ -57,6 +59,7 @@
 		A64EC5B235642F680DE10480 /* LoggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/LoggingTests.swift'; sourceTree = SOURCE_ROOT; };
 		8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/PairingRecordValidationTests.swift'; sourceTree = SOURCE_ROOT; };
 		EE54D7FD6F85959F6AB5666F /* SortingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/SortingTests.swift'; sourceTree = SOURCE_ROOT; };
+		697C5139B36D7D2F0ADA4916 /* WirelessPairingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/WirelessPairingTests.swift'; sourceTree = SOURCE_ROOT; };
 		8C93BC59E39430A83B732AA9 /* ZipArchiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/ZipArchiveTests.swift'; sourceTree = SOURCE_ROOT; };
 		AA0000000000000000000010 /* AirLiftFileManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AirLiftFileManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000011 /* AirLiftFileManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AirLiftFileManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,6 +73,8 @@
 		0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6096BBE832F8427D8EC64C /* LockdownClient.swift */; };
 		8C9633E390FB192C259F58CD /* PairingFileSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */; };
 		A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */; };
+		20E48709E70D827238C5713D /* SipHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E1B5B5B579F973E365F1B4 /* SipHash.swift */; };
+		51104553BD80AA3AE0022D34 /* WirelessPairingDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 556D6B7BE07D6B4E940A18A0 /* WirelessPairingDiscovery.swift */; };
 		57F6303E93CDE14914040445 /* AirLiftFileManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 302B835FB337EF500C3953E6 /* AirLiftFileManagerApp.swift */; };
 		056489BAB43AB83DAFD2EE31 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91F060275DA3DF0E680738F5 /* AppState.swift */; };
 		C8C94372DED42EE23C066588 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5615288AF260FC02E2AD21A7 /* RootTabView.swift */; };
@@ -111,6 +116,7 @@
 		71AAEDDC3777532B5D8FBFB3 /* LoggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64EC5B235642F680DE10480 /* LoggingTests.swift */; };
 		DF59538B0B17A205D51DF55B /* PairingRecordValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */; };
 		2836032F93A2548A862979E2 /* SortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE54D7FD6F85959F6AB5666F /* SortingTests.swift */; };
+		59980FFDCF51D7BBDF4E1CDB /* WirelessPairingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697C5139B36D7D2F0ADA4916 /* WirelessPairingTests.swift */; };
 		B97EBF1EFAC0696DB6253C76 /* ZipArchiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C93BC59E39430A83B732AA9 /* ZipArchiveTests.swift */; };
 		997B97DB8B781ECFD676A7EE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FE942AA8441C9EE0CB98C4DF /* Assets.xcassets */; };
 
@@ -135,6 +141,8 @@
 				3B6096BBE832F8427D8EC64C /* LockdownClient.swift */,
 				A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */,
 				70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */,
+				08E1B5B5B579F973E365F1B4 /* SipHash.swift */,
+				556D6B7BE07D6B4E940A18A0 /* WirelessPairingDiscovery.swift */,
 				302B835FB337EF500C3953E6 /* AirLiftFileManagerApp.swift */,
 				91F060275DA3DF0E680738F5 /* AppState.swift */,
 				5615288AF260FC02E2AD21A7 /* RootTabView.swift */,
@@ -176,6 +184,7 @@
 				A64EC5B235642F680DE10480 /* LoggingTests.swift */,
 				8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */,
 				EE54D7FD6F85959F6AB5666F /* SortingTests.swift */,
+				697C5139B36D7D2F0ADA4916 /* WirelessPairingTests.swift */,
 				8C93BC59E39430A83B732AA9 /* ZipArchiveTests.swift */,
 				FE942AA8441C9EE0CB98C4DF /* Assets.xcassets */,
 			);
@@ -205,6 +214,8 @@
 				0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */,
 				8C9633E390FB192C259F58CD /* PairingFileSupport.swift in Sources */,
 				A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */,
+				20E48709E70D827238C5713D /* SipHash.swift in Sources */,
+				51104553BD80AA3AE0022D34 /* WirelessPairingDiscovery.swift in Sources */,
 				57F6303E93CDE14914040445 /* AirLiftFileManagerApp.swift in Sources */,
 				056489BAB43AB83DAFD2EE31 /* AppState.swift in Sources */,
 				C8C94372DED42EE23C066588 /* RootTabView.swift in Sources */,
@@ -253,6 +264,7 @@
 				71AAEDDC3777532B5D8FBFB3 /* LoggingTests.swift in Sources */,
 				DF59538B0B17A205D51DF55B /* PairingRecordValidationTests.swift in Sources */,
 				2836032F93A2548A862979E2 /* SortingTests.swift in Sources */,
+				59980FFDCF51D7BBDF4E1CDB /* WirelessPairingTests.swift in Sources */,
 				B97EBF1EFAC0696DB6253C76 /* ZipArchiveTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -392,7 +404,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 47;
+			CURRENT_PROJECT_VERSION = 48;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -417,7 +429,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 47;
+			CURRENT_PROJECT_VERSION = 48;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;

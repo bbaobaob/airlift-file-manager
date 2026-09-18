@@ -127,3 +127,61 @@ final class PairingRecordValidationTests: XCTestCase {
                       "with a valid pairing, the blocker must be the VPN gate, not pairing")
     }
 }
+
+/// Regression tests against the REAL Keychain store (the simulator has a
+/// working Keychain). The Not-Imported-after-valid-import bug was caused by
+/// load() omitting kSecReturnData — the InMemory double could never catch
+/// it, so the real store is exercised here with synthetic data only.
+final class KeychainPairingStoreTests: XCTestCase {
+    private func makeStore() -> KeychainPairingStore {
+        let suite = "test-keychain-\(UUID().uuidString)"
+        return KeychainPairingStore(
+            defaults: UserDefaults(suiteName: suite) ?? .standard)
+    }
+
+    func testSaveThenLoadRoundTrips() {
+        let store = makeStore()
+        defer { store.delete() }
+        let payload = Data((0..<64).map { _ in UInt8.random(in: 0...255) })
+
+        XCTAssertTrue(store.save(payload))
+        XCTAssertEqual(store.load(), payload)
+        XCTAssertTrue(store.hasRecord)
+    }
+
+    func testLoadReturnsNilWhenEmpty() {
+        let store = makeStore()
+        defer { store.delete() }
+        XCTAssertNil(store.load())
+        XCTAssertFalse(store.hasRecord)
+    }
+
+    func testDeleteRemovesRecord() {
+        let store = makeStore()
+        XCTAssertTrue(store.save(Data("synthetic".utf8)))
+        XCTAssertTrue(store.hasRecord)
+        store.delete()
+        XCTAssertFalse(store.hasRecord)
+        XCTAssertNil(store.load())
+    }
+
+    func testRemotePairingSurvivesKeychainRoundTrip() {
+        let store = makeStore()
+        defer { store.delete() }
+        var dict: [String: Any] = [
+            "public_key": Data(repeating: 0xA5, count: 32),
+            "private_key": Data(repeating: 0x5A, count: 32),
+            "identifier": UUID().uuidString,
+            "alt_irk": Data(repeating: 0x1F, count: 16),
+        ]
+        let data = (try? PropertyListSerialization.data(fromPropertyList: dict,
+                                                        format: .xml, options: 0)) ?? Data()
+        let result = store.importRecord(data)
+        XCTAssertTrue(result.isValid)
+        // This is the exact assertion that failed before the kSecReturnData fix:
+        // save() reported success while every load() returned nil.
+        XCTAssertEqual(store.load(), data)
+        XCTAssertTrue(store.metadata().isValid)
+        XCTAssertEqual(store.metadata().presentKeyNames.count, 4)
+    }
+}

@@ -64,7 +64,11 @@ struct KeychainPairingStore: PairingStoring {
 
     func load() -> Data? {
         var result: AnyObject?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        // NOTE: kSecReturnData is mandatory — without it SecItemCopyMatching
+        // returns errSecSuccess but gives nothing back (result stays nil).
+        // That exact omission once made every load() return nil while save()
+        // reported success, so pairing status was stuck at Not Imported.
+        let status = SecItemCopyMatching(readQuery as CFDictionary, &result)
         guard status == errSecSuccess else {
             if status != errSecItemNotFound {
                 AppLogger.security.error("Keychain read failed: OSStatus \(status)")
@@ -90,6 +94,14 @@ struct KeychainPairingStore: PairingStoring {
             kSecAttrService as String: Self.service,
             kSecAttrAccount as String: Self.account,
         ]
+    }
+
+    /// Read query: must request the data back explicitly.
+    private var readQuery: [String: Any] {
+        var q = query
+        q[kSecReturnData as String] = true
+        q[kSecMatchLimit as String] = kSecMatchLimitOne
+        return q
     }
 
     // MARK: - Metadata (non-secret)

@@ -63,6 +63,12 @@
 	</array>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<false/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>AirLift File Manager browses for this device's wireless-pairing service (_remotepairing._tcp) to verify your imported pairing credential. No data leaves the device.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_remotepairing._tcp</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
