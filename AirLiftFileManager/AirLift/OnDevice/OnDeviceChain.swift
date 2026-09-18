@@ -92,8 +92,8 @@ struct OnDeviceChain {
         let pairingStream = try await connect(step: "RPPairing tunnel", port: service.port)
         emit("RPPairing tunnel → \(host):\(service.port)")
         var verifier = RemotePairingVerify(stream: pairingStream)
-        let credential = try mapError(step: "pair-verify",
-                                      operation: { try RemotePairingVerify.credential(from: recordData) })
+        let credential = try await mapError(step: "pair-verify",
+                                              operation: { try RemotePairingVerify.credential(from: recordData) })
         let encryptionKey = try await mapError(step: "pair-verify") {
             try await verifier.run(credential: credential)
         }
@@ -112,7 +112,7 @@ struct OnDeviceChain {
             try await tls.writeAppData(CDTunnel.handshakeRequest())
         }
         let rawResponse = try await readCDTunnelResponse(tls: tls)
-        let tunnel = try mapError(step: "CDTunnel handshake") {
+        let tunnel = try await mapError(step: "CDTunnel handshake") {
             try CDTunnel.parseResponse(rawResponse)
         }
         emit("RSD tunnel established (direct TCP via LocalDevVPN + handshake; RSD port \(tunnel.serverRSDPort))")
@@ -129,7 +129,7 @@ struct OnDeviceChain {
 
         // 5. AFC session + write/read/remove self-test.
         let afcStream = try await connect(step: "AFC TCP", port: afcPort)
-        let afc = AFCClient(stream: afcStream)
+        var afc = AFCClient(stream: afcStream)
         try await mapError(step: "AFC checkin") { try await afc.checkin() }
         emit("AFC connected (over RSD)")
 

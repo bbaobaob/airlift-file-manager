@@ -46,7 +46,7 @@ final class OnDeviceWireTests: XCTestCase {
     }
 
     func testFrameRejectsBadMagic() {
-        XCTAssertThrowsError(try RPPairingWire.popFrame(from: Data("XXXXXXXXX\x00\x05hello".utf8)))
+        XCTAssertThrowsError(try RPPairingWire.popFrame(from: Data("XXXXXXXXX".utf8) + Data([0x00, 0x05]) + Data("hello".utf8)))
     }
 
     func testFrameWaitsForCompleteBody() throws {
@@ -284,7 +284,7 @@ final class OnDeviceWireTests: XCTestCase {
     }
 
     func testCDTunnelRejectsBadMagic() {
-        XCTAssertThrowsError(try CDTunnel.parseResponse(Data("NOTUNNEL\x00\x05hello".utf8)))
+        XCTAssertThrowsError(try CDTunnel.parseResponse(Data("NOTUNNEL".utf8) + Data([0x00, 0x05]) + Data("hello".utf8)))
     }
 
     // MARK: - RSD handshake parse

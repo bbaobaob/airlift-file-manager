@@ -107,12 +107,12 @@ struct AFCClient {
 
     /// Opens an AFC session on a fresh service connection: RSDCheckin
     /// exchange, then packets flow.
-    func checkin(label: String = "AirLift") async throws {
+    mutating func checkin(label: String = "AirLift") async throws {
         try await RSDClient.checkin(stream: stream, label: label, timeout: timeout)
     }
 
     @discardableResult
-    private func exchange(operation: Opcode, headerPayload: Data,
+    private mutating func exchange(operation: Opcode, headerPayload: Data,
                           payload: Data = Data()) async throws -> Packet {
         let number = packetNumber
         packetNumber += 1
@@ -134,7 +134,7 @@ struct AFCClient {
     }
 
     /// FileRefOpen: mode(8LE) + path bytes → device file descriptor.
-    func open(path: String, mode: OpenMode) async throws -> UInt64 {
+    mutating func open(path: String, mode: OpenMode) async throws -> UInt64 {
         var headerPayload = Data(Packet.withLE64(mode.rawValue))
         headerPayload.append(contentsOf: Data(path.utf8))
         let reply = try await exchange(operation: .fileOpen, headerPayload: headerPayload)
@@ -144,7 +144,7 @@ struct AFCClient {
         return Packet.le64(reply.headerPayload, at: 0)
     }
 
-    func write(fd: UInt64, data: Data) async throws {
+    mutating func write(fd: UInt64, data: Data) async throws {
         var offset = data.startIndex
         while offset < data.endIndex {
             let end = data.index(offset, offsetBy: Self.maxTransfer, limitedBy: data.endIndex)
@@ -158,14 +158,14 @@ struct AFCClient {
     }
 
     /// FileRefRead: fd(8LE) + size(8LE) → payload bytes (empty = EOF).
-    func read(fd: UInt64, size: Int) async throws -> Data {
+    mutating func read(fd: UInt64, size: Int) async throws -> Data {
         var headerPayload = Data(Packet.withLE64(fd))
         headerPayload.append(contentsOf: Packet.withLE64(UInt64(size)))
         let reply = try await exchange(operation: .read, headerPayload: headerPayload)
         return reply.payload
     }
 
-    func readAll(fd: UInt64) async throws -> Data {
+    mutating func readAll(fd: UInt64) async throws -> Data {
         var out = Data()
         while true {
             let chunk = try await read(fd: fd, size: Self.maxTransfer)
@@ -175,12 +175,12 @@ struct AFCClient {
         return out
     }
 
-    func close(fd: UInt64) async throws {
+    mutating func close(fd: UInt64) async throws {
         _ = try await exchange(operation: .fileClose,
                                headerPayload: Data(Packet.withLE64(fd)))
     }
 
-    func remove(path: String) async throws {
+    mutating func remove(path: String) async throws {
         _ = try await exchange(operation: .removePath,
                                headerPayload: Data(path.utf8))
     }

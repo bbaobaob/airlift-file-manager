@@ -322,8 +322,7 @@ final class TLSPskSession {
                     }
                 }
             }
-            if payload.windows(ofCount: 4).contains(
-                [TLSPsk.hsServerHelloDone, 0x00, 0x00, 0x00]) {
+            if containsServerHelloDone(payload) {
                 break serverHelloLoop
             }
         }
@@ -430,6 +429,19 @@ final class TLSPskSession {
     struct HandshakeMessage {
         let type: UInt8
         let body: Data
+    }
+
+    static func containsServerHelloDone(_ payload: Data) -> Bool {
+        guard payload.count >= 4 else { return false }
+        for i in 0...(payload.count - 4) {
+            if payload[payload.startIndex + i] == hsServerHelloDone,
+               payload[payload.startIndex + i + 1] == 0x00,
+               payload[payload.startIndex + i + 2] == 0x00,
+               payload[payload.startIndex + i + 3] == 0x00 {
+                return true
+            }
+        }
+        return false
     }
 
     static func parseHandshakeMessages(_ payload: Data) -> [HandshakeMessage] {
