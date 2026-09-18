@@ -41,12 +41,17 @@ struct AirLiftSetupRequiredView: View {
             }
             .fileImporter(isPresented: $showPairingImporter,
                           allowedContentTypes: PairingFileSupport.supportedContentTypes,
-                          allowsMultipleSelection: false) { result in
+                          allowsMultipleSelection: true) { result in
                 switch result {
                 case .success(let urls):
                     guard let url = urls.first else {
                         guardVM.pairingStatusMessage = "No file was selected."
                         return
+                    }
+                    if urls.count > 1 {
+                        AppLogger.pairing.info(
+                            "Multiple files selected (\(urls.count)); using the first one",
+                            event: "pairing.import")
                     }
                     Task {
                         await guardVM.importPairing(from: url)
