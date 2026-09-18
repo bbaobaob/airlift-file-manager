@@ -5,8 +5,9 @@ import Network
 /// incoming device connection (the user taps "Pair with AirLift" in
 /// Settings › Developer Mode on the iPhone). Same role as StikPair's own
 /// advertiser. Requires Local Network permission (prompted once by iOS).
-@MainActor
-final class PairingAdvertiser: NSObject, NetServiceDelegate {
+/// All state is confined to the main queue (listener + NetService both run
+/// there); @unchecked Sendable documents that confinement.
+final class PairingAdvertiser: NSObject, NetServiceDelegate, @unchecked Sendable {
     enum AdvertiseError: Error, Equatable {
         case listenerFailed(String)
         case publishFailed(String)

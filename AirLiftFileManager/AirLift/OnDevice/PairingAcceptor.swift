@@ -108,7 +108,7 @@ struct PairingAcceptor {
                                     key: sessionKey, salt: salt)
         guard constantTimeEqual(expectedM1, proofEntry.data) else {
             // Wrong PIN (or attack): tell the device authentication failed.
-            try await sendPairingTLV(TLV8.deserialize(PairingHost.authFailureTLV()))
+            try await sendPairingTLV(try TLV8.deserialize(PairingHost.authFailureTLV()))
             throw PairingHost.PairError.srpFailed(
                 "client proof mismatch — wrong PIN typed on the device?")
         }
@@ -136,7 +136,7 @@ struct PairingAcceptor {
         let m5plain = try decryptChaCha(key: setupKey, nonce: psNonce("PS-Msg05"),
                                         ciphertext: encEntry.data)
         let m5tlv = try TLV8.deserialize(m5plain)
-        let peer = try parsePeerDevice(m5tlv)
+        let peer = try Self.parsePeerDevice(m5tlv)
 
         // M6: our identity.
         let m6plain = try buildAccessoryIdentity(sessionKey: sessionKey)
@@ -239,14 +239,14 @@ struct PairingAcceptor {
 
     // MARK: - Transport helpers
 
-    private func sendPlain(_ value: [String: Any]) async throws {
+    private mutating func sendPlain(_ value: [String: Any]) async throws {
         try await stream.write(RPPairingWire.frame(jsonObject:
             RPPairingWire.plainEnvelope(value: value, sequence: sequence,
                                         originatedBy: "device")))
         sequence += 1
     }
 
-    private func sendPairingTLV(_ entries: [TLV8.Entry]) async throws {
+    private mutating func sendPairingTLV(_ entries: [TLV8.Entry]) async throws {
         let tlv = TLV8.serialize(entries)
         try await sendPlain(["event": ["_0": ["pairingData": ["_0": [
             "data": tlv.base64EncodedString(),

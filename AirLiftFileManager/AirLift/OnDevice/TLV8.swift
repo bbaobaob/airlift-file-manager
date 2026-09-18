@@ -11,12 +11,16 @@ enum TLV8 {
 
     /// HomeKit-style PairingDataComponentType values (idevice tlv.rs).
     enum Component: UInt8 {
+        case method = 0x00
         case identifier = 0x01
+        case salt = 0x02
         case publicKey = 0x03
+        case proof = 0x04
         case encryptedData = 0x05
         case state = 0x06
         case errorResponse = 0x07
         case signature = 0x0a
+        case info = 0x11
     }
 
     static func serialize(_ entries: [Entry]) -> Data {
