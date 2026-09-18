@@ -72,11 +72,11 @@ actor TunnelStack {
         conn.sndNxt = isn
         conn.rcvNxt = 0
         conn.peerWindow = 65535
+        conn.sndNxt = isn &+ 1
         connections[local] = conn
         try await sendSegment(local: local, sequence: isn, acknowledgement: 0,
                               flags: [.syn], window: 65535, mss: UInt16(maxSegment),
                               payload: Data())
-        connections[local]?.sndNxt = isn &+ 1
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
             guard let current = connections[local] else { throw StackError.closed }
@@ -112,18 +112,18 @@ actor TunnelStack {
     /// Queues bytes for sending (returns once queued, like TCPStream.write).
     /// Segments honor the peer window; RTO retransmits or fails loudly.
     func write(port: UInt16, data: Data) async throws {
-        guard var conn = connections[port], conn.state == .established else {
-            throw StackError.closed
-        }
-        if let failure = conn.failure { throw failure }
         var offset = data.startIndex
         while offset < data.endIndex {
+            guard var conn = connections[port], conn.state == .established else {
+                throw StackError.closed
+            }
+            if let failure = conn.failure { throw failure }
             let end = data.index(offset, offsetBy: maxSegment, limitedBy: data.endIndex)
                 ?? data.endIndex
             let chunk = Data(data[offset..<end])
-            // Respect the peer window for in-flight bytes.
-            while Int64(bitPattern: UInt64(conn.sndNxt) &- UInt64(conn.sndUna)) + Int64(chunk.count)
-                    > Int64(conn.peerWindow) {
+            // Respect the peer window for in-flight bytes (re-read state:
+            // inbound ACKs may advance it while we wait).
+            while inflight(conn) + Int64(chunk.count) > Int64(conn.peerWindow) {
                 try await waitForWindow(port: port)
                 guard let updated = connections[port],
                       updated.state == .established else { throw StackError.closed }
@@ -131,16 +131,24 @@ actor TunnelStack {
                 conn = updated
             }
             let sequence = conn.sndNxt
+            conn.sndNxt &+= UInt32(chunk.count)
+            connections[port] = conn
             try await sendSegment(local: port, sequence: sequence,
                                   acknowledgement: conn.rcvNxt,
                                   flags: [.ack, .psh], window: 65535,
                                   payload: chunk)
-            conn.sndNxt &+= UInt32(chunk.count)
-            conn.unacked.append((sequence: sequence, data: chunk, retries: 0))
-            connections[port] = conn
+            guard var updated = connections[port],
+                  updated.state == .established else { throw StackError.closed }
+            if let failure = updated.failure { throw failure }
+            updated.unacked.append((sequence: sequence, data: chunk, retries: 0))
+            connections[port] = updated
             armRTO(port: port)
             offset = end
         }
+    }
+
+    private func inflight(_ conn: Connection) -> Int64 {
+        Int64(bitPattern: UInt64(conn.sndNxt) &- UInt64(conn.sndUna))
     }
 
     private func waitForWindow(port: UInt16) async throws {
@@ -148,7 +156,7 @@ actor TunnelStack {
         while Date() < deadline {
             guard let conn = connections[port] else { throw StackError.closed }
             if let failure = conn.failure { throw failure }
-            if Int64(bitPattern: UInt64(conn.sndNxt) &- UInt64(conn.sndUna)) < Int64(conn.peerWindow) { return }
+            if inflight(conn) < Int64(conn.peerWindow) { return }
             try? await Task.sleep(nanoseconds: 100_000_000)
         }
         throw StackError.timeout("peer window stuck")
@@ -209,13 +217,12 @@ actor TunnelStack {
             return
         }
         current.state = .finWait
+        current.sndNxt &+= 1
         connections[port] = current
-        try? await sendSegment(local: port, sequence: current.sndNxt,
+        try? await sendSegment(local: port, sequence: current.sndNxt &- 1,
                                acknowledgement: current.rcvNxt,
                                flags: [.fin, .ack], window: 65535,
                                payload: Data())
-        current.sndNxt &+= 1
-        connections[port] = current
         try? await Task.sleep(nanoseconds: 2_000_000_000)
         connections.removeValue(forKey: port)
     }
