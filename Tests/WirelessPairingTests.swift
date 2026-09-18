@@ -120,17 +120,17 @@ final class WirelessPairingTests: XCTestCase {
             XCTFail("tag must compute"); return
         }
         let service = WirelessPairingDiscovery.DiscoveredService(
-            name: "Test iPhone", identifier: identifier,
+            name: "Test iPhone", port: 49152, identifier: identifier,
             authTag: Data(tag).base64EncodedString())
         XCTAssertTrue(WirelessPairingDiscovery.matchesCredential(service: service, altIrk: altIrk))
 
         let stranger = WirelessPairingDiscovery.DiscoveredService(
-            name: "Stranger", identifier: "someone-else",
+            name: "Stranger", port: 49152, identifier: "someone-else",
             authTag: Data(tag).base64EncodedString())
         XCTAssertFalse(WirelessPairingDiscovery.matchesCredential(service: stranger, altIrk: altIrk))
 
         let noTXT = WirelessPairingDiscovery.DiscoveredService(
-            name: "Silent", identifier: nil, authTag: nil)
+            name: "Silent", port: 0, identifier: nil, authTag: nil)
         XCTAssertFalse(WirelessPairingDiscovery.matchesCredential(service: noTXT, altIrk: altIrk))
     }
 
@@ -165,7 +165,7 @@ final class WirelessPairingTests: XCTestCase {
         let tag = RemotePairingAuth.computeAuthTag(altIrk: Array(altIrk),
                                                    serviceIdentifier: identifier)!
         let service = WirelessPairingDiscovery.DiscoveredService(
-            name: "iPhone", identifier: identifier,
+            name: "iPhone", port: 49152, identifier: identifier,
             authTag: Data(tag).base64EncodedString())
         let report = await probeService(store: store, services: [service]).run()
         let check = report.checks.first { $0.id == "wireless-pairing.discoverable" }
@@ -185,7 +185,7 @@ final class WirelessPairingTests: XCTestCase {
         let store = InMemoryPairingStore()
         store.save(remoteRecord(altIrk: altIrk))
         let service = WirelessPairingDiscovery.DiscoveredService(
-            name: "Stranger", identifier: "not-ours",
+            name: "Stranger", port: 49152, identifier: "not-ours",
             authTag: Data(repeating: 0x11, count: 6).base64EncodedString())
         let report = await probeService(store: store, services: [service]).run()
         let check = report.checks.first { $0.id == "wireless-pairing.discoverable" }

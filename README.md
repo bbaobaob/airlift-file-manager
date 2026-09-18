@@ -2,10 +2,12 @@
 
 A standalone iOS app (SwiftUI) that provides:
 
-1. **AirLift tab** — honest connection gate (LocalDevVPN → pairing → lockdown
-   transport → capability probe), activation status with re-verification on
-   every launch, Access Status & Diagnostics with a real probe engine, and a
-   professional log viewer.
+1. **AirLift tab (slim)** — launch gate status (LocalDevVPN / Pairing File /
+   AirLift), Start AirLift, Recheck, tunnel + lockdown one-liners, Access
+   Status link, an **on-device RSD+AFC self-test** (write/read/remove a marker
+   file through the real chain, gated by the same VPN+pairing requirements),
+   and the StikPair pairing guide. No Version Info, no static lists, no
+   legacy activation buttons.
 2. **Files tab** — a Directory Hub that probes each target location with real
    `FileManager` checks and only opens paths the sandbox can genuinely reach,
    plus a full-featured file browser over the app's real sandbox: list/grid,
@@ -124,6 +126,8 @@ keys are never logged.
 ```
 AirLiftFileManager/
 ├── App/            AirLiftFileManagerApp, AppState, RootTabView (+ iOS27Gate)
+├── AirLift/OnDevice/ RPPairing + pair-verify, TLS-PSK 1.2, CDTunnel,
+│                   XPC/HTTP2, RSD, AFC clients + self-test chain
 ├── Core/           Constants, Logging (AppLogger + Redactor + LogViewer),
 │                   Formatters
 ├── AirLift/        AirLiftModels (9-state machine), AirLiftService,

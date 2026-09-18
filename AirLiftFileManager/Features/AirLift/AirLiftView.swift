@@ -1,29 +1,31 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+/// Slim AirLift tab: launch gate status, tunnel, lockdown, diagnostics,
+/// on-device self-test and the StikPair pairing guide. Removed: legacy
+/// activation UI, static scope list and Version Info (covered by the Files
+/// tab, Access Status and the self-test transcript).
 struct AirLiftView: View {
-    @EnvironmentObject private var activation: ActivationManager
     @EnvironmentObject private var launchGuard: AirLiftLaunchGuard
     @StateObject private var model = AirLiftViewModel()
     @State private var showingLogs = false
     @State private var showingSetup = false
     @State private var showingAccessStatus = false
+    @State private var showPairingImporter = false
 
     var body: some View {
         NavigationStack {
             List {
-            statusSection
-            actionSection
-            connectionSection
-            LocalDevVPNSection(state: model.tunnelState,
-                               summary: model.tunnelSummary,
-                               background: model.tunnelBackground,
-                               isProbing: model.isProbingTunnel,
-                               onRefresh: { Task { await model.probeTunnel() } })
-            lockdownSection
-            accessStatusSection
-                scopeSection
-                versionSection
+                connectionSection
+                SelfTestView(guardVM: launchGuard)
+                stikPairSection
+                LocalDevVPNSection(state: model.tunnelState,
+                                   summary: model.tunnelSummary,
+                                   background: model.tunnelBackground,
+                                   isProbing: model.isProbingTunnel,
+                                   onRefresh: { Task { await model.probeTunnel() } })
+                lockdownSection
+                accessStatusSection
             }
             .navigationTitle("AirLift")
             .toolbar {
@@ -45,6 +47,24 @@ struct AirLiftView: View {
             .navigationDestination(isPresented: $showingAccessStatus) {
                 AccessStatusView(guardVM: launchGuard)
             }
+            .fileImporter(isPresented: $showPairingImporter,
+                          allowedContentTypes: PairingFileSupport.supportedContentTypes,
+                          allowsMultipleSelection: true) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    Task {
+                        await launchGuard.importPairing(from: url)
+                        await launchGuard.recheckConnection()
+                    }
+                case .failure(let error):
+                    launchGuard.pairingStatusMessage =
+                        "Picker error: \(error.localizedDescription)."
+                    AppLogger.pairing.error(
+                        "Document picker failed: \(error.localizedDescription)",
+                        event: "pairing.import")
+                }
+            }
             .task {
                 model.refreshAccessReports()
                 await model.probeTunnel()
@@ -53,86 +73,6 @@ struct AirLiftView: View {
                 model.refreshAccessReports()
                 await model.probeTunnel()
             }
-        }
-    }
-
-    private var statusSection: some View {
-        Section {
-            HStack(spacing: 14) {
-                Image(systemName: AirLiftAdapter.icon(for: activation.state))
-                    .font(.system(size: 30, weight: .semibold))
-                    .foregroundStyle(AirLiftAdapter.color(for: activation.state))
-                    .frame(width: 46)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(activation.state.rawValue)
-                        .font(.headline)
-                    Text(activation.lastMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    if let verified = activation.lastVerifiedAt {
-                        Text("Last verified: \(Formatters.date(verified))")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.vertical, 4)
-
-            if activation.isBusy {
-                ProgressView()
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 6)
-            }
-
-            if let guidance = AirLiftAdapter.guidance(for: activation.state) {
-                Label(guidance, systemImage: "info.circle")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-        } header: {
-            Text("Connection Status")
-        }
-    }
-
-    private var actionSection: some View {
-        Section {
-            Button {
-                Task { await activation.activate() }
-            } label: {
-                Label(activation.state == .notActivated ? "Activate AirLift" : "Retry Activation",
-                      systemImage: "bolt.horizontal.circle")
-            }
-            .disabled(activation.isBusy)
-
-            Button {
-                showingSetup = true
-            } label: {
-                Label("Connection Setup", systemImage: "circle.and.line.horizontal")
-            }
-
-            Button {
-                showingAccessStatus = true
-            } label: {
-                Label("Access Status & Diagnostics", systemImage: "stethoscope")
-            }
-
-            Button(role: .destructive) {
-                activation.reset()
-            } label: {
-                Label("Reset Activation Data", systemImage: "arrow.counterclockwise")
-            }
-            .disabled(activation.isBusy)
-
-            Button {
-                Task { await activation.verifyOnLaunch() }
-            } label: {
-                Label("Verify Status Now", systemImage: "seal")
-            }
-            .disabled(activation.isBusy)
-        } footer: {
-            Text("Activation state is always re-verified against the real environment on launch. A stored flag is never treated as proof that AirLift is active.")
         }
     }
 
@@ -178,7 +118,7 @@ struct AirLiftView: View {
         } header: {
             Text("AirLift Launch")
         } footer: {
-            Text("AirLift launches only through the guarded preflight: LocalDevVPN Connected + valid Pairing File + transport verified. Import or a tunnel is never treated as proof that AirLift is active.")
+            Text("AirLift operates only with LocalDevVPN Connected and a valid Pairing File. Import or a tunnel alone is never treated as proof that AirLift is active.")
         }
     }
 
@@ -194,6 +134,37 @@ struct AirLiftView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title): \(value)")
+    }
+
+    /// Real StikPair pairing flow: guided handoff (StikPair exposes no URL
+    /// scheme, verified in its Info.plist, so the pairing ceremony happens
+    /// in StikPair itself) plus in-app import. No mock pairing anywhere.
+    private var stikPairSection: some View {
+        Section {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("1. Install and open StikPair on this iPhone.")
+                Text("2. Tap Pair iPhone or iPad and allow Local Network.")
+                Text("3. Settings › Privacy & Security › Developer Mode › Pair with StikPair, enter the PIN.")
+                Text("4. Back in StikPair: Export Pairing File.")
+                Text("5. Import it below (or Share › Copy to AirLift File Manager).")
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            Button {
+                showPairingImporter = true
+            } label: {
+                Label(launchGuard.pairingStore.hasRecord
+                      ? "Replace Pairing File" : "Import Pairing File",
+                      systemImage: "key.horizontal")
+            }
+            Text(launchGuard.pairingStatusMessage)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        } header: {
+            Text("Pair with StikPair")
+        } footer: {
+            Text("The real on-device pairing mechanism — the record is validated and stored in the Keychain, never logged.")
+        }
     }
 
     private var accessStatusSection: some View {
@@ -219,13 +190,10 @@ struct AirLiftView: View {
                 }
                 .padding(.vertical, 2)
             }
-            Text("Full per-path list in Access Status & Diagnostics and the Files tab.")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+            Button("Access Status & Diagnostics") { showingAccessStatus = true }
+                .font(.footnote.weight(.medium))
         } header: {
             Text("Access Status (live probes)")
-        } footer: {
-            Text("Each row reflects a real probe performed by this app on this device. AirLift can reach these paths only from the paired Mac.")
         }
     }
 
@@ -253,8 +221,6 @@ struct AirLiftView: View {
                 .foregroundStyle(.secondary)
         } header: {
             Text("Lockdown (on-device via tunnel)")
-        } footer: {
-            Text("Real lockdown plist exchange (QueryType/GetValue) over 10.7.0.1:62078 — the transport StikPair-class tools use and the on-device hop of the AirLift chain.")
         }
     }
 
@@ -266,7 +232,7 @@ struct AirLiftView: View {
 
     private var lockdownDetail: String {
         guard let result = model.lockdownResult else {
-            return "Connect LocalDevVPN, then probe. A successful exchange shows live device facts below."
+            return "Connect LocalDevVPN, then probe."
         }
         guard result.reachable else {
             return result.error ?? "Connection failed."
@@ -275,47 +241,6 @@ struct AirLiftView: View {
         if let v = result.productVersion { lines.append("iOS \(v)") }
         if let p = result.productType { lines.append("\(p)") }
         return lines.joined(separator: " · ")
-    }
-
-    private var scopeSection: some View {
-        Section {
-            ForEach(model.accessReports) { report in
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack {
-                        Text(report.path)
-                            .font(.footnote.monospaced())
-                            .textSelection(.enabled)
-                        Spacer()
-                        Text(report.level.rawValue)
-                            .font(.caption2.weight(.semibold))
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(badgeColor(report.level).opacity(0.18),
-                                        in: Capsule())
-                            .foregroundStyle(badgeColor(report.level))
-                    }
-                    Text(report.detail)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.vertical, 2)
-            }
-        } header: {
-            Text("Verified Write Scope (access from this device)")
-        } footer: {
-            Text("Each row reflects a real probe performed by this app on this device. AirLift can reach these paths only from the paired Mac.")
-        }
-    }
-
-    private var versionSection: some View {
-        Section("Version Info") {
-            LabeledRow(label: "App", value: AppConstants.appName)
-            LabeledRow(label: "App version",
-                       value: "\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"))")
-            LabeledRow(label: "AirLift tested builds",
-                       value: model.capabilities.testedBuilds.joined(separator: ", "))
-            LabeledRow(label: "Exploit host", value: AppConstants.AirLift.executionHost)
-        }
     }
 
     private func badgeColor(_ level: AccessLevel) -> Color {

@@ -42,8 +42,17 @@ The app implements step 1 of the real idevice wireless chain — live mDNS disco
 of `_remotepairing._tcp` plus the exact authTag validation (`SipHash-2-4`, ported
 from `idevice/src/remote_pairing/peer_device.rs`), surfaced as the
 `wireless-pairing.discoverable` capability check. Steps 2–3 (encrypted
-RemotePairing session handshake, then RSD → lockdown services) are not
-implemented yet; no UI claims otherwise.
+RemotePairing session handshake, then RSD → lockdown services) are implemented
+in `AirLiftFileManager/AirLift/OnDevice/` as a direct port of the idevice flow
+(pair-verify with X25519/HKDF-SHA512/ChaCha20Poly1305/Ed25519 via CryptoKit,
+TLS 1.2 PSK-AES-CBC-SHA* client, CDTunnel handshake, XPC-over-HTTP/2 RSD,
+AFC client) plus an in-app AFC write/read/remove self-test. All pure codecs
+are unit-tested; the live handshake is verified on-device by running the
+self-test (LocalDevVPN + valid pairing required, same gates as Start AirLift).
+Direct TCP to 10.7.0.1 is used for every hop through the tunnel instead of a
+userspace IPv6/TCP stack — if RSD/AFC ports turn out not to answer on
+loopback, the self-test log pinpoints the exact hop and the fallback is a
+minimal TCP-over-CDTunnel adapter.
 (`StartService`), which remain unimplemented.
 - Mechanism details verified from source: Bonjour discovery
   (`_remotepairing-manual-pairing._tcp.`) for Apple TV targets,

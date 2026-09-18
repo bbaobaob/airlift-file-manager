@@ -17,6 +17,8 @@ struct WirelessPairingDiscovery {
 
     struct DiscoveredService: Equatable {
         let name: String
+        /// TCP port from the mDNS SRV record (0 until resolved).
+        var port: UInt16
         /// TXT "identifier" — the service identifier the authTag binds to.
         let identifier: String?
         /// TXT "authTag" — standard-base64 6-byte tag.
@@ -90,7 +92,8 @@ final class WirelessPairingBrowser: NSObject, NetServiceBrowserDelegate, NetServ
         let (identifier, authTag) = WirelessPairingDiscovery.parseTXT(
             service.txtRecordData() ?? Data())
         services.append(WirelessPairingDiscovery.DiscoveredService(
-            name: service.name, identifier: identifier, authTag: authTag))
+            name: service.name, port: UInt16(service.port),
+            identifier: identifier, authTag: authTag))
     }
 
     // MARK: - NetServiceBrowserDelegate

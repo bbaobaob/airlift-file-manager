@@ -13,6 +13,19 @@
 		3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/CapabilityProbe.swift'; sourceTree = SOURCE_ROOT; };
 		197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/KeychainPairingStore.swift'; sourceTree = SOURCE_ROOT; };
 		3B6096BBE832F8427D8EC64C /* LockdownClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/LockdownClient.swift'; sourceTree = SOURCE_ROOT; };
+		1DB14D4F39F9381F50E81E0C /* AFCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/AFCClient.swift'; sourceTree = SOURCE_ROOT; };
+		45DAB5EB447A3F88B43B844B /* CDTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/CDTunnel.swift'; sourceTree = SOURCE_ROOT; };
+		15B20E88089002ACD0725F9D /* Http2Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/Http2Client.swift'; sourceTree = SOURCE_ROOT; };
+		C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/Http2Frames.swift'; sourceTree = SOURCE_ROOT; };
+		DCEAF7590B16D331A6F0B3C6 /* OnDeviceChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/OnDeviceChain.swift'; sourceTree = SOURCE_ROOT; };
+		94E461D74512AB5535BC113B /* RPPairingWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/RPPairingWire.swift'; sourceTree = SOURCE_ROOT; };
+		DC9EE50EDB999EBB0A7CC0EA /* RSDClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/RSDClient.swift'; sourceTree = SOURCE_ROOT; };
+		EB40C91E9CD09A6F694D1A56 /* RemotePairingVerify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/RemotePairingVerify.swift'; sourceTree = SOURCE_ROOT; };
+		D14117123430A94BCD4038FB /* RemoteXPC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/RemoteXPC.swift'; sourceTree = SOURCE_ROOT; };
+		0BC5026FF84766731E0EC39C /* TCPStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/TCPStream.swift'; sourceTree = SOURCE_ROOT; };
+		6D43486BDD82DA9B53803436 /* TLSPsk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/TLSPsk.swift'; sourceTree = SOURCE_ROOT; };
+		157AFB00AFF1E603693E34DA /* TLV8.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/TLV8.swift'; sourceTree = SOURCE_ROOT; };
+		BE64648C9D8C32E339BAE23C /* XPCCodec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/XPCCodec.swift'; sourceTree = SOURCE_ROOT; };
 		A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/PairingFileSupport.swift'; sourceTree = SOURCE_ROOT; };
 		70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/PairingRecordService.swift'; sourceTree = SOURCE_ROOT; };
 		08E1B5B5B579F973E365F1B4 /* SipHash.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/SipHash.swift'; sourceTree = SOURCE_ROOT; };
@@ -28,6 +41,7 @@
 		9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftSetupRequiredView.swift'; sourceTree = SOURCE_ROOT; };
 		A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftView.swift'; sourceTree = SOURCE_ROOT; };
 		9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftViewModel.swift'; sourceTree = SOURCE_ROOT; };
+		5B302CFC12D540E6C941C96C /* OnDeviceSelfTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/OnDeviceSelfTestView.swift'; sourceTree = SOURCE_ROOT; };
 		7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/DirectoryHubView.swift'; sourceTree = SOURCE_ROOT; };
 		95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/DirectoryHubViewModel.swift'; sourceTree = SOURCE_ROOT; };
 		9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/FileContextMenu.swift'; sourceTree = SOURCE_ROOT; };
@@ -57,6 +71,7 @@
 		64AB74A48B9F298A1989ED16 /* FileSystemServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/FileSystemServiceTests.swift'; sourceTree = SOURCE_ROOT; };
 		917164E55F79974F120C3E9A /* LockdownClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/LockdownClientTests.swift'; sourceTree = SOURCE_ROOT; };
 		A64EC5B235642F680DE10480 /* LoggingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/LoggingTests.swift'; sourceTree = SOURCE_ROOT; };
+		5785BFD1B50F1B75984468C1 /* OnDeviceWireTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/OnDeviceWireTests.swift'; sourceTree = SOURCE_ROOT; };
 		8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/PairingRecordValidationTests.swift'; sourceTree = SOURCE_ROOT; };
 		EE54D7FD6F85959F6AB5666F /* SortingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/SortingTests.swift'; sourceTree = SOURCE_ROOT; };
 		697C5139B36D7D2F0ADA4916 /* WirelessPairingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/WirelessPairingTests.swift'; sourceTree = SOURCE_ROOT; };
@@ -71,6 +86,19 @@
 		6CFE8B5379C22DDAD85D8143 /* CapabilityProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */; };
 		A517278E9DB4D774DA7AEB50 /* KeychainPairingStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */; };
 		0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B6096BBE832F8427D8EC64C /* LockdownClient.swift */; };
+		444351D5BF34E9ABB5BC0817 /* AFCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DB14D4F39F9381F50E81E0C /* AFCClient.swift */; };
+		2D2332E7F0386A8D1B876A2A /* CDTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DAB5EB447A3F88B43B844B /* CDTunnel.swift */; };
+		B180C2E97ED69B906B93A0E2 /* Http2Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15B20E88089002ACD0725F9D /* Http2Client.swift */; };
+		3E47B5139CAB7E6C6228F12A /* Http2Frames.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */; };
+		61B4C17A9E2FF6C251E2938E /* OnDeviceChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCEAF7590B16D331A6F0B3C6 /* OnDeviceChain.swift */; };
+		136D409C2F42A6967623C92A /* RPPairingWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94E461D74512AB5535BC113B /* RPPairingWire.swift */; };
+		06958328F25CBF9E4C16DFCF /* RSDClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9EE50EDB999EBB0A7CC0EA /* RSDClient.swift */; };
+		993EC4847D38C664F8B333F5 /* RemotePairingVerify.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB40C91E9CD09A6F694D1A56 /* RemotePairingVerify.swift */; };
+		0C2BBDC7ED5D4D3FFC875849 /* RemoteXPC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D14117123430A94BCD4038FB /* RemoteXPC.swift */; };
+		26270F21EC10B5E0AB1F8FD4 /* TCPStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BC5026FF84766731E0EC39C /* TCPStream.swift */; };
+		166323EFF411DE7B19741328 /* TLSPsk.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D43486BDD82DA9B53803436 /* TLSPsk.swift */; };
+		D180BDB191E2A548284117B3 /* TLV8.swift in Sources */ = {isa = PBXBuildFile; fileRef = 157AFB00AFF1E603693E34DA /* TLV8.swift */; };
+		3118E0EEB189E30B09B1CE17 /* XPCCodec.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE64648C9D8C32E339BAE23C /* XPCCodec.swift */; };
 		8C9633E390FB192C259F58CD /* PairingFileSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */; };
 		A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */; };
 		20E48709E70D827238C5713D /* SipHash.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08E1B5B5B579F973E365F1B4 /* SipHash.swift */; };
@@ -86,6 +114,7 @@
 		BEF847F7C596C034BB8EDA79 /* AirLiftSetupRequiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */; };
 		F724FFDC7D852A38927CCF89 /* AirLiftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */; };
 		D6D109892E93998C39CE9DF1 /* AirLiftViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */; };
+		8E32BD2F8F9A002A1E5B01A3 /* OnDeviceSelfTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B302CFC12D540E6C941C96C /* OnDeviceSelfTestView.swift */; };
 		5DDBE49D0BDC36752EAE52F0 /* DirectoryHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */; };
 		74B9D0C578CB250FBB6EB300 /* DirectoryHubViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */; };
 		2D8C9944A5D83D80CBB0DC2A /* FileContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */; };
@@ -114,6 +143,7 @@
 		6B6D92670C2A308C557AAB13 /* FileSystemServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64AB74A48B9F298A1989ED16 /* FileSystemServiceTests.swift */; };
 		14AC4056D464D9DD2F9E4F2C /* LockdownClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 917164E55F79974F120C3E9A /* LockdownClientTests.swift */; };
 		71AAEDDC3777532B5D8FBFB3 /* LoggingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A64EC5B235642F680DE10480 /* LoggingTests.swift */; };
+		8A18BF85A2FE684DB48E093B /* OnDeviceWireTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5785BFD1B50F1B75984468C1 /* OnDeviceWireTests.swift */; };
 		DF59538B0B17A205D51DF55B /* PairingRecordValidationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */; };
 		2836032F93A2548A862979E2 /* SortingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE54D7FD6F85959F6AB5666F /* SortingTests.swift */; };
 		59980FFDCF51D7BBDF4E1CDB /* WirelessPairingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 697C5139B36D7D2F0ADA4916 /* WirelessPairingTests.swift */; };
@@ -139,6 +169,19 @@
 				3256A3383E9A5BB1539D27B6 /* CapabilityProbe.swift */,
 				197A84436FBCBCE2BE489F16 /* KeychainPairingStore.swift */,
 				3B6096BBE832F8427D8EC64C /* LockdownClient.swift */,
+				1DB14D4F39F9381F50E81E0C /* AFCClient.swift */,
+				45DAB5EB447A3F88B43B844B /* CDTunnel.swift */,
+				15B20E88089002ACD0725F9D /* Http2Client.swift */,
+				C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */,
+				DCEAF7590B16D331A6F0B3C6 /* OnDeviceChain.swift */,
+				94E461D74512AB5535BC113B /* RPPairingWire.swift */,
+				DC9EE50EDB999EBB0A7CC0EA /* RSDClient.swift */,
+				EB40C91E9CD09A6F694D1A56 /* RemotePairingVerify.swift */,
+				D14117123430A94BCD4038FB /* RemoteXPC.swift */,
+				0BC5026FF84766731E0EC39C /* TCPStream.swift */,
+				6D43486BDD82DA9B53803436 /* TLSPsk.swift */,
+				157AFB00AFF1E603693E34DA /* TLV8.swift */,
+				BE64648C9D8C32E339BAE23C /* XPCCodec.swift */,
 				A33E6A671D587DFC51F5BA22 /* PairingFileSupport.swift */,
 				70C4F5D7E3C446D0180F6E7E /* PairingRecordService.swift */,
 				08E1B5B5B579F973E365F1B4 /* SipHash.swift */,
@@ -154,6 +197,7 @@
 				9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */,
 				A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */,
 				9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */,
+				5B302CFC12D540E6C941C96C /* OnDeviceSelfTestView.swift */,
 				7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */,
 				95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */,
 				9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */,
@@ -182,6 +226,7 @@
 				64AB74A48B9F298A1989ED16 /* FileSystemServiceTests.swift */,
 				917164E55F79974F120C3E9A /* LockdownClientTests.swift */,
 				A64EC5B235642F680DE10480 /* LoggingTests.swift */,
+				5785BFD1B50F1B75984468C1 /* OnDeviceWireTests.swift */,
 				8A442E1E6365A8DBD7958FC5 /* PairingRecordValidationTests.swift */,
 				EE54D7FD6F85959F6AB5666F /* SortingTests.swift */,
 				697C5139B36D7D2F0ADA4916 /* WirelessPairingTests.swift */,
@@ -212,6 +257,19 @@
 				6CFE8B5379C22DDAD85D8143 /* CapabilityProbe.swift in Sources */,
 				A517278E9DB4D774DA7AEB50 /* KeychainPairingStore.swift in Sources */,
 				0F7ED8408098F876846F05D3 /* LockdownClient.swift in Sources */,
+				444351D5BF34E9ABB5BC0817 /* AFCClient.swift in Sources */,
+				2D2332E7F0386A8D1B876A2A /* CDTunnel.swift in Sources */,
+				B180C2E97ED69B906B93A0E2 /* Http2Client.swift in Sources */,
+				3E47B5139CAB7E6C6228F12A /* Http2Frames.swift in Sources */,
+				61B4C17A9E2FF6C251E2938E /* OnDeviceChain.swift in Sources */,
+				136D409C2F42A6967623C92A /* RPPairingWire.swift in Sources */,
+				06958328F25CBF9E4C16DFCF /* RSDClient.swift in Sources */,
+				993EC4847D38C664F8B333F5 /* RemotePairingVerify.swift in Sources */,
+				0C2BBDC7ED5D4D3FFC875849 /* RemoteXPC.swift in Sources */,
+				26270F21EC10B5E0AB1F8FD4 /* TCPStream.swift in Sources */,
+				166323EFF411DE7B19741328 /* TLSPsk.swift in Sources */,
+				D180BDB191E2A548284117B3 /* TLV8.swift in Sources */,
+				3118E0EEB189E30B09B1CE17 /* XPCCodec.swift in Sources */,
 				8C9633E390FB192C259F58CD /* PairingFileSupport.swift in Sources */,
 				A7B4746F49A00F4D5503E97A /* PairingRecordService.swift in Sources */,
 				20E48709E70D827238C5713D /* SipHash.swift in Sources */,
@@ -227,6 +285,7 @@
 				BEF847F7C596C034BB8EDA79 /* AirLiftSetupRequiredView.swift in Sources */,
 				F724FFDC7D852A38927CCF89 /* AirLiftView.swift in Sources */,
 				D6D109892E93998C39CE9DF1 /* AirLiftViewModel.swift in Sources */,
+				8E32BD2F8F9A002A1E5B01A3 /* OnDeviceSelfTestView.swift in Sources */,
 				5DDBE49D0BDC36752EAE52F0 /* DirectoryHubView.swift in Sources */,
 				74B9D0C578CB250FBB6EB300 /* DirectoryHubViewModel.swift in Sources */,
 				2D8C9944A5D83D80CBB0DC2A /* FileContextMenu.swift in Sources */,
@@ -262,6 +321,7 @@
 				6B6D92670C2A308C557AAB13 /* FileSystemServiceTests.swift in Sources */,
 				14AC4056D464D9DD2F9E4F2C /* LockdownClientTests.swift in Sources */,
 				71AAEDDC3777532B5D8FBFB3 /* LoggingTests.swift in Sources */,
+				8A18BF85A2FE684DB48E093B /* OnDeviceWireTests.swift in Sources */,
 				DF59538B0B17A205D51DF55B /* PairingRecordValidationTests.swift in Sources */,
 				2836032F93A2548A862979E2 /* SortingTests.swift in Sources */,
 				59980FFDCF51D7BBDF4E1CDB /* WirelessPairingTests.swift in Sources */,
@@ -404,7 +464,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 48;
+			CURRENT_PROJECT_VERSION = 51;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -429,7 +489,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 48;
+			CURRENT_PROJECT_VERSION = 51;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
