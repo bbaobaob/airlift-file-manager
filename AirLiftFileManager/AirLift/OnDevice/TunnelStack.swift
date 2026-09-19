@@ -41,6 +41,8 @@ actor TunnelStack {
         var unacked: [(sequence: UInt32, data: Data, retries: Int)] = []
         var rtoTask: Task<Void, Never>?
         var rto: TimeInterval = 0.2
+        /// Bulk segments ACKed-but-unsent (delayed-ACK counter, RFC 1122).
+        var pendingAckSegments: Int = 0
     }
 
     private let transport: any TunnelPacketTransport
@@ -78,9 +80,11 @@ actor TunnelStack {
         connections[local] = conn
         AppLogger.net.info("Tunnel TCP SYN → port \(port) (seq \(isn))",
                            event: "tunnel.tcp")
-        // jktcp-exact SYN: window 65534 + Window Scale 8, no MSS option.
+        // MSS-shaped SYN (no window scale): on this path the wscale SYN
+        // provoked instant tunnel teardowns, while the MSS SYN keeps the
+        // channel alive through the whole preamble.
         try await sendSegment(local: local, sequence: isn, acknowledgement: 0,
-                              flags: [.syn], window: 65534, wscale: 8,
+                              flags: [.syn], window: 65535, mss: UInt16(maxSegment),
                               payload: Data())
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
@@ -381,14 +385,24 @@ actor TunnelStack {
                         conn.pendingRead = nil
                         cont.resume()
                     }
+                    // Delayed ACK (RFC 1122 §4.2.3.2): small control segments
+                    // are ACKed instantly (snappy handshake); bulk segments
+                    // every 2nd one — a burst of instant ACKs preceded the
+                    // tunnel teardown, so outbound pacing stays quiet.
+                    let instant = segment.payload.count < 1000
+                    conn.pendingAckSegments += 1
+                    let due = instant || conn.pendingAckSegments >= 2
+                    if due { conn.pendingAckSegments = 0 }
                     connections[segment.dstPort] = conn
-                    Task { [weak self] in
-                        guard let self else { return }
-                        try? await self.sendSegment(local: segment.dstPort,
-                                                    sequence: conn.sndNxt,
-                                                    acknowledgement: conn.rcvNxt,
-                                                    flags: [.ack], window: 65534,
-                                                    payload: Data())
+                    if due {
+                        Task { [weak self] in
+                            guard let self else { return }
+                            try? await self.sendSegment(local: segment.dstPort,
+                                                        sequence: conn.sndNxt,
+                                                        acknowledgement: conn.rcvNxt,
+                                                        flags: [.ack], window: 65534,
+                                                        payload: Data())
+                        }
                     }
                 } else if segment.sequence &+ UInt32(segment.payload.count) <= conn.rcvNxt {
                     // Duplicate of already-received bytes: re-ACK, don't buffer.
