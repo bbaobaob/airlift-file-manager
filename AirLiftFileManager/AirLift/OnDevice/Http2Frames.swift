@@ -16,6 +16,7 @@ enum Http2Frames {
         case headers = 0x01
         case rstStream = 0x03
         case settings = 0x04
+        case ping = 0x06
         case goAway = 0x07
         case windowUpdate = 0x08
     }
@@ -35,16 +36,19 @@ enum Http2Frames {
         case headers(stream: UInt32)
         case rstStream(stream: UInt32)
         case settings(stream: UInt32, flags: UInt8, settings: [Setting])
+        case ping(opaque: Data, acknowledge: Bool)
+        /// Benign frame the client doesn't act on (unknown types per RFC 9113
+        /// §5.5, PRIORITY/CONTINUATION, …): consumed and skipped, never fatal.
+        case ignored
         case goAway(message: String)
         case windowUpdate(stream: UInt32, increment: UInt32)
     }
 
     enum FrameError: Error, Equatable {
-        case unknownType(UInt8)
-        case unknownSetting(UInt16)
         case goAway(String)
         case streamReset(UInt32)
         case badWindowUpdate
+        case badPing
     }
 
     // MARK: - Encode
@@ -72,6 +76,15 @@ enum Http2Frames {
     static func windowUpdate(increment: UInt32, stream: UInt32) -> Data {
         var out = header(length: 4, type: .windowUpdate, flags: 0, stream: stream)
         out.append(contentsOf: withBE32(increment))
+        return out
+    }
+
+    /// PING frame (always stream 0, 8 bytes opaque data). Responses echo the
+    /// opaque bytes with the ACK flag set (RFC 9113 §6.7).
+    static func ping(opaque data: Data, acknowledge: Bool) -> Data {
+        precondition(data.count == 8)
+        var out = header(length: 8, type: .ping, flags: acknowledge ? 0x01 : 0x00, stream: 0)
+        out.append(contentsOf: data)
         return out
     }
 
