@@ -118,19 +118,26 @@ enum Http2Frames {
                 switch identifier {
                 case 0x03: settings.append(Setting(identifier: 0x03, value: value))
                 case 0x04: settings.append(.initialWindowSize(value))
-                default: throw FrameError.unknownSetting(identifier)
+                // RFC 9113 §6.5.2: unknown settings MUST be ignored.
+                default: break
                 }
                 i += 6
             }
             return (.settings(stream: stream, flags: flags, settings: settings), total)
+        case FrameType.ping.rawValue:
+            guard stream == 0, body.count == 8 else { throw FrameError.badPing }
+            return (.ping(opaque: Data(body), acknowledge: flags & 0x01 != 0), total)
         case FrameType.goAway.rawValue:
             let text = body.count >= 8 ? String(data: Data(body.dropFirst(8)), encoding: .utf8) : nil
             throw FrameError.goAway(text ?? "<missing>")
         case FrameType.windowUpdate.rawValue:
             guard body.count == 4 else { throw FrameError.badWindowUpdate }
             return (.windowUpdate(stream: stream, increment: be32(body, at: 0)), total)
+        // RFC 9113 §5.5: frames of unknown type MUST be ignored and discarded.
+        // Without this, a benign PRIORITY/CONTINUATION/extension frame would
+        // kill the connection with an error instead of stalling analysis.
         default:
-            throw FrameError.unknownType(type)
+            return (.ignored, total)
         }
     }
 

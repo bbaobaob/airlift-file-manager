@@ -3,8 +3,9 @@ import Foundation
 /// HTTP/2 client driver for RemoteXPC. Direct port of idevice
 /// `xpc/http2` Http2Client: connection magic, our SETTINGS, WINDOW_UPDATE,
 /// channel open, DATA send with connection+stream flow control, inbound pump
-/// (SETTINGS ack + window accounting, per-stream DATA cache, RST/GOAWAY as
-/// errors), cancellation-safe reassembly buffer.
+/// (SETTINGS ack + window accounting, PING answers, per-stream DATA cache,
+/// RST/GOAWAY as errors, unknown frames ignored per RFC 9113 §5.5),
+/// cancellation-safe reassembly buffer.
 final class Http2Client {
     enum ClientError: Error, Equatable {
         case closed
@@ -103,6 +104,9 @@ final class Http2Client {
                 recvBuffer = Data(recvBuffer.dropFirst(consumed))
                 switch frame {
                 case .settings(_, let flags, let settings):
+                    AppLogger.net.info(
+                        "h2 ← settings flags=\(flags) ids=\(settings.map { $0.identifier })",
+                        event: "tunnel.pump")
                     if flags != 1 {
                         for setting in settings where setting.identifier == 0x04 {
                             let delta = Int64(setting.value) - peerInitialWindow
@@ -115,6 +119,9 @@ final class Http2Client {
                             Http2Frames.settings([], stream: 0, flags: 1), timeout: timeout)
                     }
                 case .windowUpdate(let streamId, let increment):
+                    AppLogger.net.info(
+                        "h2 ← window_update stream=\(streamId) +\(increment)",
+                        event: "tunnel.pump")
                     if streamId == 0 {
                         connectionSendWindow += Int64(increment)
                     } else {
@@ -122,8 +129,25 @@ final class Http2Client {
                     }
                 case .rstStream(let streamId):
                     throw ClientError.streamReset(streamId)
+                case .ping(let opaque, let acknowledge):
+                    if !acknowledge {
+                        // RFC 9113 §6.7: PING must be answered with the same
+                        // opaque data and the ACK flag set. An unanswered PING
+                        // makes the peer believe the connection is dead.
+                        try await stream.write(
+                            Http2Frames.ping(opaque: opaque, acknowledge: true),
+                            timeout: timeout)
+                    }
+                    AppLogger.net.info("h2 ← ping ack=\(acknowledge)",
+                                       event: "tunnel.pump")
+                    continue
+                case .ignored:
+                    AppLogger.net.info("h2 ← ignored frame", event: "tunnel.pump")
+                    continue
                 case .data(let streamId, let payload, _):
                     cache[streamId, default: []].append(payload)
+                    AppLogger.net.info("h2 ← data stream=\(streamId) \(payload.count)B",
+                                       event: "tunnel.pump")
                     if !payload.isEmpty {
                         let length = UInt32(payload.count)
                         try await stream.write(

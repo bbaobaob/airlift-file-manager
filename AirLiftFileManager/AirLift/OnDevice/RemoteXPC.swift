@@ -5,7 +5,8 @@ import Foundation
 /// settings + window update, open streams 1 (root) and 3 (reply), empty
 /// dictionary on root, init-handshake on reply, 0x201 flags on root,
 /// device handshake object on root, then root-channel reads skipping
-/// empty-dictionary keepalives and bodyless frames.
+/// empty-dictionary keepalives, answering WantingReply keepalives with
+/// Reply + the same message id, and reassembling split messages.
 final class RemoteXPCClient {
     static let rootChannel: UInt32 = 1
     static let replyChannel: UInt32 = 3
@@ -79,33 +80,53 @@ final class RemoteXPCClient {
         try await sendRoot(XPCCodec.Message(flags: flags, object: object, messageId: rootId))
     }
 
-    /// Reads root-channel messages, skipping empty-dictionary keepalives.
+    /// Reads root-channel messages, skipping empty-dictionary keepalives and
+    /// bodyless frames. A bodyless frame carrying WantingReply (0x10000) is the
+    /// RemoteXPC keepalive: it is answered with Reply (0x20000) + the same
+    /// message id, otherwise the device withholds the rest of its response and
+    /// the handshake stalls until timeout.
     func recvRoot() async throws -> [String: Any] {
         AppLogger.net.info("RSD-XPC: waiting for root-channel response…", event: "rsd.xpc")
         while true {
             let chunk = try await h2.read(streamId: Self.rootChannel)
             AppLogger.net.info("RSD-XPC: root chunk \(chunk.count)B", event: "rsd.xpc")
             partial[Self.rootChannel, default: Data()].append(contentsOf: chunk)
-            if let message = try takeWholeMessage(channel: Self.rootChannel),
-               let object = message.object {
-                let plain = XPCCodec.plainValue(object)
-                if let dict = plain as? [String: Any], dict.isEmpty {
-                    AppLogger.net.info("RSD-XPC: empty-dict keepalive, waiting…",
-                                       event: "rsd.xpc")
-                    continue
-                }
-                guard let dict = plain as? [String: Any] else {
-                    throw XPCError.unexpectedResponse("root message is not a dictionary")
-                }
+            guard let message = try takeWholeMessage(channel: Self.rootChannel) else {
+                let buffered = partial[Self.rootChannel]?.count ?? 0
                 AppLogger.net.info(
-                    "RSD-XPC: root message flags=\(String(message.flags, radix: 16)) " +
-                    "keys=\(dict.keys.sorted().joined(separator: ","))",
+                    "RSD-XPC: partial root buffer (have \(buffered)B, need \(neededBytes(channel: Self.rootChannel))B), waiting for more…",
                     event: "rsd.xpc")
-                return dict
-            } else {
-                AppLogger.net.info("RSD-XPC: partial root buffer, waiting for more…",
-                                   event: "rsd.xpc")
+                continue
             }
+            guard let object = message.object else {
+                AppLogger.net.info(
+                    "RSD-XPC: bodyless frame flags=0x\(String(message.flags, radix: 16)) id=\(message.messageId), continuing…",
+                    event: "rsd.xpc")
+                if message.flags & XPCCodec.Flag.wantingReply.rawValue != 0 {
+                    AppLogger.net.info(
+                        "RSD-XPC: answering keepalive id=\(message.messageId)",
+                        event: "rsd.xpc")
+                    try await sendRoot(XPCCodec.Message(
+                        flags: XPCCodec.Flag.reply.rawValue,
+                        object: nil,
+                        messageId: message.messageId))
+                }
+                continue
+            }
+            let plain = XPCCodec.plainValue(object)
+            if let dict = plain as? [String: Any], dict.isEmpty {
+                AppLogger.net.info("RSD-XPC: empty-dict keepalive, waiting…",
+                                   event: "rsd.xpc")
+                continue
+            }
+            guard let dict = plain as? [String: Any] else {
+                throw XPCError.unexpectedResponse("root message is not a dictionary")
+            }
+            AppLogger.net.info(
+                "RSD-XPC: root message flags=\(String(message.flags, radix: 16)) " +
+                "keys=\(dict.keys.sorted().joined(separator: ","))",
+                event: "rsd.xpc")
+            return dict
         }
     }
 
@@ -128,5 +149,15 @@ final class RemoteXPCClient {
         } catch XPCCodec.CodecError.truncated {
             return nil
         }
+    }
+
+    /// Bytes the current partial buffer claims to need (24 + body_len from the
+    /// wrapper header), for diagnostics. Returns -1 when not even the 24-byte
+    /// header has arrived yet.
+    private func neededBytes(channel: UInt32) -> Int {
+        guard let buffer = partial[channel], buffer.count >= 24 else { return -1 }
+        var length: UInt64 = 0
+        for i in 0..<8 { length |= UInt64(buffer[buffer.startIndex + 8 + i]) << (8 * i) }
+        return 24 + Int(length)
     }
 }

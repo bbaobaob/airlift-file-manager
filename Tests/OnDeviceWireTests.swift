@@ -207,6 +207,61 @@ final class OnDeviceWireTests: XCTestCase {
         XCTAssertNil(try Http2Frames.parse(data.prefix(5)))
     }
 
+    func testHTTP2PingRoundTrip() throws {
+        let opaque = Data([1, 2, 3, 4, 5, 6, 7, 8])
+        let ping = Http2Frames.ping(opaque: opaque, acknowledge: false)
+        let (parsed, consumed) = try XCTUnwrap(Http2Frames.parse(ping))
+        XCTAssertEqual(consumed, ping.count)
+        XCTAssertEqual(parsed, .ping(opaque: opaque, acknowledge: false))
+
+        let ack = Http2Frames.ping(opaque: opaque, acknowledge: true)
+        let (parsedAck, _) = try XCTUnwrap(Http2Frames.parse(ack))
+        XCTAssertEqual(parsedAck, .ping(opaque: opaque, acknowledge: true))
+    }
+
+    func testHTTP2IgnoresUnknownFrameType() throws {
+        // PRIORITY (0x02), 5-byte payload on stream 1: consumed, never fatal.
+        var raw = Data([0x00, 0x00, 0x05, 0x02, 0x00, 0x00, 0x00, 0x00, 0x01])
+        raw.append(contentsOf: [0xAA, 0xBB, 0xCC, 0xDD, 0xEE])
+        let (parsed, consumed) = try XCTUnwrap(Http2Frames.parse(raw))
+        XCTAssertEqual(consumed, raw.count)
+        XCTAssertEqual(parsed, .ignored)
+    }
+
+    func testHTTP2IgnoresUnknownSettings() throws {
+        // ENABLE_CONNECT_PROTOCOL (0x08) + MAX_CONCURRENT_STREAMS: unknown kept out.
+        var body = Data()
+        body.append(contentsOf: [0x00, 0x08, 0x00, 0x00, 0x00, 0x01])
+        body.append(contentsOf: [0x00, 0x03, 0x00, 0x00, 0x00, 0x64])
+        var raw = Data([0x00, 0x00, 0x0C, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00])
+        raw.append(contentsOf: body)
+        let (parsed, _) = try XCTUnwrap(Http2Frames.parse(raw))
+        if case .settings(_, _, let list) = parsed {
+            XCTAssertEqual(list, [.maxConcurrentStreams])
+        } else {
+            XCTFail("expected settings frame")
+        }
+    }
+
+    func testXPCKeepaliveReplyRoundTrip() throws {
+        // Device keepalive: bodyless, WantingReply, some message id.
+        let keepalive = XPCCodec.Message(
+            flags: XPCCodec.Flag.wantingReply.rawValue, object: nil, messageId: 7)
+        let encoded = XPCCodec.encodeMessage(keepalive)
+        XCTAssertEqual(encoded.count, 24)
+        let (decoded, _) = try XPCCodec.decodeMessage(encoded)
+        XCTAssertNil(decoded.object)
+        XCTAssertEqual(decoded.flags, XPCCodec.Flag.wantingReply.rawValue)
+        XCTAssertEqual(decoded.messageId, 7)
+        // Our answer: Reply + the same message id.
+        let reply = XPCCodec.Message(
+            flags: XPCCodec.Flag.reply.rawValue, object: nil, messageId: decoded.messageId)
+        let (decodedReply, _) = try XPCCodec.decodeMessage(XPCCodec.encodeMessage(reply))
+        XCTAssertNil(decodedReply.object)
+        XCTAssertEqual(decodedReply.flags, 0x20000)
+        XCTAssertEqual(decodedReply.messageId, 7)
+    }
+
     func testHTTP2Magic() {
         XCTAssertEqual(Http2Frames.magic, Data("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n".utf8))
     }
