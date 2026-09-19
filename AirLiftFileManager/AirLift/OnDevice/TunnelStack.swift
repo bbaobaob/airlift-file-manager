@@ -132,16 +132,15 @@ actor TunnelStack {
             }
             let sequence = conn.sndNxt
             conn.sndNxt &+= UInt32(chunk.count)
+            conn.unacked.append((sequence: sequence, data: chunk, retries: 0))
             connections[port] = conn
             try await sendSegment(local: port, sequence: sequence,
                                   acknowledgement: conn.rcvNxt,
                                   flags: [.ack, .psh], window: 65535,
                                   payload: chunk)
-            guard var updated = connections[port],
+            guard let updated = connections[port],
                   updated.state == .established else { throw StackError.closed }
             if let failure = updated.failure { throw failure }
-            updated.unacked.append((sequence: sequence, data: chunk, retries: 0))
-            connections[port] = updated
             armRTO(port: port)
             offset = end
         }
@@ -258,23 +257,31 @@ actor TunnelStack {
     }
 
     private func onRTO(port: UInt16) async {
-        guard var conn = connections[port],
+        guard let conn = connections[port],
               conn.state == .established, !conn.unacked.isEmpty else { return }
-        conn.rtoTask = nil
+        connections[port]?.rtoTask = nil
         let retries = conn.unacked.map(\.retries).max() ?? 0
         guard retries < Self.maxRetries else {
             fail(port: port, error: StackError.timeout("RTO exhausted"))
             return
         }
-        for index in conn.unacked.indices {
-            let entry = conn.unacked[index]
-            try? await sendSegment(local: port, sequence: entry.sequence,
-                                   acknowledgement: conn.rcvNxt,
+        // Snapshot sequences; re-read live state per retransmit so ACKs
+        // processed concurrently are never clobbered by a stale copy.
+        let pending = conn.unacked.map { ($0.sequence, $0.data) }
+        for (sequence, data) in pending {
+            guard let current = connections[port],
+                  current.state == .established,
+                  current.unacked.contains(where: { $0.sequence == sequence }) else { continue }
+            try? await sendSegment(local: port, sequence: sequence,
+                                   acknowledgement: current.rcvNxt,
                                    flags: [.ack, .psh], window: 65535,
-                                   payload: entry.data)
-            conn.unacked[index].retries += 1
+                                   payload: data)
+            if var fresh = connections[port],
+               let index = fresh.unacked.firstIndex(where: { $0.sequence == sequence }) {
+                fresh.unacked[index].retries += 1
+                connections[port] = fresh
+            }
         }
-        connections[port] = conn
         armRTO(port: port)
     }
 
