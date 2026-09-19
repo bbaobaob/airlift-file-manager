@@ -38,14 +38,52 @@ struct RSDEstablisher {
     }
 
     func establish(recordData: Data) async throws -> Established {
-        let services = await discover()
-        guard let service = pickService(services, recordData: recordData) else {
-            if services.isEmpty {
+        let discovered = await discover()
+        // Step 0 (AirCard path): RSD answers directly on the fixed port 49152
+        // over kernel TCP — no credential, no tunnel needed. Loopback first.
+        if let direct = await tryDirectRSD() {
+            emit("RSD services on this device (direct):")
+            for name in direct.services.keys.sorted() {
+                emit("  \(name) → port \(direct.services[name]?.port ?? 0)")
+            }
+            return try await finishWithTunnel(recordData: recordData,
+                                              discovered: discovered,
+                                              directHandshake: direct)
+        }
+        return try await finishWithTunnel(recordData: recordData,
+                                          discovered: discovered,
+                                          directHandshake: nil)
+    }
+
+    /// Stock RSD handshake over kernel TCP to the fixed RSD port, exactly like
+    /// the working on-device stacks (127.0.0.1 first). Returns nil when no
+    /// candidate answers — the tunnel path below stays as fallback.
+    private func tryDirectRSD() async -> RSDClient.Handshake? {
+        for host in ["127.0.0.1", host] {
+            do {
+                let stream = try await TCPStream(host: host, port: 49152, timeout: 3)
+                let handshake = try await RSDClient.handshake(stream: stream, timeout: 10)
+                emit("RSD direct handshake via \(host):49152 answered")
+                stream.close()
+                return handshake
+            } catch {
+                emit("RSD direct via \(host):49152 failed (\(error))")
+            }
+        }
+        return nil
+    }
+    /// Pair-verify → tunnel → connector. When a direct RSD table was already
+    /// acquired, the in-tunnel handshake is skipped (it stalls on this path).
+    private func finishWithTunnel(recordData: Data,
+                                  discovered: [WirelessPairingDiscovery.DiscoveredService],
+                                  directHandshake: RSDClient.Handshake?) async throws -> Established {
+        guard let service = pickService(discovered, recordData: recordData) else {
+            if discovered.isEmpty {
                 throw OnDeviceChain.ChainError.noPairingService
             }
             throw OnDeviceChain.ChainError.stepFailed(
                 step: "discovery",
-                reason: "found \(services.count) _remotepairing service(s) but none accepts " +
+                reason: "found \(discovered.count) _remotepairing service(s) but none accepts " +
                     "this pairing credential (authTag mismatch) — re-pair in StikPair")
         }
         let pairingStream = try await connect(step: "RPPairing tunnel", port: service.port)
@@ -87,15 +125,21 @@ struct RSDEstablisher {
         // there, routable via LocalDevVPN), packet-layer TCP through the
         // held-open tunnel as fallback.
         let connector = TunnelConnector(tls: tls, info: tunnel, host: host)
-        let rsdStream = try await mapError(step: "RSD TCP") {
-            try await connector.connect(port: tunnel.serverRSDPort, label: "RSD")
-        }
-        let handshake = try await mapError(step: "RSD handshake") {
-            try await RSDClient.handshake(stream: rsdStream, timeout: timeout)
-        }
-        emit("RSD services on this device:")
-        for name in handshake.services.keys.sorted() {
-            emit("  \(name) → port \(handshake.services[name]?.port ?? 0)")
+        let handshake: RSDClient.Handshake
+        if let directHandshake {
+            emit("Using direct RSD table; skipping in-tunnel handshake")
+            handshake = directHandshake
+        } else {
+            let rsdStream = try await mapError(step: "RSD TCP") {
+                try await connector.connect(port: tunnel.serverRSDPort, label: "RSD")
+            }
+            handshake = try await mapError(step: "RSD handshake") {
+                try await RSDClient.handshake(stream: rsdStream, timeout: timeout)
+            }
+            emit("RSD services on this device:")
+            for name in handshake.services.keys.sorted() {
+                emit("  \(name) → port \(handshake.services[name]?.port ?? 0)")
+            }
         }
         pairingStream.close()
         return Established(handshake: handshake, pairingPort: service.port,
