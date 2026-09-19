@@ -30,14 +30,17 @@ actor TunnelStack {
         var sndUna: UInt32 = 0
         var sndNxt: UInt32 = 0
         var rcvNxt: UInt32 = 0
-        var peerWindow: UInt16 = 0
+        /// Peer's advertised window in BYTES (field << peerWScale, jktcp-exact).
+        var peerWindow: UInt32 = 65535
+        /// Peer's window-scale shift from its SYN (default 0 = unscaled).
+        var peerWScale: UInt8 = 0
         var recvBuffer = Data()
         var eof = false
         var failure: Error?
         var pendingRead: CheckedContinuation<Void, Never>?
         var unacked: [(sequence: UInt32, data: Data, retries: Int)] = []
         var rtoTask: Task<Void, Never>?
-        var rto: TimeInterval = 1.0
+        var rto: TimeInterval = 0.2
     }
 
     private let transport: any TunnelPacketTransport
@@ -45,10 +48,9 @@ actor TunnelStack {
     private let serverIP: [UInt8]
     private let maxSegment: Int
     private var connections: [UInt16: Connection] = [:]
-    private var nextPort: UInt16 = 40000
     private var reassembly = Data()
 
-    static let initialRTO: TimeInterval = 1.0
+    static let initialRTO: TimeInterval = 0.2
     static let maxRetries = 5
 
     init(transport: any TunnelPacketTransport, clientIP: [UInt8], serverIP: [UInt8],
@@ -76,8 +78,9 @@ actor TunnelStack {
         connections[local] = conn
         AppLogger.net.info("Tunnel TCP SYN → port \(port) (seq \(isn))",
                            event: "tunnel.tcp")
+        // jktcp-exact SYN: window 65534 + Window Scale 8, no MSS option.
         try await sendSegment(local: local, sequence: isn, acknowledgement: 0,
-                              flags: [.syn], window: 65535, mss: UInt16(maxSegment),
+                              flags: [.syn], window: 65534, wscale: 8,
                               payload: Data())
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
@@ -101,11 +104,10 @@ actor TunnelStack {
     }
 
     private func allocatePort() -> UInt16 {
-        while connections[nextPort] != nil {
-            nextPort = nextPort == UInt16.max ? 40000 : nextPort + 1
+        var port = UInt16.random(in: 40000...60000)
+        while connections[port] != nil {
+            port = UInt16.random(in: 40000...60000)
         }
-        let port = nextPort
-        nextPort = nextPort == UInt16.max ? 40000 : nextPort + 1
         return port
     }
 
@@ -138,7 +140,7 @@ actor TunnelStack {
             connections[port] = conn
             try await sendSegment(local: port, sequence: sequence,
                                   acknowledgement: conn.rcvNxt,
-                                  flags: [.ack, .psh], window: 65535,
+                                  flags: [.ack, .psh], window: 65534,
                                   payload: chunk)
             guard let updated = connections[port],
                   updated.state == .established else { throw StackError.closed }
@@ -222,7 +224,7 @@ actor TunnelStack {
         connections[port] = current
         try? await sendSegment(local: port, sequence: current.sndNxt &- 1,
                                acknowledgement: current.rcvNxt,
-                               flags: [.fin, .ack], window: 65535,
+                               flags: [.fin, .ack], window: 65534,
                                payload: Data())
         try? await Task.sleep(nanoseconds: 2_000_000_000)
         connections.removeValue(forKey: port)
@@ -252,12 +254,16 @@ actor TunnelStack {
     private func armRTO(port: UInt16) {
         guard let conn = connections[port], conn.rtoTask == nil,
               !conn.unacked.isEmpty else { return }
+        let wait = conn.rto
         connections[port]?.rtoTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
             await self?.onRTO(port: port)
         }
     }
 
+    /// jktcp-exact retransmission: head-only segment with exponential back-off
+    /// (0.2s doubling, capped ~6.4s); kill after maxRetries. RTO resets once
+    /// everything is acknowledged.
     private func onRTO(port: UInt16) async {
         guard let conn = connections[port],
               conn.state == .established, !conn.unacked.isEmpty else { return }
@@ -270,25 +276,19 @@ actor TunnelStack {
             fail(port: port, error: StackError.timeout("RTO exhausted"))
             return
         }
-        // Snapshot sequences; re-read live state per retransmit so ACKs
-        // processed concurrently are never clobbered by a stale copy.
-        let pending = conn.unacked.map { ($0.sequence, $0.data) }
-        AppLogger.net.info("Tunnel TCP RTO: retransmitting \(pending.count) segment(s) " +
+        guard let head = conn.unacked.first else { return }
+        AppLogger.net.info("Tunnel TCP RTO: retransmitting \(head.data.count)B " +
                            "on local \(port) (retry \(retries + 1)/\(Self.maxRetries))",
                            event: "tunnel.tcp")
-        for (sequence, data) in pending {
-            guard let current = connections[port],
-                  current.state == .established,
-                  current.unacked.contains(where: { $0.sequence == sequence }) else { continue }
-            try? await sendSegment(local: port, sequence: sequence,
-                                   acknowledgement: current.rcvNxt,
-                                   flags: [.ack, .psh], window: 65535,
-                                   payload: data)
-            if var fresh = connections[port],
-               let index = fresh.unacked.firstIndex(where: { $0.sequence == sequence }) {
-                fresh.unacked[index].retries += 1
-                connections[port] = fresh
-            }
+        try? await sendSegment(local: port, sequence: head.sequence,
+                               acknowledgement: conn.rcvNxt,
+                               flags: [.ack, .psh], window: 65534,
+                               payload: head.data)
+        if var fresh = connections[port],
+           let index = fresh.unacked.firstIndex(where: { $0.sequence == head.sequence }) {
+            fresh.unacked[index].retries += 1
+            fresh.rto = min(fresh.rto * 2, 6.4)
+            connections[port] = fresh
         }
         armRTO(port: port)
     }
@@ -333,7 +333,9 @@ actor TunnelStack {
             guard flags.contains(.syn) && flags.contains(.ack),
                   segment.acknowledgement == conn.sndNxt else { return }
             conn.rcvNxt = segment.sequence &+ 1
-            conn.peerWindow = segment.window
+            // Honor the peer's window scale (jktcp-exact); default shift 0.
+            conn.peerWScale = IPv6.parseWScale(segment.header) ?? 0
+            conn.peerWindow = UInt32(segment.window) << conn.peerWScale
             if IPv6.parseMSS(segment.header) != nil {
                 // Noted; our MSS stays tunnel-derived.
             }
@@ -346,7 +348,7 @@ actor TunnelStack {
                 try? await self.sendSegment(local: segment.dstPort,
                                             sequence: conn.sndNxt,
                                             acknowledgement: conn.rcvNxt,
-                                            flags: [.ack], window: 65535,
+                                            flags: [.ack], window: 65534,
                                             payload: Data())
             }
         case .established, .finWait:
@@ -357,16 +359,20 @@ actor TunnelStack {
                 if acked <= (conn.sndNxt &- conn.sndUna) {
                     conn.sndUna = segment.acknowledgement
                     conn.unacked.removeAll { $0.sequence &+ UInt32($0.data.count) <= segment.acknowledgement }
-                    conn.peerWindow = segment.window
+                    conn.peerWindow = UInt32(segment.window) << conn.peerWScale
                     if conn.unacked.isEmpty {
                         conn.rtoTask?.cancel()
                         conn.rtoTask = nil
+                        conn.rto = Self.initialRTO
                     }
                 }
             } else {
-                conn.peerWindow = segment.window
+                conn.peerWindow = UInt32(segment.window) << conn.peerWScale
             }
-            // In-order data (buffer nothing out of order: ACK + drop, sender retries).
+            // In-order data only (jktcp-exact): expected bytes are buffered
+            // and ACKed; duplicates are re-ACKed without buffering; anything
+            // else is dropped silently (no dup-ACK storm — recovery via RTO).
+            // Keep-alive probes (seq == rcvNxt-1, empty, no FIN) are re-ACKed.
             if !segment.payload.isEmpty {
                 if segment.sequence == conn.rcvNxt {
                     conn.recvBuffer.append(contentsOf: segment.payload)
@@ -375,14 +381,42 @@ actor TunnelStack {
                         conn.pendingRead = nil
                         cont.resume()
                     }
+                    connections[segment.dstPort] = conn
+                    Task { [weak self] in
+                        guard let self else { return }
+                        try? await self.sendSegment(local: segment.dstPort,
+                                                    sequence: conn.sndNxt,
+                                                    acknowledgement: conn.rcvNxt,
+                                                    flags: [.ack], window: 65534,
+                                                    payload: Data())
+                    }
+                } else if segment.sequence &+ UInt32(segment.payload.count) <= conn.rcvNxt {
+                    // Duplicate of already-received bytes: re-ACK, don't buffer.
+                    connections[segment.dstPort] = conn
+                    Task { [weak self] in
+                        guard let self else { return }
+                        try? await self.sendSegment(local: segment.dstPort,
+                                                    sequence: conn.sndNxt,
+                                                    acknowledgement: conn.rcvNxt,
+                                                    flags: [.ack], window: 65534,
+                                                    payload: Data())
+                    }
+                } else {
+                    // Out of order: drop silently.
+                    connections[segment.dstPort] = conn
                 }
+                return
+            }
+            if segment.payload.isEmpty, !flags.contains(.fin),
+               segment.sequence &+ 1 == conn.rcvNxt {
+                // Keep-alive probe: re-ACK without changing state.
                 connections[segment.dstPort] = conn
                 Task { [weak self] in
                     guard let self else { return }
                     try? await self.sendSegment(local: segment.dstPort,
                                                 sequence: conn.sndNxt,
                                                 acknowledgement: conn.rcvNxt,
-                                                flags: [.ack], window: 65535,
+                                                flags: [.ack], window: 65534,
                                                 payload: Data())
                 }
                 return
@@ -400,7 +434,7 @@ actor TunnelStack {
                     try? await self.sendSegment(local: segment.dstPort,
                                                 sequence: conn.sndNxt,
                                                 acknowledgement: conn.rcvNxt,
-                                                flags: [.ack], window: 65535,
+                                                flags: [.ack], window: 65534,
                                                 payload: Data())
                 }
                 return
@@ -415,14 +449,14 @@ actor TunnelStack {
 
     private func sendSegment(local: UInt16, sequence: UInt32,
                              acknowledgement: UInt32, flags: IPv6.Flags,
-                             window: UInt16, mss: UInt16? = nil,
+                             window: UInt16, mss: UInt16? = nil, wscale: UInt8? = nil,
                              payload: Data) async throws {
         guard let serverPort = connections[local]?.serverPort else { return }
         var segment = IPv6.buildSegment(srcPort: local, dstPort: serverPort,
                                         sequence: sequence,
                                         acknowledgement: acknowledgement,
                                         flags: flags, window: window,
-                                        mss: mss, payload: payload)
+                                        mss: mss, wscale: wscale, payload: payload)
         segment = IPv6.withChecksum(src: clientIP, dst: serverIP, segment: segment)
         let packet = IPv6.buildPacket(src: clientIP, dst: serverIP,
                                       nextHeader: 6, payload: segment)

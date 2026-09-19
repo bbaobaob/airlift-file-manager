@@ -243,8 +243,8 @@ final class OnDeviceWireTests: XCTestCase {
         }
     }
 
-    func testXPCKeepaliveReplyRoundTrip() throws {
-        // Device keepalive: bodyless, WantingReply, some message id.
+    func testXPCReplyFlagRoundTrip() throws {
+        // Reply|AlwaysSet bodyless wrapper round-trips (pure codec check).
         let keepalive = XPCCodec.Message(
             flags: XPCCodec.Flag.wantingReply.rawValue, object: nil, messageId: 7)
         let encoded = XPCCodec.encodeMessage(keepalive)
@@ -368,17 +368,17 @@ final class OnDeviceWireTests: XCTestCase {
         XCTAssertNil(handshake.services["broken"])
     }
 
-    func testRSDHandshakeRequestCarriesWantingReply() throws {
-        // The device handshake must ask for a reply (Data|AlwaysSet|
-        // WantingReply = 0x10101) or the device stalls mid-response.
-        var flags = XPCCodec.Flag.data.rawValue | XPCCodec.Flag.alwaysSet.rawValue
-        flags |= XPCCodec.Flag.wantingReply.rawValue
-        XCTAssertEqual(flags, 0x10101)
+    func testRSDHandshakeRequestIsStock() throws {
+        // The device handshake asks for nothing extra (Data|AlwaysSet =
+        // 0x101, stock idevice bytes): every flag/id/window variant tried
+        // stalled the device identically, so the wire stays reference-exact.
+        let flags = XPCCodec.Flag.data.rawValue | XPCCodec.Flag.alwaysSet.rawValue
+        XCTAssertEqual(flags, 0x101)
         let message = XPCCodec.Message(flags: flags,
                                        object: .dictionary([("k", .string("v"))]),
                                        messageId: 1)
         let (decoded, _) = try XPCCodec.decodeMessage(XPCCodec.encodeMessage(message))
-        XCTAssertEqual(decoded.flags, 0x10101)
+        XCTAssertEqual(decoded.flags, 0x101)
         XCTAssertEqual(decoded.messageId, 1)
     }
 

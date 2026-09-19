@@ -74,6 +74,17 @@ final class TunnelTCPTests: XCTestCase {
         XCTAssertNil(IPv6.parseMSS(segment))
     }
 
+    func testTCPWScaleOptionRoundTrip() {
+        // jktcp-exact SYN shape: window 65534 + Window Scale 8, no MSS.
+        let syn = IPv6.buildSegment(srcPort: 40000, dstPort: 80, sequence: 1,
+                                    acknowledgement: 0, flags: [.syn],
+                                    window: 65534, wscale: 8, payload: Data())
+        let parsed = IPv6.parseSegment(syn)
+        XCTAssertEqual(parsed?.headerLength, 24)
+        XCTAssertEqual(IPv6.parseWScale(parsed?.header ?? Data()), 8)
+        XCTAssertNil(IPv6.parseWScale(Data(repeating: 0, count: 20)))
+    }
+
     // MARK: - Loopback TCP: two stacks, scripted responder
 
     /// In-memory packet pipe between exactly two stacks.

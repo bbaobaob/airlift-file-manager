@@ -124,15 +124,20 @@ enum IPv6 {
         let payload: Data
     }
 
-    /// Builds a TCP segment (20-byte header + optional MSS option).
+    /// Builds a TCP segment (20-byte header + options). jktcp-exact: SYN
+    /// carries Window Scale only (no MSS); data segments carry no options.
     static func buildSegment(srcPort: UInt16, dstPort: UInt16,
                              sequence: UInt32, acknowledgement: UInt32,
                              flags: Flags, window: UInt16,
-                             mss: UInt16? = nil, payload: Data = Data()) -> Data {
+                             mss: UInt16? = nil, wscale: UInt8? = nil,
+                             payload: Data = Data()) -> Data {
         var options = Data()
         if let mss {
             options.append(contentsOf: [0x02, 0x04,
                                         UInt8((mss >> 8) & 0xff), UInt8(mss & 0xff)])
+        }
+        if let wscale {
+            options.append(contentsOf: [0x03, 0x04, wscale, 0x00])
         }
         var out = Data()
         out.append(contentsOf: [UInt8((srcPort >> 8) & 0xff), UInt8(srcPort & 0xff)])
@@ -207,6 +212,24 @@ enum IPv6 {
         out[out.startIndex + 16] = UInt8((value >> 8) & 0xff)
         out[out.startIndex + 17] = UInt8(value & 0xff)
         return out
+    }
+
+    /// Parses a TCP window-scale option value from raw header bytes, if present.
+    static func parseWScale(_ header: Data) -> UInt8? {
+        var i = 20
+        while i + 1 < header.count {
+            let kind = header[header.startIndex + i]
+            if kind == 0 { break }
+            if kind == 1 { i += 1; continue }
+            guard i + 1 < header.count else { break }
+            let length = Int(header[header.startIndex + i + 1])
+            guard length >= 2, i + length <= header.count else { break }
+            if kind == 3, length == 4 {
+                return header[header.startIndex + i + 2]
+            }
+            i += length
+        }
+        return nil
     }
 
     /// Parses a TCP MSS option value from raw header bytes, if present.
