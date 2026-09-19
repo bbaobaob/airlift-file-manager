@@ -414,6 +414,15 @@ final class TLSPskSession {
 
     func readAppData(timeout: TimeInterval = 10) async throws -> Data {
         let (contentType, payload) = try await Self.readRecord(stream: stream, timeout: timeout)
+        if contentType == TLSPsk.ctAlert {
+            let level = payload.first ?? 255
+            let description = payload.dropFirst().first ?? 255
+            AppLogger.net.error(
+                "TLS Alert from tunnel: level=\(level) (\(level == 1 ? "warning" : "fatal")), " +
+                "description=\(description) (\(TLSPsk.alertName(description)))",
+                event: "tls.alert")
+            throw TLSPsk.TLSError.alert(level: level, description: description)
+        }
         guard contentType == TLSPsk.ctApplicationData else {
             throw TLSPsk.TLSError.unexpectedRecord(contentType)
         }

@@ -74,6 +74,8 @@ actor TunnelStack {
         conn.peerWindow = 65535
         conn.sndNxt = isn &+ 1
         connections[local] = conn
+        AppLogger.net.info("Tunnel TCP SYN → port \(port) (seq \(isn))",
+                           event: "tunnel.tcp")
         try await sendSegment(local: local, sequence: isn, acknowledgement: 0,
                               flags: [.syn], window: 65535, mss: UInt16(maxSegment),
                               payload: Data())
@@ -309,6 +311,8 @@ actor TunnelStack {
         let flags = segment.flags
 
         if flags.contains(.rst) {
+            AppLogger.net.warning("Tunnel TCP RST on local \(segment.dstPort)",
+                                  event: "tunnel.tcp")
             fail(port: segment.dstPort, error: StackError.reset("peer reset"))
             return
         }
@@ -324,6 +328,8 @@ actor TunnelStack {
             }
             conn.state = .established
             connections[segment.dstPort] = conn
+            AppLogger.net.info("Tunnel TCP established (local \(segment.dstPort))",
+                               event: "tunnel.tcp")
             Task { [weak self] in
                 guard let self else { return }
                 try? await self.sendSegment(local: segment.dstPort,

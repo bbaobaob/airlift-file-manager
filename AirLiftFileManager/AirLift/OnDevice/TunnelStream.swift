@@ -118,6 +118,9 @@ final class TunnelConnector {
         self.info = info
         self.host = host
         writer = TunnelWriter(tls: tls)
+        AppLogger.net.info("Tunnel endpoints: client=\(info.clientAddress) " +
+            "server=\(info.serverAddress) mtu=\(info.mtu) rsdPort=\(info.serverRSDPort)",
+            event: "tunnel.dial")
         if let serverIP = IPv6.parseAddress(info.serverAddress),
            let clientIP = IPv6.parseAddress(info.clientAddress) {
             packetCapable = true
