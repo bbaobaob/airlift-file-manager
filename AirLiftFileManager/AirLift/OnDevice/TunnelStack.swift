@@ -276,7 +276,6 @@ actor TunnelStack {
         AppLogger.net.info("Tunnel TCP RTO: retransmitting \(pending.count) segment(s) " +
                            "on local \(port) (retry \(retries + 1)/\(Self.maxRetries))",
                            event: "tunnel.tcp")
-        let pending = conn.unacked.map { ($0.sequence, $0.data) }
         for (sequence, data) in pending {
             guard let current = connections[port],
                   current.state == .established,

@@ -89,7 +89,11 @@ final class RemoteXPCClient {
             if let message = try takeWholeMessage(channel: Self.rootChannel),
                let object = message.object {
                 let plain = XPCCodec.plainValue(object)
-                if let dict = plain as? [String: Any], dict.isEmpty { continue }
+                if let dict = plain as? [String: Any], dict.isEmpty {
+                    AppLogger.net.info("RSD-XPC: empty-dict keepalive, waiting…",
+                                       event: "rsd.xpc")
+                    continue
+                }
                 guard let dict = plain as? [String: Any] else {
                     throw XPCError.unexpectedResponse("root message is not a dictionary")
                 }
@@ -98,6 +102,9 @@ final class RemoteXPCClient {
                     "keys=\(dict.keys.sorted().joined(separator: ","))",
                     event: "rsd.xpc")
                 return dict
+            } else {
+                AppLogger.net.info("RSD-XPC: partial root buffer, waiting for more…",
+                                   event: "rsd.xpc")
             }
         }
     }
