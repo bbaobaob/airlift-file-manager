@@ -51,6 +51,11 @@ struct CDTunnel {
         guard let json = try? JSONSerialization.jsonObject(with: body, options: []) as? [String: Any] else {
             throw TunnelError.invalidJSON
         }
+        if let pretty = try? JSONSerialization.data(withJSONObject: json,
+                                                    options: [.sortedKeys]),
+           let text = String(data: pretty, encoding: .utf8) {
+            AppLogger.net.info("CDTunnel response JSON: \(text)", event: "tunnel.cdtunnel")
+        }
         func string(_ dict: [String: Any], _ key: String) throws -> String {
             guard let value = dict[key] as? String else { throw TunnelError.missingField(key) }
             return value

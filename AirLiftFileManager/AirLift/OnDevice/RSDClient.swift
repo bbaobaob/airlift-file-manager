@@ -32,7 +32,7 @@ struct RSDClient {
     }
 
     /// Runs the RSD handshake on an already-connected TCP stream.
-    static func handshake(stream: any DataStream, timeout: TimeInterval = 10) async throws -> Handshake {
+    static func handshake(stream: any DataStream, timeout: TimeInterval = 60) async throws -> Handshake {
         let xpc = try await RemoteXPCClient(stream: stream, timeout: timeout)
         try await xpc.doHandshake()
         try await xpc.sendDeviceHandshake()

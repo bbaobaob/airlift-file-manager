@@ -27,18 +27,28 @@ final class RemoteXPCClient {
     // MARK: - Handshake
 
     func doHandshake() async throws {
+        AppLogger.net.info("RSD-XPC: sending magic + SETTINGS + window_update", event: "rsd.xpc")
         try await h2.setSettings()
         try await h2.windowUpdate(increment: 983041, streamId: 0)
         try await h2.openStream(Self.rootChannel)
+        let emptyDict = XPCCodec.encodeMessage(XPCCodec.Message(
+            flags: XPCCodec.Flag.alwaysSet.rawValue,
+            object: .dictionary([]),
+            messageId: rootId))
+        AppLogger.net.info("RSD-XPC: open stream 1, empty dict (\(emptyDict.count)B)",
+                           event: "rsd.xpc")
         try await sendRoot(XPCCodec.Message(
             flags: XPCCodec.Flag.alwaysSet.rawValue,
             object: .dictionary([]),
             messageId: rootId))
         try await h2.openStream(Self.replyChannel)
+        AppLogger.net.info("RSD-XPC: open stream 3, init-handshake (no body)",
+                           event: "rsd.xpc")
         try await sendReply(XPCCodec.Message(
             flags: XPCCodec.Flag.initHandshake.rawValue | XPCCodec.Flag.alwaysSet.rawValue,
             object: nil,
             messageId: rootId))
+        AppLogger.net.info("RSD-XPC: 0x201 flags on stream 1 (no body)", event: "rsd.xpc")
         try await sendRoot(XPCCodec.Message(flags: XPCCodec.Flag.custom201.rawValue,
                                             object: nil,
                                             messageId: rootId))
@@ -56,6 +66,8 @@ final class RemoteXPCClient {
             ])),
             ("Services", .dictionary([])),
         ])
+        let bytes = XPCCodec.encode(object)
+        AppLogger.net.info("RSD-XPC: device handshake object (\(bytes.count)B)", event: "rsd.xpc")
         try await sendObject(object, expectReply: false)
     }
 
@@ -69,8 +81,10 @@ final class RemoteXPCClient {
 
     /// Reads root-channel messages, skipping empty-dictionary keepalives.
     func recvRoot() async throws -> [String: Any] {
+        AppLogger.net.info("RSD-XPC: waiting for root-channel response…", event: "rsd.xpc")
         while true {
             let chunk = try await h2.read(streamId: Self.rootChannel)
+            AppLogger.net.info("RSD-XPC: root chunk \(chunk.count)B", event: "rsd.xpc")
             partial[Self.rootChannel, default: Data()].append(contentsOf: chunk)
             if let message = try takeWholeMessage(channel: Self.rootChannel),
                let object = message.object {
@@ -79,6 +93,10 @@ final class RemoteXPCClient {
                 guard let dict = plain as? [String: Any] else {
                     throw XPCError.unexpectedResponse("root message is not a dictionary")
                 }
+                AppLogger.net.info(
+                    "RSD-XPC: root message flags=\(String(message.flags, radix: 16)) " +
+                    "keys=\(dict.keys.sorted().joined(separator: ","))",
+                    event: "rsd.xpc")
                 return dict
             }
         }

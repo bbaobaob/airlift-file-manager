@@ -180,6 +180,8 @@ final class TunnelConnector {
             while !Task.isCancelled {
                 do {
                     let bytes = try await tls.readAppData(timeout: 30)
+                    AppLogger.net.info("Tunnel pump: inbound TLS record \(bytes.count)B",
+                                       event: "tunnel.pump")
                     await stack.ingest(bytes)
                 } catch {
                     if !Task.isCancelled {

@@ -264,11 +264,18 @@ actor TunnelStack {
         connections[port]?.rtoTask = nil
         let retries = conn.unacked.map(\.retries).max() ?? 0
         guard retries < Self.maxRetries else {
+            AppLogger.net.warning("Tunnel TCP RTO exhausted on local \(port) " +
+                                  "(\(conn.unacked.count) segment(s) unacked)",
+                                  event: "tunnel.tcp")
             fail(port: port, error: StackError.timeout("RTO exhausted"))
             return
         }
         // Snapshot sequences; re-read live state per retransmit so ACKs
         // processed concurrently are never clobbered by a stale copy.
+        let pending = conn.unacked.map { ($0.sequence, $0.data) }
+        AppLogger.net.info("Tunnel TCP RTO: retransmitting \(pending.count) segment(s) " +
+                           "on local \(port) (retry \(retries + 1)/\(Self.maxRetries))",
+                           event: "tunnel.tcp")
         let pending = conn.unacked.map { ($0.sequence, $0.data) }
         for (sequence, data) in pending {
             guard let current = connections[port],
@@ -309,6 +316,11 @@ actor TunnelStack {
               conn.state == .synSent || conn.state == .established
               || conn.state == .finWait else { return }
         let flags = segment.flags
+        AppLogger.net.info(
+            "Tunnel TCP ← flags=\(flagNames(flags)) seq=\(segment.sequence) " +
+            "ack=\(segment.acknowledgement) len=\(segment.payload.count) " +
+            "(local \(segment.dstPort))",
+            event: "tunnel.tcp")
 
         if flags.contains(.rst) {
             AppLogger.net.warning("Tunnel TCP RST on local \(segment.dstPort)",
@@ -415,6 +427,20 @@ actor TunnelStack {
         segment = IPv6.withChecksum(src: clientIP, dst: serverIP, segment: segment)
         let packet = IPv6.buildPacket(src: clientIP, dst: serverIP,
                                       nextHeader: 6, payload: segment)
+        AppLogger.net.info(
+            "Tunnel TCP → flags=\(flagNames(flags)) seq=\(sequence) ack=\(acknowledgement) " +
+            "len=\(payload.count) (local \(local)→\(serverPort), \(packet.count)B IPv6)",
+            event: "tunnel.tcp")
         try await transport.send(packet)
+    }
+
+    private func flagNames(_ flags: IPv6.Flags) -> String {
+        var names: [String] = []
+        if flags.contains(.syn) { names.append("SYN") }
+        if flags.contains(.ack) { names.append("ACK") }
+        if flags.contains(.fin) { names.append("FIN") }
+        if flags.contains(.rst) { names.append("RST") }
+        if flags.contains(.psh) { names.append("PSH") }
+        return names.joined(separator: "+")
     }
 }
