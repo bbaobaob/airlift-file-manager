@@ -46,16 +46,19 @@ final class RemoteXPCClient {
             object: .dictionary([]),
             messageId: 0))
         try await h2.openStream(Self.replyChannel)
+        // NOTE: 0x201 terminator goes BEFORE the reply init-handshake — the
+        // proven stacks emit exactly this order (devicectl/pymobiledevice3)
+        // and the daemon silently drops later bytes when it differs.
+        AppLogger.net.info("RSD-XPC: 0x201 flags on stream 1 (no body)", event: "rsd.xpc")
+        try await sendRoot(XPCCodec.Message(flags: XPCCodec.Flag.custom201.rawValue,
+                                            object: nil,
+                                            messageId: 0))
         AppLogger.net.info("RSD-XPC: open stream 3, init-handshake (no body)",
                            event: "rsd.xpc")
         try await sendReply(XPCCodec.Message(
             flags: XPCCodec.Flag.initHandshake.rawValue | XPCCodec.Flag.alwaysSet.rawValue,
             object: nil,
             messageId: 0))
-        AppLogger.net.info("RSD-XPC: 0x201 flags on stream 1 (no body)", event: "rsd.xpc")
-        try await sendRoot(XPCCodec.Message(flags: XPCCodec.Flag.custom201.rawValue,
-                                            object: nil,
-                                            messageId: 0))
     }
 
     /// Announces this peer as a modern (non-legacy) RemoteXPC client.

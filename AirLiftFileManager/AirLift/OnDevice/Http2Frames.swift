@@ -39,7 +39,8 @@ enum Http2Frames {
         case ping(opaque: Data, acknowledge: Bool)
         /// Benign frame the client doesn't act on (unknown types per RFC 9113
         /// §5.5, PRIORITY/CONTINUATION, …): consumed and skipped, never fatal.
-        case ignored
+        /// Carries the raw type byte + stream for diagnostics.
+        case ignored(type: UInt8, stream: UInt32)
         case goAway(message: String)
         case windowUpdate(stream: UInt32, increment: UInt32)
     }
@@ -150,7 +151,7 @@ enum Http2Frames {
         // Without this, a benign PRIORITY/CONTINUATION/extension frame would
         // kill the connection with an error instead of stalling analysis.
         default:
-            return (.ignored, total)
+            return (.ignored(type: type, stream: stream), total)
         }
     }
 

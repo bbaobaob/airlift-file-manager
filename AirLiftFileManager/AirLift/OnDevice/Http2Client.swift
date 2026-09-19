@@ -150,8 +150,17 @@ final class Http2Client {
                     AppLogger.net.info("h2 ← ping ack=\(acknowledge)",
                                        event: "tunnel.pump")
                     continue
-                case .ignored:
-                    AppLogger.net.info("h2 ← ignored frame", event: "tunnel.pump")
+                case .ignored(let type, let streamId):
+                    AppLogger.net.info(
+                        "h2 ← ignored frame type=0x\(String(type, radix: 16)) stream=\(streamId)",
+                        event: "tunnel.pump")
+                    continue
+                case .headers(let streamId):
+                    // The device opening new streams (or trailers) must be
+                    // visible: a response continued elsewhere would otherwise
+                    // look exactly like a stall.
+                    AppLogger.net.info("h2 ← headers stream=\(streamId)",
+                                       event: "tunnel.pump")
                     continue
                 case .data(let streamId, let payload, _):
                     cache[streamId, default: []].append(payload)
@@ -167,8 +176,6 @@ final class Http2Client {
                             timeout: timeout)
                     }
                     return
-                case .headers:
-                    continue
                 case .goAway(let message):
                     throw ClientError.goAway(message)
                 }

@@ -225,7 +225,7 @@ final class OnDeviceWireTests: XCTestCase {
         raw.append(contentsOf: [0xAA, 0xBB, 0xCC, 0xDD, 0xEE])
         let (parsed, consumed) = try XCTUnwrap(Http2Frames.parse(raw))
         XCTAssertEqual(consumed, raw.count)
-        XCTAssertEqual(parsed, .ignored)
+        XCTAssertEqual(parsed, .ignored(type: 0x02, stream: 1))
     }
 
     func testHTTP2IgnoresUnknownSettings() throws {
