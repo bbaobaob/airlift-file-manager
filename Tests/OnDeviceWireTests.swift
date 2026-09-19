@@ -367,6 +367,40 @@ final class OnDeviceWireTests: XCTestCase {
         XCTAssertNil(handshake.port(for: "com.apple.missing"))
         XCTAssertNil(handshake.services["broken"])
     }
+
+    func testRSDHandshakeRequestCarriesWantingReply() throws {
+        // The device handshake must ask for a reply (Data|AlwaysSet|
+        // WantingReply = 0x10101) or the device stalls mid-response.
+        var flags = XPCCodec.Flag.data.rawValue | XPCCodec.Flag.alwaysSet.rawValue
+        flags |= XPCCodec.Flag.wantingReply.rawValue
+        XCTAssertEqual(flags, 0x10101)
+        let message = XPCCodec.Message(flags: flags,
+                                       object: .dictionary([("k", .string("v"))]),
+                                       messageId: 1)
+        let (decoded, _) = try XPCCodec.decodeMessage(XPCCodec.encodeMessage(message))
+        XCTAssertEqual(decoded.flags, 0x10101)
+        XCTAssertEqual(decoded.messageId, 1)
+    }
+
+    func testRSDHandshakeParsePeerInfoNesting() throws {
+        // Some stacks nest the answer under peer_info; accept either shape.
+        let root: [String: Any] = [
+            "peer_info": [
+                "Services": [
+                    "com.apple.afc.shim.remote": [
+                        "Entitlement": "com.apple.private.mobileafc",
+                        "Port": "4567",
+                    ],
+                ],
+                "MessagingProtocolVersion": Int64(7),
+                "UUID": "nested-uuid",
+            ],
+        ]
+        let handshake = try RSDClient.parseHandshake(root)
+        XCTAssertEqual(handshake.protocolVersion, 7)
+        XCTAssertEqual(handshake.uuid, "nested-uuid")
+        XCTAssertEqual(handshake.port(for: "com.apple.afc.shim.remote"), 4567)
+    }
 }
 
 extension OnDeviceWireTests {

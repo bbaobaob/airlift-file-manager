@@ -40,9 +40,12 @@ struct RSDClient {
         return try parseHandshake(root)
     }
 
-    /// Pure, unit-tested: parses the RSD handshake dictionary.
+    /// Pure, unit-tested: parses the RSD handshake dictionary. Some stacks
+    /// nest the answer under peer_info; fields are accepted at either level.
     static func parseHandshake(_ root: [String: Any]) throws -> Handshake {
-        guard let servicesDict = root["Services"] as? [String: Any] else {
+        let peer = root["peer_info"] as? [String: Any]
+        func value(_ key: String) -> Any? { root[key] ?? peer?[key] }
+        guard let servicesDict = value("Services") as? [String: Any] else {
             throw RSDError.missingServices
         }
         var services: [String: Service] = [:]
@@ -55,11 +58,11 @@ struct RSDClient {
             }
             services[name] = Service(name: name, entitlement: entitlement, port: port)
         }
-        guard let version = root["MessagingProtocolVersion"] as? Int64
-                ?? (root["MessagingProtocolVersion"] as? Int).map(Int64.init) else {
+        guard let version = value("MessagingProtocolVersion") as? Int64
+                ?? (value("MessagingProtocolVersion") as? Int).map(Int64.init) else {
             throw RSDError.missingField("MessagingProtocolVersion")
         }
-        guard let uuid = root["UUID"] as? String else {
+        guard let uuid = value("UUID") as? String else {
             throw RSDError.missingField("UUID")
         }
         return Handshake(services: services, protocolVersion: Int(version), uuid: uuid)

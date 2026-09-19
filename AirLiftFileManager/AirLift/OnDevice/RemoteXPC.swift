@@ -5,9 +5,9 @@ import Foundation
 /// settings + window update, open streams 1 (root) and 3 (reply), empty
 /// dictionary on root, init-handshake on reply, 0x201 flags on root,
 /// device handshake object on root, then root-channel reads skipping
-/// empty-dictionary keepalives, answering WantingReply keepalives with
-/// Reply + the same message id, draining the reply channel the same way,
-/// and reassembling split messages.
+/// empty-dictionary keepalives, answering heartbeat (WantingReply) frames on
+/// the OPPOSITE stream with Reply + the same message id, draining the reply
+/// channel the same way, and reassembling split messages.
 final class RemoteXPCClient {
     static let rootChannel: UInt32 = 1
     static let replyChannel: UInt32 = 3
@@ -30,30 +30,32 @@ final class RemoteXPCClient {
 
     func doHandshake() async throws {
         AppLogger.net.info("RSD-XPC: sending magic + SETTINGS + window_update", event: "rsd.xpc")
-        try await h2.setSettings()
-        try await h2.windowUpdate(increment: 983041, streamId: 0)
+        // 16MB budgets, exactly like the proven tunnel implementations: the
+        // device must never have a reason to pause a multi-frame response.
+        try await h2.setSettings(initialWindowSize: 16 * 1024 * 1024)
+        try await h2.windowUpdate(increment: 16 * 1024 * 1024 - 65535, streamId: 0)
         try await h2.openStream(Self.rootChannel)
         let emptyDict = XPCCodec.encodeMessage(XPCCodec.Message(
             flags: XPCCodec.Flag.alwaysSet.rawValue,
             object: .dictionary([]),
-            messageId: rootId))
+            messageId: 0))
         AppLogger.net.info("RSD-XPC: open stream 1, empty dict (\(emptyDict.count)B)",
                            event: "rsd.xpc")
         try await sendRoot(XPCCodec.Message(
             flags: XPCCodec.Flag.alwaysSet.rawValue,
             object: .dictionary([]),
-            messageId: rootId))
+            messageId: 0))
         try await h2.openStream(Self.replyChannel)
         AppLogger.net.info("RSD-XPC: open stream 3, init-handshake (no body)",
                            event: "rsd.xpc")
         try await sendReply(XPCCodec.Message(
             flags: XPCCodec.Flag.initHandshake.rawValue | XPCCodec.Flag.alwaysSet.rawValue,
             object: nil,
-            messageId: rootId))
+            messageId: 0))
         AppLogger.net.info("RSD-XPC: 0x201 flags on stream 1 (no body)", event: "rsd.xpc")
         try await sendRoot(XPCCodec.Message(flags: XPCCodec.Flag.custom201.rawValue,
                                             object: nil,
-                                            messageId: rootId))
+                                            messageId: 0))
     }
 
     /// Announces this peer as a modern (non-legacy) RemoteXPC client.
@@ -70,7 +72,9 @@ final class RemoteXPCClient {
         ])
         let bytes = XPCCodec.encode(object)
         AppLogger.net.info("RSD-XPC: device handshake object (\(bytes.count)B)", event: "rsd.xpc")
-        try await sendObject(object, expectReply: false)
+        // WantingReply set, like the working tunnel stacks: without it the
+        // device streams only part of its Services response, then stalls.
+        try await sendObject(object, expectReply: true)
     }
 
     // MARK: - Messaging
@@ -119,32 +123,37 @@ final class RemoteXPCClient {
                 event: "rsd.xpc")
             return nil
         }
+        if message.object == nil,
+           isHeartbeatRequest(flags: message.flags, object: nil) {
+            try await answerHeartbeat(id: message.messageId, fromRoot: true)
+            return nil
+        }
         guard let object = message.object else {
             AppLogger.net.info(
                 "RSD-XPC: bodyless frame flags=0x\(String(message.flags, radix: 16)) id=\(message.messageId), continuing…",
                 event: "rsd.xpc")
-            if message.flags & XPCCodec.Flag.wantingReply.rawValue != 0 {
-                AppLogger.net.info(
-                    "RSD-XPC: answering keepalive id=\(message.messageId)",
-                    event: "rsd.xpc")
-                // Reply + AlwaysSet: every other message on this connection
-                // carries bit0, so a bare 0x20000 risks looking malformed.
-                try await sendRoot(XPCCodec.Message(
-                    flags: XPCCodec.Flag.reply.rawValue
-                        | XPCCodec.Flag.alwaysSet.rawValue,
-                    object: nil,
-                    messageId: message.messageId))
-            }
             return nil
         }
         let plain = XPCCodec.plainValue(object)
         if let dict = plain as? [String: Any], dict.isEmpty {
-            AppLogger.net.info("RSD-XPC: empty-dict keepalive, waiting…",
-                               event: "rsd.xpc")
+            AppLogger.net.info(
+                "RSD-XPC: empty-dict flags=0x\(String(message.flags, radix: 16)), waiting…",
+                event: "rsd.xpc")
+            if isHeartbeatRequest(flags: message.flags, object: object) {
+                try await answerHeartbeat(id: message.messageId, fromRoot: true)
+            }
             return nil
         }
         guard let dict = plain as? [String: Any] else {
             throw XPCError.unexpectedResponse("root message is not a dictionary")
+        }
+        // The Services answer may share the channel with precursor messages:
+        // only a dict carrying Services (or peer_info) ends the handshake.
+        guard dict["Services"] != nil || dict["peer_info"] != nil else {
+            AppLogger.net.info(
+                "RSD-XPC: non-Services dict keys=\(dict.keys.sorted().joined(separator: ",")) — waiting…",
+                event: "rsd.xpc")
+            return nil
         }
         AppLogger.net.info(
             "RSD-XPC: root message flags=\(String(message.flags, radix: 16)) " +
@@ -174,20 +183,15 @@ final class RemoteXPCClient {
                 event: "rsd.xpc")
             return nil
         }
+        if message.object == nil,
+           isHeartbeatRequest(flags: message.flags, object: nil) {
+            try await answerHeartbeat(id: message.messageId, fromRoot: false)
+            return nil
+        }
         guard let object = message.object else {
             AppLogger.net.info(
                 "RSD-XPC: bodyless reply frame flags=0x\(String(message.flags, radix: 16)) id=\(message.messageId)",
                 event: "rsd.xpc")
-            if message.flags & XPCCodec.Flag.wantingReply.rawValue != 0 {
-                AppLogger.net.info(
-                    "RSD-XPC: answering reply-channel keepalive id=\(message.messageId)",
-                    event: "rsd.xpc")
-                try await sendReply(XPCCodec.Message(
-                    flags: XPCCodec.Flag.reply.rawValue
-                        | XPCCodec.Flag.alwaysSet.rawValue,
-                    object: nil,
-                    messageId: message.messageId))
-            }
             return nil
         }
         let plain = XPCCodec.plainValue(object)
@@ -200,6 +204,39 @@ final class RemoteXPCClient {
         }
         AppLogger.net.info("RSD-XPC: reply-channel message skipped", event: "rsd.xpc")
         return nil
+    }
+
+    /// Heartbeat predicate, mirroring the proven tunnel stacks: WantingReply
+    /// set, but not itself a reply/init/terminator; bodyless, or an empty
+    /// dictionary without the DATA bit. Anything else bodyless (0x201 echo,
+    /// init echo) is only ever skipped, never answered.
+    private func isHeartbeatRequest(flags: UInt32, object: XPCCodec.Object?) -> Bool {
+        guard flags & XPCCodec.Flag.wantingReply.rawValue != 0 else { return false }
+        guard flags & XPCCodec.Flag.reply.rawValue == 0 else { return false }
+        guard flags & XPCCodec.Flag.initHandshake.rawValue == 0 else { return false }
+        guard flags & 0x0200 == 0 else { return false } // terminator, never a heartbeat
+        guard let object else { return true }
+        if case .dictionary(let entries) = object, entries.isEmpty,
+           flags & XPCCodec.Flag.data.rawValue == 0 { return true }
+        return false
+    }
+
+    /// Answers a heartbeat on the OPPOSITE stream (root<->reply), like the
+    /// working implementations: same-stream answers never unblock the device.
+    private func answerHeartbeat(id: UInt64, fromRoot: Bool) async throws {
+        let reply = XPCCodec.Message(
+            flags: XPCCodec.Flag.alwaysSet.rawValue | XPCCodec.Flag.reply.rawValue,
+            object: nil,
+            messageId: id)
+        if fromRoot {
+            AppLogger.net.info("RSD-XPC: answering root heartbeat on reply id=\(id)",
+                               event: "rsd.xpc")
+            try await sendReply(reply)
+        } else {
+            AppLogger.net.info("RSD-XPC: answering reply heartbeat on root id=\(id)",
+                               event: "rsd.xpc")
+            try await sendRoot(reply)
+        }
     }
 
     private func takeWholeMessage(channel: UInt32) throws -> XPCCodec.Message? {
