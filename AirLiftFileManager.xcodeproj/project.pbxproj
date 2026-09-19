@@ -50,14 +50,11 @@
 		DB5BB99B96E9FE4782B56689 /* AppConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Core/Constants/AppConstants.swift'; sourceTree = SOURCE_ROOT; };
 		54D26DA42D5DC91A912EE1CA /* AppLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Core/Logging/AppLogger.swift'; sourceTree = SOURCE_ROOT; };
 		C2A216E2F7A6999D06D6FFA6 /* Formatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Core/Utilities/Formatters.swift'; sourceTree = SOURCE_ROOT; };
-		C8DA5079C7A61E90ABDB3B3E /* AccessStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AccessStatusView.swift'; sourceTree = SOURCE_ROOT; };
 		76D00CADD38D197D170CB17F /* AirLiftLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftLogView.swift'; sourceTree = SOURCE_ROOT; };
 		9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftSetupRequiredView.swift'; sourceTree = SOURCE_ROOT; };
 		A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftView.swift'; sourceTree = SOURCE_ROOT; };
 		9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/AirLiftViewModel.swift'; sourceTree = SOURCE_ROOT; };
-		981526C5074D22EC1B6E4B0E /* DonBooksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/DonBooksView.swift'; sourceTree = SOURCE_ROOT; };
 		6942558B2B7B98A87F805EA8 /* InAppPairingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/InAppPairingView.swift'; sourceTree = SOURCE_ROOT; };
-		5B302CFC12D540E6C941C96C /* OnDeviceSelfTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/AirLift/OnDeviceSelfTestView.swift'; sourceTree = SOURCE_ROOT; };
 		7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/DirectoryHubView.swift'; sourceTree = SOURCE_ROOT; };
 		95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/DirectoryHubViewModel.swift'; sourceTree = SOURCE_ROOT; };
 		9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Features/Files/FileContextMenu.swift'; sourceTree = SOURCE_ROOT; };
@@ -142,14 +139,11 @@
 		A391E68BF86B5ED18550E03D /* AppConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB5BB99B96E9FE4782B56689 /* AppConstants.swift */; };
 		AB5EBAE185BBCD4CFFCA1784 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54D26DA42D5DC91A912EE1CA /* AppLogger.swift */; };
 		9016B21D84A5DFB7EA192F52 /* Formatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2A216E2F7A6999D06D6FFA6 /* Formatters.swift */; };
-		F4A31366025070BE3059979D /* AccessStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8DA5079C7A61E90ABDB3B3E /* AccessStatusView.swift */; };
 		4A639B81E90427E0436B4E6C /* AirLiftLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76D00CADD38D197D170CB17F /* AirLiftLogView.swift */; };
 		BEF847F7C596C034BB8EDA79 /* AirLiftSetupRequiredView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */; };
 		F724FFDC7D852A38927CCF89 /* AirLiftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */; };
 		D6D109892E93998C39CE9DF1 /* AirLiftViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */; };
-		C0B201BBA2006E64789E5A5A /* DonBooksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 981526C5074D22EC1B6E4B0E /* DonBooksView.swift */; };
 		26438136C1A1EA53285398FB /* InAppPairingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6942558B2B7B98A87F805EA8 /* InAppPairingView.swift */; };
-		8E32BD2F8F9A002A1E5B01A3 /* OnDeviceSelfTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B302CFC12D540E6C941C96C /* OnDeviceSelfTestView.swift */; };
 		5DDBE49D0BDC36752EAE52F0 /* DirectoryHubView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */; };
 		74B9D0C578CB250FBB6EB300 /* DirectoryHubViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */; };
 		2D8C9944A5D83D80CBB0DC2A /* FileContextMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */; };
@@ -244,14 +238,11 @@
 				DB5BB99B96E9FE4782B56689 /* AppConstants.swift */,
 				54D26DA42D5DC91A912EE1CA /* AppLogger.swift */,
 				C2A216E2F7A6999D06D6FFA6 /* Formatters.swift */,
-				C8DA5079C7A61E90ABDB3B3E /* AccessStatusView.swift */,
 				76D00CADD38D197D170CB17F /* AirLiftLogView.swift */,
 				9323CF59404DD78297224E80 /* AirLiftSetupRequiredView.swift */,
 				A0AAA86CBB957F9A54F3B6AE /* AirLiftView.swift */,
 				9C14EBDD7AE15680DA6B61A0 /* AirLiftViewModel.swift */,
-				981526C5074D22EC1B6E4B0E /* DonBooksView.swift */,
 				6942558B2B7B98A87F805EA8 /* InAppPairingView.swift */,
-				5B302CFC12D540E6C941C96C /* OnDeviceSelfTestView.swift */,
 				7367C3B8E123CD2417E022B3 /* DirectoryHubView.swift */,
 				95B46E5769C1E706ACA3CF67 /* DirectoryHubViewModel.swift */,
 				9A179F3B9BE020D4979673C9 /* FileContextMenu.swift */,
@@ -351,14 +342,11 @@
 				A391E68BF86B5ED18550E03D /* AppConstants.swift in Sources */,
 				AB5EBAE185BBCD4CFFCA1784 /* AppLogger.swift in Sources */,
 				9016B21D84A5DFB7EA192F52 /* Formatters.swift in Sources */,
-				F4A31366025070BE3059979D /* AccessStatusView.swift in Sources */,
 				4A639B81E90427E0436B4E6C /* AirLiftLogView.swift in Sources */,
 				BEF847F7C596C034BB8EDA79 /* AirLiftSetupRequiredView.swift in Sources */,
 				F724FFDC7D852A38927CCF89 /* AirLiftView.swift in Sources */,
 				D6D109892E93998C39CE9DF1 /* AirLiftViewModel.swift in Sources */,
-				C0B201BBA2006E64789E5A5A /* DonBooksView.swift in Sources */,
 				26438136C1A1EA53285398FB /* InAppPairingView.swift in Sources */,
-				8E32BD2F8F9A002A1E5B01A3 /* OnDeviceSelfTestView.swift in Sources */,
 				5DDBE49D0BDC36752EAE52F0 /* DirectoryHubView.swift in Sources */,
 				74B9D0C578CB250FBB6EB300 /* DirectoryHubViewModel.swift in Sources */,
 				2D8C9944A5D83D80CBB0DC2A /* FileContextMenu.swift in Sources */,
@@ -540,7 +528,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 94;
+			CURRENT_PROJECT_VERSION = 106;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -565,7 +553,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 94;
+			CURRENT_PROJECT_VERSION = 106;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
