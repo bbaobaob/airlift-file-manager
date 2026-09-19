@@ -25,6 +25,13 @@ projects, which are credited here with their licenses:
 - **AirLift** (`github.com/0xjohnnydev/airlift`) — the Mac-side exploit this
   app honestly reports on but does not reimplement.
   (See its repository for its license.)
+- **AirCard-iOS** (`github.com/Mak5er/AirCard-iOS`) — `GrappaHelper.h/.m`
+  (ported verbatim into `AirLift/OnDevice/`), the `NetworkStatus` interface
+  detection it adapted from SideInstaller, the AirTraffic `com.apple.atc`
+  sync sequence (HostInfo → RequestingSync → ReadyForSync →
+  FinishedSyncingMetadata → AssetManifest → FileComplete over u32LE-length
+  binary plists), and the tunnel-dial candidate order (Wi-Fi first).
+  License: **MIT**.
 
 ## Scope of use in this repository
 

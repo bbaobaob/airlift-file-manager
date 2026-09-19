@@ -394,6 +394,14 @@ final class OnDeviceWireTests: XCTestCase {
         }
     }
 
+    func testGrappaTokenGracefullyNilOnSimulator() {
+        // No AirTraffic private frameworks on the simulator: must return nil,
+        // never crash. (On a real device it may return a real token.)
+        #if targetEnvironment(simulator)
+        XCTAssertNil(GrappaToken.generate())
+        #endif
+    }
+
     func testRSDHandshakeParsePeerInfoNesting() throws {
         let root: [String: Any] = [
             "peer_info": [

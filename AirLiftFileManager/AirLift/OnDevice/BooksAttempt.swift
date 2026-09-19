@@ -147,9 +147,20 @@ enum AirTrafficTriggerError: Error, Equatable {
 
 struct UnimplementedAirTrafficTrigger: AirTrafficTriggering {
     func syncBooks(identifiers: [String], destinations: [String]) async throws {
+        // Exercise the ported Grappa helper so the on-device log proves
+        // whether token minting works here; the token is optional for sync.
+        let token = GrappaToken.generate()
+        let tokenNote: String
+        if let token {
+            tokenNote = "Grappa token minted (\(token.count)B) and ready for " +
+                "HostInfo/RequestingSync."
+        } else {
+            tokenNote = "Grappa token unavailable on this device (see airlift.grappa log)."
+        }
         throw AirTrafficTriggerError.unimplemented(
-            reason: "AirTraffic sync needs AirTrafficHost.framework (Mac-only): the " +
-                "ATCFMessage wire framing is private with no public implementation. " +
-                "Staged \(identifiers.count) asset(s); sync not attempted.")
+            reason: "AirTraffic sync needs the com.apple.atc service exchange " +
+                "(HostInfo → RequestingSync → ReadyForSync → FileComplete), which " +
+                "runs only after RSD yields the service table. " +
+                "Staged \(identifiers.count) asset(s); sync not attempted. \(tokenNote)")
     }
 }

@@ -36,6 +36,18 @@ def scan_sources(base: str, exclude_dirs=frozenset()) -> list[str]:
     return out
 
 
+def scan_objc(base: str) -> tuple[list[str], list[str]]:
+    """Returns (compile_sources [.m], header_refs [.h]) for ObjC/C helpers.
+    Headers get file references only — they are never build-phase entries."""
+    impls, headers = [], []
+    for p in sorted((ROOT / base).rglob("*")):
+        if p.suffix not in (".m", ".h"):
+            continue
+        rel = p.relative_to(ROOT).as_posix()
+        (impls if p.suffix == ".m" else headers).append(rel)
+    return impls, headers
+
+
 def resources() -> list[str]:
     out = []
     assets = ROOT / SRC_DIR / "Resources" / "Assets.xcassets"
@@ -52,6 +64,7 @@ def stable_id(prefix: str, name: str, kind: str) -> str:
 
 def gen() -> str:
     app_sources = scan_sources(SRC_DIR)
+    app_objc, app_headers = scan_objc(SRC_DIR)
     test_sources = scan_sources(TEST_DIR)
     res = resources()
 
@@ -79,6 +92,14 @@ def gen() -> str:
             a(f"\t\t{fr} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = {rel!r}; sourceTree = SOURCE_ROOT; }};")
         else:
             a(f"\t\t{fr} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = {rel!r}; sourceTree = SOURCE_ROOT; }};")
+    for rel in app_objc:
+        name = pathlib.PurePosixPath(rel).name
+        fr = stable_id("file", rel, "ref")
+        a(f"\t\t{fr} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = {rel!r}; sourceTree = SOURCE_ROOT; }};")
+    for rel in app_headers:
+        name = pathlib.PurePosixPath(rel).name
+        fr = stable_id("file", rel, "ref")
+        a(f"\t\t{fr} /* {name} */ = {{isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = {rel!r}; sourceTree = SOURCE_ROOT; }};")
     for rel in test_sources:
         name = pathlib.PurePosixPath(rel).name
         fr = stable_id("tfile", rel, "ref")
@@ -92,8 +113,8 @@ def gen() -> str:
     a(f"\t\t{app_product_id} /* {app_name}.app */ = {{isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = {app_name}.app; sourceTree = BUILT_PRODUCTS_DIR; }};")
     a(f"\t\t{tests_product_id} /* {tests_name}.xctest */ = {{isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = {tests_name}.xctest; sourceTree = BUILT_PRODUCTS_DIR; }};")
 
-    # Build files for sources phase
-    for rel in app_sources:
+    # Build files for sources phase (.m compiles; .h is reference-only)
+    for rel in app_sources + app_objc:
         name = pathlib.PurePosixPath(rel).name
         bf = stable_id("bf", rel, "app")
         fr = stable_id("file", rel, "ref")
@@ -124,7 +145,7 @@ def gen() -> str:
     a(f"\t\t{main_group} /* {app_name} */ = {{")
     a(f"\t\t\tisa = PBXGroup;")
     a(f"\t\t\tchildren = (")
-    for rel in app_sources + test_sources + res:
+    for rel in app_sources + app_objc + app_headers + test_sources + res:
         name = pathlib.PurePosixPath(rel).name
         fr = stable_id("file", rel, "ref") if not rel.startswith(TEST_DIR) else stable_id("tfile", rel, "ref")
         a(f"\t\t\t\t{fr} /* {name} */,")
@@ -156,7 +177,7 @@ def gen() -> str:
         a(f"\t\t\trunOnlyForDeploymentPostprocessing = 0;")
         a(f"\t\t}};")
 
-    sources_phase("AA0000000000000000000030", app_sources, "app")
+    sources_phase("AA0000000000000000000030", app_sources + app_objc, "app")
     sources_phase("AA0000000000000000000031", test_sources, "tests")
 
     a(f"\t\tAA0000000000000000000032 /* Frameworks */ = {{")
@@ -321,6 +342,7 @@ def gen() -> str:
 \t\t\tPRODUCT_NAME = "$(TARGET_NAME)";
 \t\t\tSDKROOT = iphoneos;
 \t\t\tSWIFT_EMIT_LOC_STRINGS = YES;
+\t\t\tSWIFT_OBJC_BRIDGING_HEADER = AirLiftFileManager/AirLift/OnDevice/BridgingHeader.h;
 \t\t\tSWIFT_VERSION = 5.0;
 \t\t\tTARGETED_DEVICE_FAMILY = "1,2";"""
 

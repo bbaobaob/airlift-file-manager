@@ -18,6 +18,7 @@
 		702ECF1CAF436C4EC30C803D /* BooksAttempt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/BooksAttempt.swift'; sourceTree = SOURCE_ROOT; };
 		F04907D25C106ED6F2F3C361 /* BooksState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/BooksState.swift'; sourceTree = SOURCE_ROOT; };
 		45DAB5EB447A3F88B43B844B /* CDTunnel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/CDTunnel.swift'; sourceTree = SOURCE_ROOT; };
+		5554E43E5EFE3C6333EF9A1D /* GrappaToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/GrappaToken.swift'; sourceTree = SOURCE_ROOT; };
 		15B20E88089002ACD0725F9D /* Http2Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/Http2Client.swift'; sourceTree = SOURCE_ROOT; };
 		C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/Http2Frames.swift'; sourceTree = SOURCE_ROOT; };
 		0066EB796DC1896D4AC3C02D /* IPv6.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/IPv6.swift'; sourceTree = SOURCE_ROOT; };
@@ -76,6 +77,9 @@
 		F538173423B3AE7575820DCD /* PermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Services/PermissionService.swift'; sourceTree = SOURCE_ROOT; };
 		8AFA31B6314B43B8764B68AA /* PersistenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/Services/PersistenceService.swift'; sourceTree = SOURCE_ROOT; };
 		FE942AA8441C9EE0CB98C4DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = 'AirLiftFileManager/Resources/Assets.xcassets'; sourceTree = SOURCE_ROOT; };
+		B416A1CA7247176F0F7D1285 /* GrappaHelper.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = 'AirLiftFileManager/AirLift/OnDevice/GrappaHelper.m'; sourceTree = SOURCE_ROOT; };
+		A3DBEDA0763B0B26BFA496A3 /* BridgingHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = 'AirLiftFileManager/AirLift/OnDevice/BridgingHeader.h'; sourceTree = SOURCE_ROOT; };
+		399E402BB2EC5AB58C7D4FFC /* GrappaHelper.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = 'AirLiftFileManager/AirLift/OnDevice/GrappaHelper.h'; sourceTree = SOURCE_ROOT; };
 		B4FAC10075D848869EDD969F /* ActivationPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/ActivationPersistenceTests.swift'; sourceTree = SOURCE_ROOT; };
 		4566AED0D5B5511A645002FD /* AirLiftLaunchGuardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/AirLiftLaunchGuardTests.swift'; sourceTree = SOURCE_ROOT; };
 		8BEADA1D8B00659DB9DA6D95 /* BooksExploitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'Tests/BooksExploitTests.swift'; sourceTree = SOURCE_ROOT; };
@@ -108,6 +112,7 @@
 		0B91DE98270B41F3BAE97AAA /* BooksAttempt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 702ECF1CAF436C4EC30C803D /* BooksAttempt.swift */; };
 		F6711A497D7AAB246740648E /* BooksState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04907D25C106ED6F2F3C361 /* BooksState.swift */; };
 		2D2332E7F0386A8D1B876A2A /* CDTunnel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45DAB5EB447A3F88B43B844B /* CDTunnel.swift */; };
+		186D28391739F39DA87D5522 /* GrappaToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5554E43E5EFE3C6333EF9A1D /* GrappaToken.swift */; };
 		B180C2E97ED69B906B93A0E2 /* Http2Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15B20E88089002ACD0725F9D /* Http2Client.swift */; };
 		3E47B5139CAB7E6C6228F12A /* Http2Frames.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */; };
 		98FBB55BEAE4F0C9CAFA1169 /* IPv6.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0066EB796DC1896D4AC3C02D /* IPv6.swift */; };
@@ -165,6 +170,7 @@
 		3D47D010C981CE3D532354DA /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D11E6EAC5554F7C9B3F27DE /* ErrorHandler.swift */; };
 		5F46C2207EC0C2F562D98C5D /* PermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F538173423B3AE7575820DCD /* PermissionService.swift */; };
 		F254F1DA28DD6DCDC5434D5C /* PersistenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AFA31B6314B43B8764B68AA /* PersistenceService.swift */; };
+		01DABC7FB5F73529999225CD /* GrappaHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = B416A1CA7247176F0F7D1285 /* GrappaHelper.m */; };
 		C73DD091728AFB2D869FD6EF /* ActivationPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4FAC10075D848869EDD969F /* ActivationPersistenceTests.swift */; };
 		0E245C7D3B7CEA2E628C5787 /* AirLiftLaunchGuardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4566AED0D5B5511A645002FD /* AirLiftLaunchGuardTests.swift */; };
 		A555871F55396C38D5B854A2 /* BooksExploitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BEADA1D8B00659DB9DA6D95 /* BooksExploitTests.swift */; };
@@ -208,6 +214,7 @@
 				702ECF1CAF436C4EC30C803D /* BooksAttempt.swift */,
 				F04907D25C106ED6F2F3C361 /* BooksState.swift */,
 				45DAB5EB447A3F88B43B844B /* CDTunnel.swift */,
+				5554E43E5EFE3C6333EF9A1D /* GrappaToken.swift */,
 				15B20E88089002ACD0725F9D /* Http2Client.swift */,
 				C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */,
 				0066EB796DC1896D4AC3C02D /* IPv6.swift */,
@@ -265,6 +272,9 @@
 				0D11E6EAC5554F7C9B3F27DE /* ErrorHandler.swift */,
 				F538173423B3AE7575820DCD /* PermissionService.swift */,
 				8AFA31B6314B43B8764B68AA /* PersistenceService.swift */,
+				B416A1CA7247176F0F7D1285 /* GrappaHelper.m */,
+				A3DBEDA0763B0B26BFA496A3 /* BridgingHeader.h */,
+				399E402BB2EC5AB58C7D4FFC /* GrappaHelper.h */,
 				B4FAC10075D848869EDD969F /* ActivationPersistenceTests.swift */,
 				4566AED0D5B5511A645002FD /* AirLiftLaunchGuardTests.swift */,
 				8BEADA1D8B00659DB9DA6D95 /* BooksExploitTests.swift */,
@@ -313,6 +323,7 @@
 				0B91DE98270B41F3BAE97AAA /* BooksAttempt.swift in Sources */,
 				F6711A497D7AAB246740648E /* BooksState.swift in Sources */,
 				2D2332E7F0386A8D1B876A2A /* CDTunnel.swift in Sources */,
+				186D28391739F39DA87D5522 /* GrappaToken.swift in Sources */,
 				B180C2E97ED69B906B93A0E2 /* Http2Client.swift in Sources */,
 				3E47B5139CAB7E6C6228F12A /* Http2Frames.swift in Sources */,
 				98FBB55BEAE4F0C9CAFA1169 /* IPv6.swift in Sources */,
@@ -370,6 +381,7 @@
 				3D47D010C981CE3D532354DA /* ErrorHandler.swift in Sources */,
 				5F46C2207EC0C2F562D98C5D /* PermissionService.swift in Sources */,
 				F254F1DA28DD6DCDC5434D5C /* PersistenceService.swift in Sources */,
+				01DABC7FB5F73529999225CD /* GrappaHelper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -532,7 +544,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 112;
+			CURRENT_PROJECT_VERSION = 113;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -542,6 +554,7 @@
 			PRODUCT_NAME = "$(TARGET_NAME)";
 			SDKROOT = iphoneos;
 			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_OBJC_BRIDGING_HEADER = AirLiftFileManager/AirLift/OnDevice/BridgingHeader.h;
 			SWIFT_VERSION = 5.0;
 			TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -557,7 +570,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 112;
+			CURRENT_PROJECT_VERSION = 113;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -567,6 +580,7 @@
 			PRODUCT_NAME = "$(TARGET_NAME)";
 			SDKROOT = iphoneos;
 			SWIFT_EMIT_LOC_STRINGS = YES;
+			SWIFT_OBJC_BRIDGING_HEADER = AirLiftFileManager/AirLift/OnDevice/BridgingHeader.h;
 			SWIFT_VERSION = 5.0;
 			TARGETED_DEVICE_FAMILY = "1,2";
 			};
