@@ -10,6 +10,7 @@ final class RemoteXPCClient {
 
     enum XPCError: Error, Equatable {
         case unexpectedResponse(String)
+        case timeout(String)
     }
 
     private let h2: Http2Client
@@ -92,7 +93,10 @@ final class RemoteXPCClient {
     /// alone left those answers stuck for 30s+.
     func recvRoot() async throws -> [String: Any] {
         AppLogger.net.info("RSD-XPC: waiting for root-channel response…", event: "rsd.xpc")
+        // Bounded overall wait: empty TCP ACKs can keep the tunnel pump alive
+        // forever, so silence must end on its own (caller timeout, 5s slices).
         var nudges = 0
+        let maxNudges = max(1, Int(timeout / 5))
         while true {
             // Anything already buffered for the reply channel (it may have
             // arrived while the handshake sends were pumping) is handled first.
@@ -109,8 +113,16 @@ final class RemoteXPCClient {
                 } else if let answer = try await handleReplyChunk(chunk) { return answer }
             } catch TCPStream.StreamError.timeout {
                 nudges += 1
-                AppLogger.net.info("RSD-XPC: still waiting (#\(nudges * 5)s)…",
-                                   event: "rsd.xpc")
+                // Log sparsely (every 30s): per-slice logs spammed the export
+                // while the device trickled empty ACKs.
+                if nudges >= maxNudges {
+                    throw XPCError.timeout(
+                        "no complete root response within \(Int(timeout))s")
+                }
+                if nudges % 6 == 0 {
+                    AppLogger.net.info("RSD-XPC: still waiting (\(nudges * 5)s)…",
+                                       event: "rsd.xpc")
+                }
             }
         }
     }
