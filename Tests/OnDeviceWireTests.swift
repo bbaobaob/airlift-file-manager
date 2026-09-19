@@ -253,12 +253,14 @@ final class OnDeviceWireTests: XCTestCase {
         XCTAssertNil(decoded.object)
         XCTAssertEqual(decoded.flags, XPCCodec.Flag.wantingReply.rawValue)
         XCTAssertEqual(decoded.messageId, 7)
-        // Our answer: Reply + the same message id.
+        // Our answer: Reply|AlwaysSet + the same message id.
         let reply = XPCCodec.Message(
-            flags: XPCCodec.Flag.reply.rawValue, object: nil, messageId: decoded.messageId)
+            flags: XPCCodec.Flag.reply.rawValue | XPCCodec.Flag.alwaysSet.rawValue,
+            object: nil,
+            messageId: decoded.messageId)
         let (decodedReply, _) = try XPCCodec.decodeMessage(XPCCodec.encodeMessage(reply))
         XCTAssertNil(decodedReply.object)
-        XCTAssertEqual(decodedReply.flags, 0x20000)
+        XCTAssertEqual(decodedReply.flags, 0x20001)
         XCTAssertEqual(decodedReply.messageId, 7)
     }
 

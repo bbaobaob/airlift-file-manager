@@ -106,8 +106,11 @@ final class RemoteXPCClient {
                     AppLogger.net.info(
                         "RSD-XPC: answering keepalive id=\(message.messageId)",
                         event: "rsd.xpc")
+                    // Reply + AlwaysSet: every other message on this connection
+                    // carries bit0, so a bare 0x20000 risks looking malformed.
                     try await sendRoot(XPCCodec.Message(
-                        flags: XPCCodec.Flag.reply.rawValue,
+                        flags: XPCCodec.Flag.reply.rawValue
+                            | XPCCodec.Flag.alwaysSet.rawValue,
                         object: nil,
                         messageId: message.messageId))
                 }
