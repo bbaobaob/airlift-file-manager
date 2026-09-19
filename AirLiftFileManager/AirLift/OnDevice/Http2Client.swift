@@ -74,7 +74,9 @@ final class Http2Client {
     // MARK: - Inbound
 
     /// Next buffered payload from any of the streams, with its stream id.
-    func readAny(_ streamIds: [UInt32]) async throws -> (UInt32, Data) {
+    /// With `timeout`, each pump wait is bounded (default: the connection
+    /// timeout) so callers can nudge-and-retry instead of blocking.
+    func readAny(_ streamIds: [UInt32], timeout: TimeInterval? = nil) async throws -> (UInt32, Data) {
         for id in streamIds { cache[id] = cache[id] ?? [] }
         while true {
             for id in streamIds {
@@ -83,7 +85,7 @@ final class Http2Client {
                     return (id, data)
                 }
             }
-            try await pump()
+            try await pump(timeout: timeout)
         }
     }
 
@@ -107,7 +109,26 @@ final class Http2Client {
         return data
     }
 
-    private func pump() async throws {
+    /// Mid-wait stimulus while a large response is stuck: H2 PING plus
+    /// connection/stream window top-ups. Harmless per RFC (PING solicits an
+    /// ack; WINDOW_UPDATEs are cumulative) and diagnostic: a PING ack proves
+    /// the peer's H2 is alive while the response is withheld. Never throws —
+    /// a dead transport surfaces through the pending read instead.
+    func nudge() async {
+        AppLogger.net.info("h2 → nudge (ping + window top-up)", event: "tunnel.pump")
+        let opaque = Data((0..<8).map { _ in UInt8.random(in: 0...255) })
+        try? await stream.write(Http2Frames.ping(opaque: opaque, acknowledge: false),
+                                timeout: timeout)
+        for id: UInt32 in [0, Self.rootHint, Self.replyHint] {
+            try? await stream.write(Http2Frames.windowUpdate(increment: 1_048_576, stream: id),
+                                    timeout: timeout)
+        }
+    }
+
+    private static let rootHint: UInt32 = 1
+    private static let replyHint: UInt32 = 3
+
+    private func pump(timeout pumpTimeout: TimeInterval? = nil) async throws {
         while true {
             if let (frame, consumed) = try Http2Frames.parse(recvBuffer) {
                 recvBuffer = Data(recvBuffer.dropFirst(consumed))
@@ -181,7 +202,8 @@ final class Http2Client {
                 }
             } else {
                 let chunk = try await stream.readExactly(
-                    min(16384, max(1, 16384 - recvBuffer.count)), timeout: timeout)
+                    min(16384, max(1, 16384 - recvBuffer.count)),
+                    timeout: pumpTimeout ?? timeout)
                 if chunk.isEmpty { throw ClientError.closed }
                 recvBuffer.append(contentsOf: chunk)
             }

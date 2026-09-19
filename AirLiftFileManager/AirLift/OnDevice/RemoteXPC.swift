@@ -100,18 +100,28 @@ final class RemoteXPCClient {
     /// alone left those answers stuck for 30s+.
     func recvRoot() async throws -> [String: Any] {
         AppLogger.net.info("RSD-XPC: waiting for root-channel response…", event: "rsd.xpc")
+        var nudges = 0
         while true {
             // Anything already buffered for the reply channel (it may have
             // arrived while the handshake sends were pumping) is handled first.
             if let cached = h2.poll(streamId: Self.replyChannel),
                let answer = try await handleReplyChunk(cached) { return answer }
-            // Block for the next chunk on EITHER channel so a reply-channel
-            // keepalive is answered within milliseconds of arrival.
-            let (streamId, chunk) = try await h2.readAny(
-                [Self.rootChannel, Self.replyChannel])
-            if streamId == Self.rootChannel {
-                if let answer = try await handleRootChunk(chunk) { return answer }
-            } else if let answer = try await handleReplyChunk(chunk) { return answer }
+            // Bounded waits: every 5s of silence we PING + top up windows
+            // (harmless per RFC) instead of blocking until the tunnel dies.
+            // A PING ack proves the peer is alive; anything else fatal still
+            // throws straight through.
+            do {
+                let (streamId, chunk) = try await h2.readAny(
+                    [Self.rootChannel, Self.replyChannel], timeout: 5)
+                if streamId == Self.rootChannel {
+                    if let answer = try await handleRootChunk(chunk) { return answer }
+                } else if let answer = try await handleReplyChunk(chunk) { return answer }
+            } catch TCPStream.StreamError.timeout {
+                nudges += 1
+                AppLogger.net.info("RSD-XPC: 5s silence (#\(nudges)), nudging…",
+                                   event: "rsd.xpc")
+                await h2.nudge()
+            }
         }
     }
 
