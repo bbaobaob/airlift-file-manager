@@ -34,8 +34,8 @@ enum IPv6 {
         var groups: [UInt16] = []
         func parseGroups(_ part: Substring, into out: inout [UInt16]) -> Bool {
             if part.isEmpty { return true }
-            for piece in part.split(separator: ":") {
-                // Empty pieces (from ":::" or leading ":") are invalid;
+            for piece in part.split(separator: ":", omittingEmptySubsequences: false) {
+                // Empty pieces (from ":::" or a leading ":") are invalid;
                 // "::" compression is handled by the caller split only.
                 guard !piece.isEmpty, let value = UInt16(piece, radix: 16) else {
                     return false
