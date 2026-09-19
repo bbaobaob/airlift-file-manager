@@ -80,11 +80,12 @@ actor TunnelStack {
         connections[local] = conn
         AppLogger.net.info("Tunnel TCP SYN → port \(port) (seq \(isn))",
                            event: "tunnel.tcp")
-        // MSS-shaped SYN (no window scale): on this path the wscale SYN
-        // provoked instant tunnel teardowns, while the MSS SYN keeps the
-        // channel alive through the whole preamble.
+        // jktcp-exact SYN (AirCard): window 65534 + Window Scale 8, no MSS.
+        // Bisect note: the MSS SYN kept the channel silently stalled while
+        // this shape once coincided with an instant teardown — if the kill
+        // returns, the SYN shape is its trigger and this gets reverted.
         try await sendSegment(local: local, sequence: isn, acknowledgement: 0,
-                              flags: [.syn], window: 65535, mss: UInt16(maxSegment),
+                              flags: [.syn], window: 65534, wscale: 8,
                               payload: Data())
         let deadline = Date().addingTimeInterval(timeout)
         while Date() < deadline {
