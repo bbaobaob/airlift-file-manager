@@ -142,9 +142,24 @@ final class TunnelConnector {
         pumpTask?.cancel()
     }
 
-    /// Dial a service port on the device. Direct first, packet-layer fallback.
+    /// Dial a service port on the device. Kernel TCP straight to the CDTunnel
+    /// server endpoint first: RSD/service ports listen on that address
+    /// (fdxx::1), routable via the LocalDevVPN utun — the proven path used by
+    /// every working on-device stack. Packet-layer TCP through the held-open
+    /// tunnel remains as fallback.
     func connect(port: UInt16, label: String,
                  timeout: TimeInterval = 10) async throws -> any DataStream {
+        do {
+            let direct = try await TCPStream(host: info.serverAddress, port: port, timeout: 3)
+            AppLogger.net.info("\(label): direct TCP [\(info.serverAddress)]:\(port) answered",
+                               event: "tunnel.dial")
+            return direct
+        } catch {
+            AppLogger.net.info(
+                "\(label): direct TCP [\(info.serverAddress)]:\(port) failed (\(error)) — " +
+                "trying \(host):\(port)",
+                event: "tunnel.dial")
+        }
         if !directUnreachable {
             do {
                 let direct = try await TCPStream(host: host, port: port, timeout: 3)

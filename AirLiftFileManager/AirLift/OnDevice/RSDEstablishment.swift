@@ -82,10 +82,10 @@ struct RSDEstablisher {
         }
         emit("RSD tunnel established (direct TCP via LocalDevVPN + handshake; RSD port \(tunnel.serverRSDPort))")
 
-        // From here every service port goes through the connector: direct
-        // TCP first (works where the bridge reaches), packet-layer TCP
-        // through the held-open tunnel as fallback (RSD/AFC only listen
-        // on the tunnel endpoint — proven by timeout on-device).
+        // From here every service port goes through the connector: kernel TCP
+        // straight to the CDTunnel server endpoint first (RSD/AFC listen
+        // there, routable via LocalDevVPN), packet-layer TCP through the
+        // held-open tunnel as fallback.
         let connector = TunnelConnector(tls: tls, info: tunnel, host: host)
         let rsdStream = try await mapError(step: "RSD TCP") {
             try await connector.connect(port: tunnel.serverRSDPort, label: "RSD")
