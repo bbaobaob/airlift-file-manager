@@ -98,6 +98,15 @@ final class Http2Client {
         }
     }
 
+    /// Non-blocking drain of already-buffered payloads for a stream (inbound
+    /// frames for it were pumped while reading another stream). Returns nil
+    /// when nothing is buffered — never suspends.
+    func poll(streamId: UInt32) -> Data? {
+        guard let data = cache[streamId]?.first else { return nil }
+        cache[streamId]?.removeFirst()
+        return data
+    }
+
     private func pump() async throws {
         while true {
             if let (frame, consumed) = try Http2Frames.parse(recvBuffer) {

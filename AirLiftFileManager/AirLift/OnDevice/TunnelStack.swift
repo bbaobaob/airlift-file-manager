@@ -318,7 +318,7 @@ actor TunnelStack {
         AppLogger.net.info(
             "Tunnel TCP ← flags=\(flagNames(flags)) seq=\(segment.sequence) " +
             "ack=\(segment.acknowledgement) len=\(segment.payload.count) " +
-            "(local \(segment.dstPort))",
+            "win=\(segment.window) (local \(segment.dstPort))",
             event: "tunnel.tcp")
 
         if flags.contains(.rst) {

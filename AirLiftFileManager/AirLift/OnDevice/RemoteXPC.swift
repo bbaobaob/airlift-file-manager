@@ -6,7 +6,8 @@ import Foundation
 /// dictionary on root, init-handshake on reply, 0x201 flags on root,
 /// device handshake object on root, then root-channel reads skipping
 /// empty-dictionary keepalives, answering WantingReply keepalives with
-/// Reply + the same message id, and reassembling split messages.
+/// Reply + the same message id, draining the reply channel the same way,
+/// and reassembling split messages.
 final class RemoteXPCClient {
     static let rootChannel: UInt32 = 1
     static let replyChannel: UInt32 = 3
@@ -88,6 +89,11 @@ final class RemoteXPCClient {
     func recvRoot() async throws -> [String: Any] {
         AppLogger.net.info("RSD-XPC: waiting for root-channel response…", event: "rsd.xpc")
         while true {
+            // The device also talks on the reply channel (stream 3, e.g. its
+            // init-handshake answer). Drain it opportunistically: its keepalives
+            // get answered, anything else is logged, and a Services dictionary
+            // is accepted wherever it arrives.
+            if let viaReply = try await drainReplyChannel() { return viaReply }
             let chunk = try await h2.read(streamId: Self.rootChannel)
             AppLogger.net.info("RSD-XPC: root chunk \(chunk.count)B", event: "rsd.xpc")
             partial[Self.rootChannel, default: Data()].append(contentsOf: chunk)
@@ -139,6 +145,48 @@ final class RemoteXPCClient {
 
     private func sendReply(_ message: XPCCodec.Message) async throws {
         try await h2.send(XPCCodec.encodeMessage(message), streamId: Self.replyChannel)
+    }
+
+    /// Non-blocking drain of the reply channel. Answers WantingReply keepalives
+    /// on stream 3 (the device may gate further root responses on them) and
+    /// returns a Services dictionary if one arrives off the root channel.
+    private func drainReplyChannel() async throws -> [String: Any]? {
+        guard let chunk = h2.poll(streamId: Self.replyChannel) else { return nil }
+        AppLogger.net.info("RSD-XPC: reply chunk \(chunk.count)B", event: "rsd.xpc")
+        partial[Self.replyChannel, default: Data()].append(contentsOf: chunk)
+        guard let message = try takeWholeMessage(channel: Self.replyChannel) else {
+            let buffered = partial[Self.replyChannel]?.count ?? 0
+            AppLogger.net.info(
+                "RSD-XPC: partial reply buffer (have \(buffered)B, need \(neededBytes(channel: Self.replyChannel))B)",
+                event: "rsd.xpc")
+            return nil
+        }
+        guard let object = message.object else {
+            AppLogger.net.info(
+                "RSD-XPC: bodyless reply frame flags=0x\(String(message.flags, radix: 16)) id=\(message.messageId)",
+                event: "rsd.xpc")
+            if message.flags & XPCCodec.Flag.wantingReply.rawValue != 0 {
+                AppLogger.net.info(
+                    "RSD-XPC: answering reply-channel keepalive id=\(message.messageId)",
+                    event: "rsd.xpc")
+                try await sendReply(XPCCodec.Message(
+                    flags: XPCCodec.Flag.reply.rawValue
+                        | XPCCodec.Flag.alwaysSet.rawValue,
+                    object: nil,
+                    messageId: message.messageId))
+            }
+            return nil
+        }
+        let plain = XPCCodec.plainValue(object)
+        if let dict = plain as? [String: Any], !dict.isEmpty,
+           dict["Services"] != nil {
+            AppLogger.net.info(
+                "RSD-XPC: Services arrived on reply channel keys=\(dict.keys.sorted().joined(separator: ","))",
+                event: "rsd.xpc")
+            return dict
+        }
+        AppLogger.net.info("RSD-XPC: reply-channel message skipped", event: "rsd.xpc")
+        return nil
     }
 
     private func takeWholeMessage(channel: UInt32) throws -> XPCCodec.Message? {
