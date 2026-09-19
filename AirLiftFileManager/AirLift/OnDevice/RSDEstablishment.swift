@@ -99,7 +99,27 @@ struct RSDEstablisher {
             try await verifier.createTunnelListener(encryptionKey: encryptionKey)
         }
 
-        let tunnelStream = try await connect(step: "tunnel TCP", port: tunnelPort)
+        // The listener names a port but no host: sweep Wi-Fi first, then the
+        // VPN peer (AirCard order) — first answer wins.
+        let tunnelHosts = NetworkStatus.tunnelHostCandidates() + [host]
+        emit("Tunnel listener port \(tunnelPort), candidates: \(tunnelHosts.joined(separator: ", "))")
+        var tunnelStream: TCPStream?
+        var tunnelError = ""
+        for candidate in tunnelHosts {
+            do {
+                tunnelStream = try await TCPStream(host: candidate, port: tunnelPort,
+                                                   timeout: 3)
+                emit("Tunnel TCP via \(candidate):\(tunnelPort) answered")
+                break
+            } catch {
+                tunnelError = String(describing: error)
+                emit("Tunnel TCP via \(candidate):\(tunnelPort) failed (\(error))")
+            }
+        }
+        guard let tunnelStream else {
+            throw OnDeviceChain.ChainError.stepFailed(
+                step: "tunnel TCP", reason: "no candidate answered: \(tunnelError)")
+        }
         let tls = try await mapError(step: "TLS-PSK handshake") {
             try await TLSPskSession.handshake(stream: tunnelStream, psk: encryptionKey,
                                               timeout: timeout)

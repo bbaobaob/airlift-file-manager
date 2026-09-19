@@ -382,8 +382,19 @@ final class OnDeviceWireTests: XCTestCase {
         XCTAssertEqual(decoded.messageId, 1)
     }
 
+    func testNetworkStatusHelpers() {
+        XCTAssertEqual(NetworkStatus.ipv4Value("10.7.0.1"), 0x0A070001)
+        XCTAssertNil(NetworkStatus.ipv4Value("not-an-ip"))
+        XCTAssertTrue(NetworkStatus.isTunnelInterface("utun3"))
+        XCTAssertTrue(NetworkStatus.isTunnelInterface("ipsec0"))
+        XCTAssertFalse(NetworkStatus.isTunnelInterface("en0"))
+        // Candidates never include tunnel or loopback interfaces.
+        for candidate in NetworkStatus.tunnelHostCandidates() {
+            XCTAssertFalse(candidate.hasPrefix("127."))
+        }
+    }
+
     func testRSDHandshakeParsePeerInfoNesting() throws {
-        // Some stacks nest the answer under peer_info; accept either shape.
         let root: [String: Any] = [
             "peer_info": [
                 "Services": [

@@ -21,6 +21,7 @@
 		15B20E88089002ACD0725F9D /* Http2Client.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/Http2Client.swift'; sourceTree = SOURCE_ROOT; };
 		C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/Http2Frames.swift'; sourceTree = SOURCE_ROOT; };
 		0066EB796DC1896D4AC3C02D /* IPv6.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/IPv6.swift'; sourceTree = SOURCE_ROOT; };
+		2E280F5BE64AEED7A7522690 /* NetworkStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/NetworkStatus.swift'; sourceTree = SOURCE_ROOT; };
 		436A19A7F3C5FC8DF58527A3 /* OPACK.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/OPACK.swift'; sourceTree = SOURCE_ROOT; };
 		DCEAF7590B16D331A6F0B3C6 /* OnDeviceChain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/OnDeviceChain.swift'; sourceTree = SOURCE_ROOT; };
 		1DCF0240588A2DB410842821 /* PairingAcceptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = 'AirLiftFileManager/AirLift/OnDevice/PairingAcceptor.swift'; sourceTree = SOURCE_ROOT; };
@@ -110,6 +111,7 @@
 		B180C2E97ED69B906B93A0E2 /* Http2Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15B20E88089002ACD0725F9D /* Http2Client.swift */; };
 		3E47B5139CAB7E6C6228F12A /* Http2Frames.swift in Sources */ = {isa = PBXBuildFile; fileRef = C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */; };
 		98FBB55BEAE4F0C9CAFA1169 /* IPv6.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0066EB796DC1896D4AC3C02D /* IPv6.swift */; };
+		7A36E2E00F032F6489755B45 /* NetworkStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E280F5BE64AEED7A7522690 /* NetworkStatus.swift */; };
 		B7B5CCA2D4FEE0FC05DF4DE9 /* OPACK.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436A19A7F3C5FC8DF58527A3 /* OPACK.swift */; };
 		61B4C17A9E2FF6C251E2938E /* OnDeviceChain.swift in Sources */ = {isa = PBXBuildFile; fileRef = DCEAF7590B16D331A6F0B3C6 /* OnDeviceChain.swift */; };
 		968BAE513A7612D1491083BE /* PairingAcceptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DCF0240588A2DB410842821 /* PairingAcceptor.swift */; };
@@ -209,6 +211,7 @@
 				15B20E88089002ACD0725F9D /* Http2Client.swift */,
 				C26AAA2F757F26C4F49C5F3A /* Http2Frames.swift */,
 				0066EB796DC1896D4AC3C02D /* IPv6.swift */,
+				2E280F5BE64AEED7A7522690 /* NetworkStatus.swift */,
 				436A19A7F3C5FC8DF58527A3 /* OPACK.swift */,
 				DCEAF7590B16D331A6F0B3C6 /* OnDeviceChain.swift */,
 				1DCF0240588A2DB410842821 /* PairingAcceptor.swift */,
@@ -313,6 +316,7 @@
 				B180C2E97ED69B906B93A0E2 /* Http2Client.swift in Sources */,
 				3E47B5139CAB7E6C6228F12A /* Http2Frames.swift in Sources */,
 				98FBB55BEAE4F0C9CAFA1169 /* IPv6.swift in Sources */,
+				7A36E2E00F032F6489755B45 /* NetworkStatus.swift in Sources */,
 				B7B5CCA2D4FEE0FC05DF4DE9 /* OPACK.swift in Sources */,
 				61B4C17A9E2FF6C251E2938E /* OnDeviceChain.swift in Sources */,
 				968BAE513A7612D1491083BE /* PairingAcceptor.swift in Sources */,
@@ -528,7 +532,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 106;
+			CURRENT_PROJECT_VERSION = 112;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
@@ -553,7 +557,7 @@
 			CODE_SIGNING_REQUIRED = NO;
 			CODE_SIGNING_ALLOWED = NO;
 			DEVELOPMENT_TEAM = "";
-			CURRENT_PROJECT_VERSION = 106;
+			CURRENT_PROJECT_VERSION = 112;
 			GENERATE_INFOPLIST_FILE = NO;
 			INFOPLIST_FILE = AirLiftFileManager/Resources/Info.plist;
 			IPHONEOS_DEPLOYMENT_TARGET = 26.0;
